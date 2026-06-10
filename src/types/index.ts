@@ -4,6 +4,15 @@ export interface Radio {
   tipo: "comercial" | "comunitaria";
 }
 
+export interface RadioStreamInfo {
+  municipio: string;
+  nome: string;
+  radiosId: number;
+  radiosUrl: string;
+  title: string;
+  streamUrl: string | null;
+}
+
 export interface MunicipioData {
   regiao: string;
   radios: Radio[];

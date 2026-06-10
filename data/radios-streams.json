@@ -1,0 +1,394 @@
+{
+  "Aracaju|Fan FM": {
+    "municipio": "Aracaju",
+    "nome": "Fan FM",
+    "radiosId": 22355,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-fan-997-fm/22355",
+    "title": "Rádio Fan 99.7 FM",
+    "streamUrl": "https://08.stmip.net:7114/stream"
+  },
+  "Aracaju|Metropolitana FM": {
+    "municipio": "Aracaju",
+    "nome": "Metropolitana FM",
+    "radiosId": 58856,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-metropolitana-905-fm/58856",
+    "title": "Rádio Metropolitana 90.5 FM",
+    "streamUrl": "https://ice.fabricahost.com.br/metropolitanaaracaju"
+  },
+  "Aracaju|Jornal FM": {
+    "municipio": "Aracaju",
+    "nome": "Jornal FM",
+    "radiosId": 13492,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-jornal-913-fm/13492",
+    "title": "Rádio Jornal 91.3 FM",
+    "streamUrl": "https://str1.streamhostpg.com.br:8124/stream"
+  },
+  "Aracaju|Jovem Pan FM": {
+    "municipio": "Aracaju",
+    "nome": "Jovem Pan FM",
+    "radiosId": 13390,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-jovem-pan-887-fm/13390",
+    "title": "Rádio Jovem Pan 88.7 FM",
+    "streamUrl": "https://8060.brasilstream.com.br/stream"
+  },
+  "Aracaju|Rio FM": {
+    "municipio": "Aracaju",
+    "nome": "Rio FM",
+    "radiosId": 13416,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-rio-fm-1023/13416",
+    "title": "Rádio Rio FM 102.3",
+    "streamUrl": "http://1.stmip.net:8010/stream"
+  },
+  "Aracaju|Cultura FM": {
+    "municipio": "Aracaju",
+    "nome": "Cultura FM",
+    "radiosId": 12285,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-cultura-1075-fm/12285",
+    "title": "Rádio Cultura 107.5 FM",
+    "streamUrl": "https://live.paineldj.com.br/proxy/cultura670hd"
+  },
+  "Aracaju|103 FM": {
+    "municipio": "Aracaju",
+    "nome": "103 FM",
+    "radiosId": 37,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-103-fm/37",
+    "title": "Rádio 103 FM",
+    "streamUrl": "https://stm1.voxcast.com.br:7030/stream"
+  },
+  "Aracaju|Xodó FM": {
+    "municipio": "Aracaju",
+    "nome": "Xodó FM",
+    "radiosId": 36396,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-xodo-899-fm/36396",
+    "title": "Rádio Xodó 89.9 FM",
+    "streamUrl": "https://09.stmip.net:8824/stream"
+  },
+  "Aracaju|Imprensa FM": {
+    "municipio": "Aracaju",
+    "nome": "Imprensa FM",
+    "radiosId": 272352,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-imprensa-1059-fm/272352",
+    "title": "Rádio Imprensa 105.9 FM",
+    "streamUrl": "https://stm3.srvif.com:7432/stream"
+  },
+  "Aracaju|Anchieta FM": {
+    "municipio": "Aracaju",
+    "nome": "Anchieta FM",
+    "radiosId": 24825,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-anchieta-1059-fm/24825",
+    "title": "Rádio Anchieta 105.9 FM",
+    "streamUrl": "https://casthttps.suaradionanet.net/10578/stream"
+  },
+  "Itabaiana|Itabaiana FM": {
+    "municipio": "Itabaiana",
+    "nome": "Itabaiana FM",
+    "radiosId": 13167,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-itabaiana-931-fm/13167",
+    "title": "Rádio Itabaiana 93.1 FM",
+    "streamUrl": "https://streaming.livespanel.com:20931/itabaianafm"
+  },
+  "Itabaiana|Capital FM": {
+    "municipio": "Itabaiana",
+    "nome": "Capital FM",
+    "radiosId": 11172,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-capital-do-agreste-1017-fm/11172",
+    "title": "Rádio Capital do Agreste 101.7 FM",
+    "streamUrl": "https://hts09.brascast.com:8604/stream"
+  },
+  "Itabaiana|Nova Princesa FM": {
+    "municipio": "Itabaiana",
+    "nome": "Nova Princesa FM",
+    "radiosId": 14338,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nova-princesa-993-fm/14338",
+    "title": "Rádio Nova Princesa 99.3 FM",
+    "streamUrl": "http://1.stmip.net:8048/stream"
+  },
+  "Itabaiana|Princesa FM": {
+    "municipio": "Itabaiana",
+    "nome": "Princesa FM",
+    "radiosId": 18365,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-princesa-da-serra-975-fm/18365",
+    "title": "Rádio Princesa da Serra 97.5 FM",
+    "streamUrl": "https://player.painelvox.com/player-ssl/8522/"
+  },
+  "Frei Paulo|Educadora FM": {
+    "municipio": "Frei Paulo",
+    "nome": "Educadora FM",
+    "radiosId": 12884,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-educadora-895-fm/12884",
+    "title": "Rádio Educadora 89.5 FM",
+    "streamUrl": "https://str1.streamhostpg.com.br:8016/stream"
+  },
+  "São Domingos|São Domingos FM": {
+    "municipio": "São Domingos",
+    "nome": "São Domingos FM",
+    "radiosId": 32416,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-sao-domingos-1049-fm/32416",
+    "title": "Rádio São Domingos 104.9 FM",
+    "streamUrl": "https://stm20.srvaudio.com.br:9318/stream"
+  },
+  "Canindé de São Francisco|Xingó FM": {
+    "municipio": "Canindé de São Francisco",
+    "nome": "Xingó FM",
+    "radiosId": 18436,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-xingo-987-fm/18436",
+    "title": "Rádio Xingó 98.7 FM",
+    "streamUrl": "https://8406.brasilstream.com.br/stream"
+  },
+  "Canindé de São Francisco|Amanhecer FM": {
+    "municipio": "Canindé de São Francisco",
+    "nome": "Amanhecer FM",
+    "radiosId": 71271,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-amanhecer-1049-fm/71271",
+    "title": "Rádio Amanhecer 104.9 FM",
+    "streamUrl": "http://stm1.stmsrv.com:8320/stream"
+  },
+  "Porto da Folha|Rio FM": {
+    "municipio": "Porto da Folha",
+    "nome": "Rio FM",
+    "radiosId": 30033,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-rio-891-fm/30033",
+    "title": "Rádio Rio 89.1 FM",
+    "streamUrl": "http://1.stmip.net:8088/stream"
+  },
+  "Porto da Folha|Sertão FM": {
+    "municipio": "Porto da Folha",
+    "nome": "Sertão FM",
+    "radiosId": 138758,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-sertao-1049-fm/138758",
+    "title": "Rádio Sertão 104.9 FM",
+    "streamUrl": "https://glaudiotecnology.srv.br/listen/r%C3%A1dio_sert%C3%A3o_104.9_fm/sertaofm104.9"
+  },
+  "Nossa Senhora da Glória|Xodó FM": {
+    "municipio": "Nossa Senhora da Glória",
+    "nome": "Xodó FM",
+    "radiosId": 18981,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-xodo-989-fm/18981",
+    "title": "Rádio Xodó 98.9 FM",
+    "streamUrl": "https://13.stmip.net:2328/stream"
+  },
+  "Nossa Senhora da Glória|Boca da Mata FM": {
+    "municipio": "Nossa Senhora da Glória",
+    "nome": "Boca da Mata FM",
+    "radiosId": 15060,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-fm-boca-da-mata-1049/15060",
+    "title": "Rádio FM Boca da Mata 104.9",
+    "streamUrl": "https://servidor37-5.brlogic.com:8382/live"
+  },
+  "Aquidabã|Aquidabã FM": {
+    "municipio": "Aquidabã",
+    "nome": "Aquidabã FM",
+    "radiosId": 9588,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-aquidaba-1049-fm/9588",
+    "title": "Rádio Aquidabã 104.9 FM",
+    "streamUrl": "http://stm42.srvstm.com:31674/stream"
+  },
+  "Feira Nova|Sertaneja FM": {
+    "municipio": "Feira Nova",
+    "nome": "Sertaneja FM",
+    "radiosId": 23310,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-fm-sertaneja-1049-fm/23310",
+    "title": "Rádio FM Sertaneja 104.9 FM",
+    "streamUrl": "http://cast.hoost.com.br:8223/stream"
+  },
+  "Propriá|Xodó FM": {
+    "municipio": "Propriá",
+    "nome": "Xodó FM",
+    "radiosId": 55486,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-xodo-1029-fm/55486",
+    "title": "Rádio Xodó 102.9 FM",
+    "streamUrl": "https://08.stmip.net:2312/stream"
+  },
+  "Propriá|Propriá FM": {
+    "municipio": "Propriá",
+    "nome": "Propriá FM",
+    "radiosId": 14356,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-propria-1049-fm/14356",
+    "title": "Rádio Propriá 104.9 FM",
+    "streamUrl": "https://hts01.brascast.com:9606/live"
+  },
+  "Neópolis|Neópolis FM": {
+    "municipio": "Neópolis",
+    "nome": "Neópolis FM",
+    "radiosId": 26913,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-neopolis-1049-fm/26913",
+    "title": "Rádio Neópolis 104.9 FM",
+    "streamUrl": "http://euroticast5.euroti.com.br:8008/stream"
+  },
+  "Pacatuba|Pantanal FM": {
+    "municipio": "Pacatuba",
+    "nome": "Pantanal FM",
+    "radiosId": 183267,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-pantanal-fm/183267",
+    "title": "Rádio Pantanal FM",
+    "streamUrl": "https://hts06.brascast.com:8044/live"
+  },
+  "Capela|Fala Capela Web": {
+    "municipio": "Capela",
+    "nome": "Fala Capela Web",
+    "radiosId": 32895,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-capela-online/32895",
+    "title": "Web Rádio Capela Online",
+    "streamUrl": "http://stm2.xcast.com.br:10784/stream"
+  },
+  "Estância|Marazul FM": {
+    "municipio": "Estância",
+    "nome": "Marazul FM",
+    "radiosId": 13799,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-mar-azul-1049-fm/13799",
+    "title": "Rádio Mar Azul 104.9 FM",
+    "streamUrl": "http://stm27.srvaudio.com.br:9232/stream"
+  },
+  "Capela|Mega FM": {
+    "municipio": "Capela",
+    "nome": "Mega FM",
+    "radiosId": 235541,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-mega-1015-fm/235541",
+    "title": "Rádio Mega 101.5 FM",
+    "streamUrl": "https://1.stmip.net:2050/stream"
+  },
+  "Poço Verde|Poço Verde FM": {
+    "municipio": "Poço Verde",
+    "nome": "Poço Verde FM",
+    "radiosId": 26852,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-poco-verde-1049-fm/26852",
+    "title": "Rádio Poço Verde 104.9 FM",
+    "streamUrl": "http://stm2.srvvox.com.br:7764/stream"
+  },
+  "Simão Dias|Tropical FM": {
+    "municipio": "Simão Dias",
+    "nome": "Tropical FM",
+    "radiosId": 14867,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-tropical-1041-fm/14867",
+    "title": "Rádio Tropical 104.1 FM",
+    "streamUrl": "http://stm2.srvvox.com.br:8036/stream"
+  },
+  "Tobias Barreto|Tobias FM": {
+    "municipio": "Tobias Barreto",
+    "nome": "Tobias FM",
+    "radiosId": 33436,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-tobias-barreto-879-fm/33436",
+    "title": "Rádio Tobias Barreto 87.9 FM",
+    "streamUrl": "http://cast.hoost.com.br:8244/stream"
+  },
+  "Tobias Barreto|Luandê FM": {
+    "municipio": "Tobias Barreto",
+    "nome": "Luandê FM",
+    "radiosId": 13735,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-luande-985-fm/13735",
+    "title": "Rádio Luandê 98.5 FM",
+    "streamUrl": "http://206.42.47.131:8000/stream"
+  },
+  "Tobias Barreto|Xodó FM": {
+    "municipio": "Tobias Barreto",
+    "nome": "Xodó FM",
+    "radiosId": 25980,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-xodo-1019-fm/25980",
+    "title": "Rádio Xodó 101.9 FM",
+    "streamUrl": "https://09.stmip.net:8346/stream"
+  },
+  "Lagarto|Eldorado FM": {
+    "municipio": "Lagarto",
+    "nome": "Eldorado FM",
+    "radiosId": 13047,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-eldorado-fm-1007-lagarto-se/13047",
+    "title": "Rádio Eldorado FM 100.7 Lagarto - SE",
+    "streamUrl": "https://paineldj6.com.br:20025/live"
+  },
+  "Lagarto|Atalaia FM": {
+    "municipio": "Lagarto",
+    "nome": "Atalaia FM",
+    "radiosId": 283566,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-atalaia-96-fm/283566",
+    "title": "Rádio Atalaia 96 FM",
+    "streamUrl": "https://ice.fabricahost.com.br/atalaia96fm"
+  },
+  "Lagarto|102 FM": {
+    "municipio": "Lagarto",
+    "nome": "102 FM",
+    "radiosId": 14085,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-1027-fm/14085",
+    "title": "Rádio 102.7 FM",
+    "streamUrl": "https://r17.ciclano.io/proxy/radiopro/stream"
+  },
+  "Lagarto|Juventude FM": {
+    "municipio": "Lagarto",
+    "nome": "Juventude FM",
+    "radiosId": 17531,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-juventude-1049-fm/17531",
+    "title": "Rádio Juventude 104.9 FM",
+    "streamUrl": "https://live.paineldj.com.br/proxy/juventudefm"
+  },
+  "Lagarto|13 FM": {
+    "municipio": "Lagarto",
+    "nome": "13 FM",
+    "radiosId": 27627,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-13-fm-1049-fm/27627",
+    "title": "Rádio 13 FM 104.9 FM",
+    "streamUrl": "https://stm11.painelvox.com:8610/stream"
+  },
+  "Lagarto|Jenipapo FM": {
+    "municipio": "Lagarto",
+    "nome": "Jenipapo FM",
+    "radiosId": 13522,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-jenipapo-1049-fm/13522",
+    "title": "Rádio Jenipapo 104.9 FM",
+    "streamUrl": "http://stm9.painelvox.com:8602/stream"
+  },
+  "Estância|Rio FM": {
+    "municipio": "Estância",
+    "nome": "Rio FM",
+    "radiosId": 13417,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-rio-fm-1015/13417",
+    "title": "Rádio Rio FM 101.5",
+    "streamUrl": "http://1.stmip.net:8086/stream"
+  },
+  "Estância|Esperança FM": {
+    "municipio": "Estância",
+    "nome": "Esperança FM",
+    "radiosId": 13109,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-esperanca-927-fm/13109",
+    "title": "Rádio Esperança 92.7 FM",
+    "streamUrl": "https://s30.maxcast.com.br:9028/live"
+  },
+  "Itabaianinha|Itabaianinha FM": {
+    "municipio": "Itabaianinha",
+    "nome": "Itabaianinha FM",
+    "radiosId": 29462,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-itabaianinha-1049-fm/29462",
+    "title": "Rádio Itabaianinha 104.9 FM",
+    "streamUrl": "https://8171.brasilstream.com.br/stream"
+  },
+  "Itabaianinha|Xodó FM": {
+    "municipio": "Itabaianinha",
+    "nome": "Xodó FM",
+    "radiosId": 215654,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-xodo-889-fm/215654",
+    "title": "Rádio Xodó 88.9 FM",
+    "streamUrl": "https://1.stmip.net:8014/stream"
+  },
+  "Santa Luzia do Itanhy|Santa Luzia FM": {
+    "municipio": "Santa Luzia do Itanhy",
+    "nome": "Santa Luzia FM",
+    "radiosId": 207548,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-itanhy-879-fm/207548",
+    "title": "Rádio Itanhy 87.9 FM",
+    "streamUrl": "https://1.stmip.net:8096/stream"
+  },
+  "Cristinápolis|Xodó FM": {
+    "municipio": "Cristinápolis",
+    "nome": "Xodó FM",
+    "radiosId": 207284,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-xodo-907-fm/207284",
+    "title": "Rádio Xodó 90.7 FM",
+    "streamUrl": "https://1.stmip.net:8042/stream"
+  },
+  "Boquim|Lagamar FM": {
+    "municipio": "Boquim",
+    "nome": "Lagamar FM",
+    "radiosId": 14742,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-lagamar-955-fm/14742",
+    "title": "Rádio Lagamar 95.5 FM",
+    "streamUrl": "https://shout35.crossradio.com.br:18098/stream"
+  }
+}
