@@ -1,0 +1,15 @@
+services:
+  radio55:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      AUTH_USERNAME: ${AUTH_USERNAME:-admin}
+      AUTH_PASSWORD: ${AUTH_PASSWORD:-radio55}
+      AUTH_SECRET: ${AUTH_SECRET:-troque-este-segredo-em-producao}
+    volumes:
+      - radio55-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  radio55-data:

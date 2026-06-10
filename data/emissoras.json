@@ -1,0 +1,161 @@
+{
+  "Aracaju": {
+    "regiao": "Capital",
+    "radios": [
+      { "nome": "Fan FM", "pj": 1, "tipo": "comunitaria" },
+      { "nome": "Metropolitana FM", "pj": 1, "tipo": "comunitaria" },
+      { "nome": "Jornal FM", "pj": 3, "tipo": "comunitaria" },
+      { "nome": "Jovem Pan FM", "pj": 1, "tipo": "comunitaria" },
+      { "nome": "Rio FM", "pj": 3, "tipo": "comunitaria" },
+      { "nome": "Cultura FM", "pj": 2, "tipo": "comunitaria" },
+      { "nome": "103 FM", "pj": 1, "tipo": "comunitaria" },
+      { "nome": "Xodó FM", "pj": 2, "tipo": "comunitaria" },
+      { "nome": "Imprensa FM", "pj": 1, "tipo": "comunitaria" },
+      { "nome": "Anchieta FM", "pj": 1, "tipo": "comunitaria" }
+    ]
+  },
+  "Itabaiana": {
+    "regiao": "Agreste Sergipano",
+    "radios": [
+      { "nome": "Itabaiana FM", "pj": 3, "tipo": "comercial" },
+      { "nome": "Capital FM", "pj": 3, "tipo": "comercial" },
+      { "nome": "Nova Princesa FM", "pj": 1, "tipo": "comercial" },
+      { "nome": "Princesa FM", "pj": 1, "tipo": "comercial" }
+    ]
+  },
+  "Frei Paulo": {
+    "regiao": "Agreste Sergipano",
+    "radios": [
+      { "nome": "Educadora FM", "pj": 3, "tipo": "comunitaria" }
+    ]
+  },
+  "São Domingos": {
+    "regiao": "Agreste Sergipano",
+    "radios": [
+      { "nome": "São Domingos FM", "pj": 1, "tipo": "comunitaria" }
+    ]
+  },
+  "Canindé de São Francisco": {
+    "regiao": "Alto Sertão Sergipano",
+    "radios": [
+      { "nome": "Xingó FM", "pj": 1, "tipo": "comunitaria" },
+      { "nome": "Amanhecer FM", "pj": 1, "tipo": "comunitaria" }
+    ]
+  },
+  "Porto da Folha": {
+    "regiao": "Alto Sertão Sergipano",
+    "radios": [
+      { "nome": "Rio FM", "pj": 2, "tipo": "comunitaria" },
+      { "nome": "Sertão FM", "pj": 1, "tipo": "comunitaria" }
+    ]
+  },
+  "Nossa Senhora da Glória": {
+    "regiao": "Alto Sertão Sergipano",
+    "radios": [
+      { "nome": "Xodó FM", "pj": 2, "tipo": "comunitaria" },
+      { "nome": "Boca da Mata FM", "pj": 1, "tipo": "comunitaria" }
+    ]
+  },
+  "Aquidabã": {
+    "regiao": "Médio Sertão",
+    "radios": [
+      { "nome": "Aquidabã FM", "pj": 2, "tipo": "comunitaria" }
+    ]
+  },
+  "Feira Nova": {
+    "regiao": "Médio Sertão",
+    "radios": [
+      { "nome": "Sertaneja FM", "pj": 1, "tipo": "comunitaria" }
+    ]
+  },
+  "Propriá": {
+    "regiao": "Baixo São Francisco",
+    "radios": [
+      { "nome": "Xodó FM", "pj": 2, "tipo": "comunitaria" },
+      { "nome": "Propriá FM", "pj": 1, "tipo": "comunitaria" }
+    ]
+  },
+  "Neópolis": {
+    "regiao": "Baixo São Francisco",
+    "radios": [
+      { "nome": "Neópolis FM", "pj": 1, "tipo": "comunitaria" }
+    ]
+  },
+  "Pacatuba": {
+    "regiao": "Baixo São Francisco",
+    "radios": [
+      { "nome": "Pantanal FM", "pj": 1, "tipo": "comunitaria" }
+    ]
+  },
+  "Capela": {
+    "regiao": "Leste Sergipano",
+    "radios": [
+      { "nome": "Mega FM", "pj": 1, "tipo": "comunitaria" },
+      { "nome": "Fala Capela Web", "pj": 1, "tipo": "comunitaria" }
+    ]
+  },
+  "Poço Verde": {
+    "regiao": "Centro Sul",
+    "radios": [
+      { "nome": "Poço Verde FM", "pj": 1, "tipo": "comunitaria" }
+    ]
+  },
+  "Simão Dias": {
+    "regiao": "Centro Sul",
+    "radios": [
+      { "nome": "Tropical FM", "pj": 1, "tipo": "comunitaria" }
+    ]
+  },
+  "Tobias Barreto": {
+    "regiao": "Centro Sul",
+    "radios": [
+      { "nome": "Tobias FM", "pj": 2, "tipo": "comunitaria" },
+      { "nome": "Luandê FM", "pj": 2, "tipo": "comunitaria" },
+      { "nome": "Xodó FM", "pj": 2, "tipo": "comunitaria" }
+    ]
+  },
+  "Lagarto": {
+    "regiao": "Centro Sul",
+    "radios": [
+      { "nome": "Eldorado FM", "pj": 2, "tipo": "comunitaria" },
+      { "nome": "Atalaia FM", "pj": 1, "tipo": "comunitaria" },
+      { "nome": "102 FM", "pj": 2, "tipo": "comunitaria" },
+      { "nome": "Juventude FM", "pj": 1, "tipo": "comunitaria" },
+      { "nome": "13 FM", "pj": 2, "tipo": "comunitaria" },
+      { "nome": "Jenipapo FM", "pj": 1, "tipo": "comunitaria" }
+    ]
+  },
+  "Estância": {
+    "regiao": "Sul Sergipano",
+    "radios": [
+      { "nome": "Rio FM", "pj": 3, "tipo": "comunitaria" },
+      { "nome": "Esperança FM", "pj": 1, "tipo": "comunitaria" },
+      { "nome": "Marazul FM", "pj": 2, "tipo": "comunitaria" }
+    ]
+  },
+  "Itabaianinha": {
+    "regiao": "Sul Sergipano",
+    "radios": [
+      { "nome": "Itabaianinha FM", "pj": 1, "tipo": "comunitaria" },
+      { "nome": "Xodó FM", "pj": 2, "tipo": "comunitaria" }
+    ]
+  },
+  "Santa Luzia do Itanhy": {
+    "regiao": "Sul Sergipano",
+    "radios": [
+      { "nome": "Santa Luzia FM", "pj": 1, "tipo": "comunitaria" }
+    ]
+  },
+  "Cristinápolis": {
+    "regiao": "Sul Sergipano",
+    "radios": [
+      { "nome": "Xodó FM", "pj": 2, "tipo": "comunitaria" }
+    ]
+  },
+  "Boquim": {
+    "regiao": "Sul Sergipano",
+    "radios": [
+      { "nome": "Lagamar FM", "pj": 1, "tipo": "comunitaria" }
+    ]
+  }
+}
