@@ -34,7 +34,8 @@ function isValidRadio(radio: Radio): boolean {
     radio.nome.trim().length > 0 &&
     typeof radio.pj === "number" &&
     radio.pj >= 0 &&
-    (radio.tipo === "comercial" || radio.tipo === "comunitaria")
+    (radio.tipo === "comercial" || radio.tipo === "comunitaria") &&
+    (radio.gravar === undefined || typeof radio.gravar === "boolean")
   );
 }
 

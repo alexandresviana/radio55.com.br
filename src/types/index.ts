@@ -2,6 +2,8 @@ export interface Radio {
   nome: string;
   pj: number;
   tipo: "comercial" | "comunitaria";
+  /** Quando true, a emissora é gravada continuamente em MP3 (retenção 24h). */
+  gravar?: boolean;
 }
 
 export interface RadioStreamInfo {

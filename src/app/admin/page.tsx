@@ -5,7 +5,17 @@ import Header from "@/components/Header";
 import { REGIOES } from "@/lib/regioes";
 import type { EmissorasData, Radio } from "@/types";
 
-const emptyRadio = (): Radio => ({ nome: "", pj: 1, tipo: "comunitaria" });
+interface RecordingStatusItem {
+  key: string;
+  municipio: string;
+  nome: string;
+  ativo: boolean;
+  arquivos: number;
+  ultimoArquivo: string | null;
+  erro: string | null;
+}
+
+const emptyRadio = (): Radio => ({ nome: "", pj: 1, tipo: "comunitaria", gravar: false });
 
 export default function AdminPage() {
   const [emissoras, setEmissoras] = useState<EmissorasData>({});
@@ -15,6 +25,14 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
+  const [gravacoes, setGravacoes] = useState<RecordingStatusItem[]>([]);
+
+  const carregarGravacoes = useCallback(async () => {
+    const res = await fetch("/api/gravacoes/status");
+    if (!res.ok) return;
+    const data = (await res.json()) as { gravacoes: RecordingStatusItem[] };
+    setGravacoes(data.gravacoes);
+  }, []);
 
   const carregar = useCallback(async () => {
     setLoading(true);
@@ -24,12 +42,20 @@ export default function AdminPage() {
     ]);
     setEmissoras(await emRes.json());
     setMunicipios(await munRes.json());
+    await carregarGravacoes();
     setLoading(false);
-  }, []);
+  }, [carregarGravacoes]);
 
   useEffect(() => {
     carregar();
   }, [carregar]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      void carregarGravacoes();
+    }, 30_000);
+    return () => clearInterval(timer);
+  }, [carregarGravacoes]);
 
   const municipiosDisponiveis = useMemo(
     () => municipios.filter((m) => !emissoras[m]),
@@ -55,6 +81,7 @@ export default function AdminPage() {
       return;
     }
     setEmissoras(data);
+    await carregarGravacoes();
     setMessage({ type: "ok", text: "Salvo com sucesso!" });
     setTimeout(() => setMessage(null), 3000);
   }
@@ -127,6 +154,42 @@ export default function AdminPage() {
           >
             {message.text}
           </p>
+        )}
+
+        {gravacoes.length > 0 && (
+          <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
+            <h2 className="text-sm font-semibold text-amber-900">Gravações ativas</h2>
+            <p className="mt-1 text-xs text-amber-800">
+              Arquivos MP3 em segmentos de 1h, removidos automaticamente após 24 horas.
+            </p>
+            <ul className="mt-3 space-y-2">
+              {gravacoes.map((item) => (
+                <li
+                  key={item.key}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white/80 px-3 py-2 text-sm"
+                >
+                  <span className="font-medium text-slate-800">
+                    {item.nome} · {item.municipio}
+                  </span>
+                  <span className="flex items-center gap-2 text-xs">
+                    <span
+                      className={`rounded-full px-2 py-0.5 font-medium ${
+                        item.ativo
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {item.ativo ? "Gravando" : "Parado"}
+                    </span>
+                    <span className="text-slate-500">{item.arquivos} arquivo(s)</span>
+                  </span>
+                  {item.erro && (
+                    <p className="w-full text-xs text-red-600">{item.erro}</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
 
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
@@ -234,7 +297,7 @@ export default function AdminPage() {
                   {atual.radios.map((radio, idx) => (
                     <div
                       key={idx}
-                      className="grid gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4 sm:grid-cols-[1fr_80px_140px_auto]"
+                      className="grid gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4 sm:grid-cols-[1fr_80px_140px_120px_auto]"
                     >
                       <div>
                         <label className="mb-1 block text-xs text-slate-500">Nome</label>
@@ -280,6 +343,21 @@ export default function AdminPage() {
                           <option value="comunitaria">Comunitária</option>
                           <option value="comercial">Comercial</option>
                         </select>
+                      </div>
+                      <div className="flex items-end">
+                        <label className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(radio.gravar)}
+                            onChange={(e) => {
+                              const radios = [...atual.radios];
+                              radios[idx] = { ...radio, gravar: e.target.checked };
+                              atualizarMunicipio(selecionado, { radios });
+                            }}
+                            className="h-4 w-4 rounded border-slate-300 text-emerald-700"
+                          />
+                          <span className="text-slate-700">Gravar</span>
+                        </label>
                       </div>
                       <div className="flex items-end">
                         <button

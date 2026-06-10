@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readEmissoras, validateEmissoras, writeEmissoras } from "@/lib/emissoras";
+import { syncRecordings } from "@/lib/recorder";
 
 export async function GET() {
   const data = await readEmissoras();
@@ -14,5 +15,6 @@ export async function PUT(request: NextRequest) {
   }
 
   await writeEmissoras(body);
+  void syncRecordings();
   return NextResponse.json({ ok: true });
 }
