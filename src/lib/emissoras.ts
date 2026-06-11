@@ -1,9 +1,9 @@
 import { readFile, writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { getDataDir } from "@/lib/data-dir";
 import type { EmissorasData, MunicipioData, Radio } from "@/types";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const DATA_FILE = path.join(DATA_DIR, "emissoras.json");
+const DATA_FILE = path.join(getDataDir(), "emissoras.json");
 const GEO_FILE = path.join(process.cwd(), "public/data/sergipe-mun.json");
 
 export async function readEmissoras(): Promise<EmissorasData> {
@@ -18,7 +18,7 @@ export async function readEmissoras(): Promise<EmissorasData> {
 }
 
 export async function writeEmissoras(data: EmissorasData): Promise<void> {
-  await mkdir(DATA_DIR, { recursive: true });
+  await mkdir(getDataDir(), { recursive: true });
   await writeFile(DATA_FILE, JSON.stringify(data, null, 2) + "\n", "utf-8");
 }
 

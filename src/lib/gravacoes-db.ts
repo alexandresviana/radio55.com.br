@@ -1,0 +1,130 @@
+import { getPool, isDatabaseConfigured, withClient } from "@/lib/db";
+
+export interface GravacaoArquivo {
+  id: number;
+  municipio: string;
+  radio_nome: string;
+  arquivo: string;
+  caminho: string;
+  gravado_em: string;
+  tamanho_bytes: number;
+}
+
+export interface BuscaGravacoesParams {
+  municipio?: string;
+  radio?: string;
+  dia?: string;
+  horaDe?: string;
+  horaAte?: string;
+  limite?: number;
+}
+
+export async function registrarGravacao(input: {
+  municipio: string;
+  radioNome: string;
+  arquivo: string;
+  caminho: string;
+  gravadoEm: Date;
+  tamanhoBytes: number;
+}): Promise<void> {
+  if (!isDatabaseConfigured()) return;
+
+  await getPool().query(
+    `INSERT INTO gravacao_arquivos (municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     ON CONFLICT (caminho) DO UPDATE SET
+       tamanho_bytes = EXCLUDED.tamanho_bytes,
+       removido_em = NULL`,
+    [
+      input.municipio,
+      input.radioNome,
+      input.arquivo,
+      input.caminho,
+      input.gravadoEm.toISOString(),
+      input.tamanhoBytes,
+    ],
+  );
+}
+
+export async function marcarGravacaoRemovida(caminho: string): Promise<void> {
+  if (!isDatabaseConfigured()) return;
+
+  await getPool().query(
+    `UPDATE gravacao_arquivos
+     SET removido_em = NOW()
+     WHERE caminho = $1 AND removido_em IS NULL`,
+    [caminho],
+  );
+}
+
+export async function buscarGravacoes(
+  params: BuscaGravacoesParams,
+): Promise<GravacaoArquivo[]> {
+  if (!isDatabaseConfigured()) return [];
+
+  const limite = Math.min(Math.max(params.limite ?? 50, 1), 200);
+
+  const result = await getPool().query<GravacaoArquivo>(
+    `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes
+     FROM gravacao_arquivos
+     WHERE removido_em IS NULL
+       AND ($1::text IS NULL OR municipio = $1)
+       AND ($2::text IS NULL OR radio_nome = $2)
+       AND ($3::date IS NULL OR gravado_em::date = $3::date)
+       AND ($4::time IS NULL OR gravado_em::time >= $4::time)
+       AND ($5::time IS NULL OR gravado_em::time <= $5::time)
+     ORDER BY gravado_em DESC
+     LIMIT $6`,
+    [
+      params.municipio ?? null,
+      params.radio ?? null,
+      params.dia ?? null,
+      params.horaDe ?? null,
+      params.horaAte ?? null,
+      limite,
+    ],
+  );
+
+  return result.rows.map((row) => ({
+    ...row,
+    gravado_em: new Date(row.gravado_em).toISOString(),
+    tamanho_bytes: Number(row.tamanho_bytes),
+  }));
+}
+
+export async function obterGravacaoPorId(id: number): Promise<GravacaoArquivo | null> {
+  if (!isDatabaseConfigured()) return null;
+
+  const result = await getPool().query<GravacaoArquivo>(
+    `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes
+     FROM gravacao_arquivos
+     WHERE id = $1 AND removido_em IS NULL`,
+    [id],
+  );
+
+  const row = result.rows[0];
+  if (!row) return null;
+
+  return {
+    ...row,
+    gravado_em: new Date(row.gravado_em).toISOString(),
+    tamanho_bytes: Number(row.tamanho_bytes),
+  };
+}
+
+export async function listarRadiosGravadas(): Promise<
+  { municipio: string; radio_nome: string }[]
+> {
+  if (!isDatabaseConfigured()) return [];
+
+  const result = await withClient(async (client) => {
+    return client.query<{ municipio: string; radio_nome: string }>(
+      `SELECT DISTINCT municipio, radio_nome
+       FROM gravacao_arquivos
+       WHERE removido_em IS NULL
+       ORDER BY municipio, radio_nome`,
+    );
+  });
+
+  return result.rows;
+}

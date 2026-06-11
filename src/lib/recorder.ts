@@ -1,10 +1,13 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import { mkdir, readdir, stat, unlink } from "node:fs/promises";
 import path from "node:path";
+import { getGravacoesDir } from "@/lib/data-dir";
 import { readEmissoras } from "@/lib/emissoras";
+import { marcarGravacaoRemovida } from "@/lib/gravacoes-db";
+import { radioOutputDir } from "@/lib/gravacoes-path";
 import { getRadioStream, makeStreamKey } from "@/lib/radios-streams";
 
-const RECORDINGS_DIR = path.join(process.cwd(), "data", "gravacoes");
+const RECORDINGS_DIR = getGravacoesDir();
 const RETENTION_MS = 24 * 60 * 60 * 1000;
 const SEGMENT_SECONDS = 3600;
 const CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
@@ -26,15 +29,6 @@ export interface RecordingStatus {
 type RecorderGlobal = typeof globalThis & {
   __radio55Recorder?: RecorderService;
 };
-
-function safeDirName(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9._-]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 80) || "radio";
-}
 
 class RecorderService {
   private processes = new Map<string, ChildProcess>();
@@ -94,7 +88,7 @@ class RecorderService {
       return;
     }
 
-    const outputDir = path.join(RECORDINGS_DIR, safeDirName(municipio), safeDirName(nome));
+    const outputDir = radioOutputDir(municipio, nome);
     await mkdir(outputDir, { recursive: true });
 
     const outputPattern = path.join(outputDir, "%Y%m%d-%H%M%S.mp3");
@@ -171,8 +165,13 @@ class RecorderService {
     const cutoff = Date.now() - RETENTION_MS;
     let removed = 0;
 
-    async function walk(dir: string): Promise<void> {
-      const entries = await readdir(dir, { withFileTypes: true });
+    const walk = async (dir: string): Promise<void> => {
+      let entries;
+      try {
+        entries = await readdir(dir, { withFileTypes: true });
+      } catch {
+        return;
+      }
 
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
@@ -187,17 +186,13 @@ class RecorderService {
         const fileStat = await stat(fullPath);
         if (fileStat.mtimeMs < cutoff) {
           await unlink(fullPath);
+          await marcarGravacaoRemovida(fullPath);
           removed += 1;
         }
       }
-    }
+    };
 
-    try {
-      await walk(RECORDINGS_DIR);
-    } catch {
-      // diretório ainda não existe
-    }
-
+    await walk(RECORDINGS_DIR);
     return removed;
   }
 
@@ -211,11 +206,7 @@ class RecorderService {
 
         const key = makeStreamKey(municipio, radio.nome);
         const info = await getRadioStream(municipio, radio.nome);
-        const outputDir = path.join(
-          RECORDINGS_DIR,
-          safeDirName(municipio),
-          safeDirName(radio.nome),
-        );
+        const outputDir = radioOutputDir(municipio, radio.nome);
         const files = await this.listMp3Files(outputDir);
 
         statuses.push({

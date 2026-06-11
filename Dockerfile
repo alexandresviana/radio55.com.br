@@ -23,6 +23,7 @@ COPY --from=builder /app/data ./data
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Volume persistente: monte em /app/data (emissoras + MP3 gravados)
 RUN mkdir -p /app/data/gravacoes && chown -R nextjs:nodejs /app/data
 
 USER nextjs

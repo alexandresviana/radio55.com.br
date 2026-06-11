@@ -7,6 +7,9 @@ services:
       AUTH_USERNAME: ${AUTH_USERNAME:-admin}
       AUTH_PASSWORD: ${AUTH_PASSWORD:-radio55}
       AUTH_SECRET: ${AUTH_SECRET:-troque-este-segredo-em-producao}
+      DATABASE_URL: ${DATABASE_URL:-}
+      # Montar volume em /app/data (emissoras.json + gravacoes/)
+      DATA_DIR: ${DATA_DIR:-/app/data}
     volumes:
       - radio55-data:/app/data
     restart: unless-stopped

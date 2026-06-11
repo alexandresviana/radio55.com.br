@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import GravacoesArquivos from "@/components/GravacoesArquivos";
 import Header from "@/components/Header";
 import { REGIOES } from "@/lib/regioes";
 import type { EmissorasData, Radio } from "@/types";
@@ -191,6 +192,8 @@ export default function AdminPage() {
             </ul>
           </div>
         )}
+
+        <GravacoesArquivos />
 
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
           <aside className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
