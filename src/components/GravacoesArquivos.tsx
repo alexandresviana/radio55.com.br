@@ -9,6 +9,7 @@ interface GravacaoArquivo {
   arquivo: string;
   gravado_em: string;
   tamanho_bytes: number;
+  em_gravacao: boolean;
 }
 
 interface RadioOption {
@@ -101,7 +102,7 @@ export default function GravacoesArquivos() {
     const timer = setInterval(() => {
       void buscar();
       void carregarOpcoes();
-    }, 30_000);
+    }, 10_000);
     return () => clearInterval(timer);
   }, [buscar, carregarOpcoes]);
 
@@ -218,6 +219,7 @@ export default function GravacoesArquivos() {
                 <th className="px-4 py-3">Município</th>
                 <th className="px-4 py-3">Arquivo</th>
                 <th className="px-4 py-3">Tamanho</th>
+                <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Ouvir</th>
               </tr>
             </thead>
@@ -228,13 +230,32 @@ export default function GravacoesArquivos() {
                   <td className="px-4 py-3 font-medium text-slate-800">{item.radio_nome}</td>
                   <td className="px-4 py-3 text-slate-600">{item.municipio}</td>
                   <td className="px-4 py-3 font-mono text-xs text-slate-500">{item.arquivo}</td>
-                  <td className="px-4 py-3 text-slate-600">{formatBytes(item.tamanho_bytes)}</td>
+                  <td className="px-4 py-3 text-slate-600">
+                    <span className={item.em_gravacao ? "font-medium text-emerald-700" : ""}>
+                      {formatBytes(item.tamanho_bytes)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {item.em_gravacao ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-600" />
+                        Ao vivo
+                      </span>
+                    ) : (
+                      <span className="text-xs text-slate-400">Finalizado</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <audio
                       controls
-                      preload="none"
+                      preload={item.em_gravacao ? "auto" : "none"}
                       src={`/api/gravacoes/${item.id}/arquivo`}
                       className="h-8 max-w-[220px]"
+                      title={
+                        item.em_gravacao
+                          ? "Reprodução ao vivo — o áudio continua conforme a gravação avança"
+                          : undefined
+                      }
                     />
                   </td>
                 </tr>

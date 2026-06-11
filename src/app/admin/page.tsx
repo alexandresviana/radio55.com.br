@@ -13,7 +13,14 @@ interface RecordingStatusItem {
   ativo: boolean;
   arquivos: number;
   ultimoArquivo: string | null;
+  arquivoAtual: string | null;
+  tamanhoAtualBytes: number | null;
   erro: string | null;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 const emptyRadio = (): Radio => ({ nome: "", pj: 1, tipo: "comunitaria", gravar: false });
@@ -54,7 +61,7 @@ export default function AdminPage() {
   useEffect(() => {
     const timer = setInterval(() => {
       void carregarGravacoes();
-    }, 30_000);
+    }, 10_000);
     return () => clearInterval(timer);
   }, [carregarGravacoes]);
 
@@ -161,7 +168,7 @@ export default function AdminPage() {
           <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
             <h2 className="text-sm font-semibold text-amber-900">Gravações ativas</h2>
             <p className="mt-1 text-xs text-amber-800">
-              Arquivos MP3 em segmentos de 1h, removidos automaticamente após 24 horas.
+              Gravação contínua em um único MP3 por sessão. Arquivos removidos após 24 horas.
             </p>
             <ul className="mt-3 space-y-2">
               {gravacoes.map((item) => (
@@ -183,7 +190,15 @@ export default function AdminPage() {
                       {item.ativo ? "Gravando" : "Parado"}
                     </span>
                     <span className="text-slate-500">{item.arquivos} arquivo(s)</span>
+                    {item.tamanhoAtualBytes != null && (
+                      <span className="font-medium text-emerald-700">
+                        {formatBytes(item.tamanhoAtualBytes)}
+                      </span>
+                    )}
                   </span>
+                  {item.arquivoAtual && (
+                    <p className="w-full font-mono text-xs text-slate-500">{item.arquivoAtual}</p>
+                  )}
                   {item.erro && (
                     <p className="w-full text-xs text-red-600">{item.erro}</p>
                   )}

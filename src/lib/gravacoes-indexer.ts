@@ -3,10 +3,11 @@ import path from "node:path";
 import { getGravacoesDir } from "@/lib/data-dir";
 import { registrarGravacao } from "@/lib/gravacoes-db";
 import { isDatabaseConfigured } from "@/lib/db";
+import { getActiveRecordingPaths } from "@/lib/recorder";
 import { parseMp3Timestamp, resolveRadioFromFilePath } from "@/lib/gravacoes-path";
 
-const INDEX_INTERVAL_MS = 20_000;
-const MIN_FILE_BYTES = 8_192;
+const INDEX_INTERVAL_MS = 10_000;
+const MIN_FILE_BYTES = 1_024;
 
 type IndexerGlobal = typeof globalThis & {
   __radio55Indexer?: GravacoesIndexer;
@@ -14,7 +15,6 @@ type IndexerGlobal = typeof globalThis & {
 
 class GravacoesIndexer {
   private timer?: NodeJS.Timeout;
-  private knownSizes = new Map<string, number>();
   private started = false;
 
   async start(): Promise<void> {
@@ -30,10 +30,12 @@ class GravacoesIndexer {
   async scan(): Promise<number> {
     if (!isDatabaseConfigured()) return 0;
 
+    const activePaths = getActiveRecordingPaths();
     let indexed = 0;
+
     await this.walkDir(getGravacoesDir(), async (filePath) => {
-      const added = await this.registerIfReady(filePath);
-      if (added) indexed += 1;
+      const synced = await this.syncFile(filePath, activePaths.has(filePath));
+      if (synced) indexed += 1;
     });
 
     return indexed;
@@ -58,7 +60,7 @@ class GravacoesIndexer {
     }
   }
 
-  private async registerIfReady(filePath: string): Promise<boolean> {
+  private async syncFile(filePath: string, emGravacao: boolean): Promise<boolean> {
     let fileStat;
     try {
       fileStat = await stat(filePath);
@@ -67,13 +69,6 @@ class GravacoesIndexer {
     }
 
     if (fileStat.size < MIN_FILE_BYTES) return false;
-
-    const previousSize = this.knownSizes.get(filePath);
-    this.knownSizes.set(filePath, fileStat.size);
-
-    if (previousSize === undefined || previousSize !== fileStat.size) {
-      return false;
-    }
 
     const radio = await resolveRadioFromFilePath(filePath);
     if (!radio) return false;
@@ -88,6 +83,7 @@ class GravacoesIndexer {
       caminho: filePath,
       gravadoEm,
       tamanhoBytes: fileStat.size,
+      emGravacao,
     });
 
     return true;

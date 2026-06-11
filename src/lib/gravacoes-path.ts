@@ -15,8 +15,26 @@ export function radioOutputDir(municipio: string, nome: string): string {
   return path.join(getGravacoesDir(), safeDirName(municipio), safeDirName(nome));
 }
 
+function pad2(value: number): string {
+  return String(value).padStart(2, "0");
+}
+
+export function formatRecordingFilename(date = new Date()): string {
+  const stamp = [
+    date.getFullYear(),
+    pad2(date.getMonth() + 1),
+    pad2(date.getDate()),
+    "-",
+    pad2(date.getHours()),
+    pad2(date.getMinutes()),
+    pad2(date.getSeconds()),
+  ].join("");
+
+  return `ao-vivo-${stamp}.mp3`;
+}
+
 export function parseMp3Timestamp(filename: string): Date | null {
-  const match = filename.match(/^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})\.mp3$/);
+  const match = filename.match(/^(?:ao-vivo-)?(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})\.mp3$/);
   if (!match) return null;
 
   const [, year, month, day, hour, minute, second] = match;

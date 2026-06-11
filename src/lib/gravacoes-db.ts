@@ -8,6 +8,7 @@ export interface GravacaoArquivo {
   caminho: string;
   gravado_em: string;
   tamanho_bytes: number;
+  em_gravacao: boolean;
 }
 
 export interface BuscaGravacoesParams {
@@ -26,14 +27,16 @@ export async function registrarGravacao(input: {
   caminho: string;
   gravadoEm: Date;
   tamanhoBytes: number;
+  emGravacao: boolean;
 }): Promise<void> {
   if (!isDatabaseConfigured()) return;
 
   await getPool().query(
-    `INSERT INTO gravacao_arquivos (municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO gravacao_arquivos (municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes, em_gravacao)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      ON CONFLICT (caminho) DO UPDATE SET
        tamanho_bytes = EXCLUDED.tamanho_bytes,
+       em_gravacao = EXCLUDED.em_gravacao,
        removido_em = NULL`,
     [
       input.municipio,
@@ -42,7 +45,19 @@ export async function registrarGravacao(input: {
       input.caminho,
       input.gravadoEm.toISOString(),
       input.tamanhoBytes,
+      input.emGravacao,
     ],
+  );
+}
+
+export async function finalizarGravacao(caminho: string): Promise<void> {
+  if (!isDatabaseConfigured()) return;
+
+  await getPool().query(
+    `UPDATE gravacao_arquivos
+     SET em_gravacao = FALSE
+     WHERE caminho = $1 AND removido_em IS NULL`,
+    [caminho],
   );
 }
 
@@ -51,7 +66,7 @@ export async function marcarGravacaoRemovida(caminho: string): Promise<void> {
 
   await getPool().query(
     `UPDATE gravacao_arquivos
-     SET removido_em = NOW()
+     SET removido_em = NOW(), em_gravacao = FALSE
      WHERE caminho = $1 AND removido_em IS NULL`,
     [caminho],
   );
@@ -65,7 +80,7 @@ export async function buscarGravacoes(
   const limite = Math.min(Math.max(params.limite ?? 50, 1), 200);
 
   const result = await getPool().query<GravacaoArquivo>(
-    `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes
+    `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes, em_gravacao
      FROM gravacao_arquivos
      WHERE removido_em IS NULL
        AND ($1::text IS NULL OR municipio = $1)
@@ -73,7 +88,7 @@ export async function buscarGravacoes(
        AND ($3::date IS NULL OR gravado_em::date = $3::date)
        AND ($4::time IS NULL OR gravado_em::time >= $4::time)
        AND ($5::time IS NULL OR gravado_em::time <= $5::time)
-     ORDER BY gravado_em DESC
+     ORDER BY em_gravacao DESC, gravado_em DESC
      LIMIT $6`,
     [
       params.municipio ?? null,
@@ -89,6 +104,7 @@ export async function buscarGravacoes(
     ...row,
     gravado_em: new Date(row.gravado_em).toISOString(),
     tamanho_bytes: Number(row.tamanho_bytes),
+    em_gravacao: Boolean(row.em_gravacao),
   }));
 }
 
@@ -96,7 +112,7 @@ export async function obterGravacaoPorId(id: number): Promise<GravacaoArquivo | 
   if (!isDatabaseConfigured()) return null;
 
   const result = await getPool().query<GravacaoArquivo>(
-    `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes
+    `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes, em_gravacao
      FROM gravacao_arquivos
      WHERE id = $1 AND removido_em IS NULL`,
     [id],
@@ -109,6 +125,7 @@ export async function obterGravacaoPorId(id: number): Promise<GravacaoArquivo | 
     ...row,
     gravado_em: new Date(row.gravado_em).toISOString(),
     tamanho_bytes: Number(row.tamanho_bytes),
+    em_gravacao: Boolean(row.em_gravacao),
   };
 }
 

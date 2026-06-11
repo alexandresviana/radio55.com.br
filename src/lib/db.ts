@@ -49,9 +49,13 @@ export async function initDatabase(): Promise<void> {
         caminho TEXT NOT NULL UNIQUE,
         gravado_em TIMESTAMPTZ NOT NULL,
         tamanho_bytes BIGINT NOT NULL DEFAULT 0,
+        em_gravacao BOOLEAN NOT NULL DEFAULT FALSE,
         removido_em TIMESTAMPTZ,
         criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+
+      ALTER TABLE gravacao_arquivos
+        ADD COLUMN IF NOT EXISTS em_gravacao BOOLEAN NOT NULL DEFAULT FALSE;
 
       CREATE INDEX IF NOT EXISTS idx_gravacao_arquivos_gravado_em
         ON gravacao_arquivos (gravado_em DESC);

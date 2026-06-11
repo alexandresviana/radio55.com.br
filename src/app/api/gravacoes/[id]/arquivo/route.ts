@@ -1,15 +1,19 @@
-import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 import { NextRequest, NextResponse } from "next/server";
 import { getGravacoesDir } from "@/lib/data-dir";
 import { obterGravacaoPorId } from "@/lib/gravacoes-db";
+import {
+  isFileStillRecording,
+  serveCompleteFile,
+  serveGrowingFile,
+} from "@/lib/growing-file-stream";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
   const { id: idParam } = await context.params;
@@ -31,21 +35,17 @@ export async function GET(
     return new NextResponse("Caminho inválido", { status: 400 });
   }
 
-  let fileStat;
   try {
-    fileStat = await stat(resolved);
+    await stat(resolved);
   } catch {
     return new NextResponse("Arquivo não existe no disco", { status: 404 });
   }
 
-  const stream = createReadStream(resolved);
+  const aoVivo = gravacao.em_gravacao || isFileStillRecording(resolved);
 
-  return new NextResponse(stream as unknown as ReadableStream, {
-    headers: {
-      "Content-Type": "audio/mpeg",
-      "Content-Length": String(fileStat.size),
-      "Content-Disposition": `inline; filename="${gravacao.arquivo}"`,
-      "Cache-Control": "private, max-age=3600",
-    },
-  });
+  if (aoVivo) {
+    return serveGrowingFile(resolved, gravacao.arquivo, request);
+  }
+
+  return serveCompleteFile(resolved, gravacao.arquivo, request);
 }

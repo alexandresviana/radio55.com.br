@@ -3,13 +3,12 @@ import { mkdir, readdir, stat, unlink } from "node:fs/promises";
 import path from "node:path";
 import { getGravacoesDir } from "@/lib/data-dir";
 import { readEmissoras } from "@/lib/emissoras";
-import { marcarGravacaoRemovida } from "@/lib/gravacoes-db";
-import { radioOutputDir } from "@/lib/gravacoes-path";
+import { finalizarGravacao, marcarGravacaoRemovida } from "@/lib/gravacoes-db";
+import { formatRecordingFilename, radioOutputDir } from "@/lib/gravacoes-path";
 import { getRadioStream, makeStreamKey } from "@/lib/radios-streams";
 
 const RECORDINGS_DIR = getGravacoesDir();
 const RETENTION_MS = 24 * 60 * 60 * 1000;
-const SEGMENT_SECONDS = 3600;
 const CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
 const SYNC_INTERVAL_MS = 5 * 60 * 1000;
 const RESTART_DELAY_MS = 15_000;
@@ -23,6 +22,8 @@ export interface RecordingStatus {
   diretorio: string;
   arquivos: number;
   ultimoArquivo: string | null;
+  arquivoAtual: string | null;
+  tamanhoAtualBytes: number | null;
   erro: string | null;
 }
 
@@ -32,9 +33,12 @@ type RecorderGlobal = typeof globalThis & {
 
 class RecorderService {
   private processes = new Map<string, ChildProcess>();
+  private activeFiles = new Map<string, string>();
+  private activeFileSizes = new Map<string, number>();
   private errors = new Map<string, string>();
   private cleanupTimer?: NodeJS.Timeout;
   private syncTimer?: NodeJS.Timeout;
+  private sizeTimer?: NodeJS.Timeout;
   private started = false;
 
   async start(): Promise<void> {
@@ -52,6 +56,25 @@ class RecorderService {
     this.syncTimer = setInterval(() => {
       void this.sync();
     }, SYNC_INTERVAL_MS);
+
+    this.sizeTimer = setInterval(() => {
+      void this.refreshActiveFileSizes();
+    }, 10_000);
+  }
+
+  getActivePaths(): Set<string> {
+    return new Set(this.activeFiles.values());
+  }
+
+  private async refreshActiveFileSizes(): Promise<void> {
+    for (const [key, filePath] of this.activeFiles.entries()) {
+      try {
+        const fileStat = await stat(filePath);
+        this.activeFileSizes.set(key, fileStat.size);
+      } catch {
+        this.activeFileSizes.delete(key);
+      }
+    }
   }
 
   async sync(): Promise<void> {
@@ -91,19 +114,25 @@ class RecorderService {
     const outputDir = radioOutputDir(municipio, nome);
     await mkdir(outputDir, { recursive: true });
 
-    const outputPattern = path.join(outputDir, "%Y%m%d-%H%M%S.mp3");
+    const outputFile = path.join(outputDir, formatRecordingFilename());
+    this.activeFiles.set(key, outputFile);
+    this.activeFileSizes.set(key, 0);
+
     const args = [
       "-hide_banner",
       "-loglevel",
       "error",
+      "-nostdin",
       "-user_agent",
       "Mozilla/5.0 (compatible; radio55-recorder/1.0)",
       "-reconnect",
       "1",
+      "-reconnect_at_eof",
+      "1",
       "-reconnect_streamed",
       "1",
       "-reconnect_delay_max",
-      "5",
+      "30",
     ];
 
     if (info.streamUrl.startsWith("https://")) {
@@ -117,15 +146,20 @@ class RecorderService {
       "libmp3lame",
       "-b:a",
       "96k",
+      "-ar",
+      "44100",
+      "-ac",
+      "2",
+      "-write_xing",
+      "0",
+      "-id3v2_version",
+      "3",
+      "-flush_packets",
+      "1",
       "-f",
-      "segment",
-      "-segment_time",
-      String(SEGMENT_SECONDS),
-      "-strftime",
-      "1",
-      "-reset_timestamps",
-      "1",
-      outputPattern,
+      "mp3",
+      "-y",
+      outputFile,
     );
 
     const proc = spawn("ffmpeg", args, { stdio: ["ignore", "ignore", "pipe"] });
@@ -136,8 +170,16 @@ class RecorderService {
       if (message) this.errors.set(key, message.slice(-200));
     });
 
-    proc.on("exit", (code, signal) => {
+    proc.on("exit", async (code, signal) => {
       this.processes.delete(key);
+
+      const finishedFile = this.activeFiles.get(key);
+      this.activeFiles.delete(key);
+      this.activeFileSizes.delete(key);
+
+      if (finishedFile) {
+        await finalizarGravacao(finishedFile);
+      }
 
       if (signal === "SIGTERM" || signal === "SIGKILL") return;
 
@@ -163,6 +205,7 @@ class RecorderService {
 
   async cleanup(): Promise<number> {
     const cutoff = Date.now() - RETENTION_MS;
+    const activePaths = this.getActivePaths();
     let removed = 0;
 
     const walk = async (dir: string): Promise<void> => {
@@ -182,6 +225,7 @@ class RecorderService {
         }
 
         if (!entry.name.endsWith(".mp3")) continue;
+        if (activePaths.has(fullPath)) continue;
 
         const fileStat = await stat(fullPath);
         if (fileStat.mtimeMs < cutoff) {
@@ -208,6 +252,8 @@ class RecorderService {
         const info = await getRadioStream(municipio, radio.nome);
         const outputDir = radioOutputDir(municipio, radio.nome);
         const files = await this.listMp3Files(outputDir);
+        const arquivoAtual = this.activeFiles.get(key) ?? null;
+        const tamanhoAtualBytes = this.activeFileSizes.get(key) ?? null;
 
         statuses.push({
           key,
@@ -217,7 +263,9 @@ class RecorderService {
           streamUrl: info?.streamUrl ?? null,
           diretorio: outputDir,
           arquivos: files.length,
-          ultimoArquivo: files.at(-1) ?? null,
+          ultimoArquivo: arquivoAtual ? path.basename(arquivoAtual) : (files.at(-1) ?? null),
+          arquivoAtual: arquivoAtual ? path.basename(arquivoAtual) : null,
+          tamanhoAtualBytes,
           erro: this.errors.get(key) ?? null,
         });
       }
@@ -254,4 +302,8 @@ export async function syncRecordings(): Promise<void> {
 
 export async function getRecordingStatus(): Promise<RecordingStatus[]> {
   return getService().getStatus();
+}
+
+export function getActiveRecordingPaths(): Set<string> {
+  return getService().getActivePaths();
 }
