@@ -9,7 +9,10 @@ import {
   marcarCanalVerificado,
   obterProximoVideoPendente,
   registrarVideoYoutube,
+  salvarDuracaoVideoYoutube,
 } from "@/lib/youtube-db";
+import { fetchYoutubeVideoDuration } from "@/lib/youtube-transcript-innertube";
+import { duracaoTranscriptSegundos } from "@/lib/youtube-transcript-utils";
 import {
   fetchYoutubeTranscript,
   YoutubeAguardandoEstreiaError,
@@ -110,10 +113,31 @@ class YoutubeMonitorService {
     await atualizarStatusVideoYoutube(video.id, "processando");
 
     try {
+      const duracaoVideo = await fetchYoutubeVideoDuration(video.video_id);
+      if (duracaoVideo) {
+        await salvarDuracaoVideoYoutube(video.id, duracaoVideo);
+      }
+
       const { segmentos, fonte } = await fetchYoutubeTranscript(video.video_id);
+      const duracaoTranscript = duracaoTranscriptSegundos(segmentos);
+
+      if (
+        duracaoVideo &&
+        duracaoVideo > 120 &&
+        duracaoTranscript < duracaoVideo * 0.7
+      ) {
+        throw new YoutubeSemTranscriptError(
+          `Transcrição incompleta (${Math.round(duracaoTranscript)}s de ${duracaoVideo}s)`,
+        );
+      }
+
       await salvarSegmentosYoutube(video.id, segmentos);
       await this.detectarPalavras(video.id, segmentos);
-      await atualizarStatusVideoYoutube(video.id, "concluido", `fonte: ${fonte}`);
+      await atualizarStatusVideoYoutube(
+        video.id,
+        "concluido",
+        `fonte: ${fonte} · ${Math.round(duracaoTranscript)}s`,
+      );
       this.videosProcessados += 1;
       this.lastProcessAt = new Date().toISOString();
       this.lastError = null;

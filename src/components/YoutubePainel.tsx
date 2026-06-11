@@ -75,6 +75,7 @@ export default function YoutubePainel() {
   const [expandido, setExpandido] = useState<number | null>(null);
   const [segmentos, setSegmentos] = useState<Record<number, TranscricaoSegmento[]>>({});
   const [carregandoSegmentos, setCarregandoSegmentos] = useState<number | null>(null);
+  const [reprocessando, setReprocessando] = useState<number | null>(null);
   const [erro, setErro] = useState("");
 
   const carregar = useCallback(async () => {
@@ -122,6 +123,14 @@ export default function YoutubePainel() {
     return map;
   }, [resumos]);
 
+  async function reprocessarVideo(videoDbId: number) {
+    setReprocessando(videoDbId);
+    await fetch(`/api/youtube/videos/${videoDbId}`, { method: "POST" });
+    setReprocessando(null);
+    setExpandido(null);
+    await carregar();
+  }
+
   async function toggleTranscricao(videoDbId: number) {
     if (expandido === videoDbId) {
       setExpandido(null);
@@ -133,7 +142,7 @@ export default function YoutubePainel() {
     if (segmentos[videoDbId]) return;
 
     setCarregandoSegmentos(videoDbId);
-    const res = await fetch(`/api/youtube/transcricoes?video_db_id=${videoDbId}&limite=120`);
+    const res = await fetch(`/api/youtube/transcricoes?video_db_id=${videoDbId}&limite=5000`);
     const data = (await res.json()) as { segmentos?: TranscricaoSegmento[] };
     setCarregandoSegmentos(null);
 
@@ -275,6 +284,16 @@ export default function YoutubePainel() {
                         {aberto ? "Ocultar" : "Transcrição"}
                       </button>
                     )}
+                    {(video.status === "concluido" || video.status === "sem_transcript") && (
+                      <button
+                        type="button"
+                        disabled={reprocessando === video.id}
+                        onClick={() => void reprocessarVideo(video.id)}
+                        className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs text-amber-800 hover:bg-amber-100 disabled:opacity-60"
+                      >
+                        {reprocessando === video.id ? "..." : "Reprocessar"}
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -285,16 +304,24 @@ export default function YoutubePainel() {
                     ) : trechos.length === 0 ? (
                       <p className="text-sm text-slate-400">Nenhum trecho salvo.</p>
                     ) : (
-                      <div className="max-h-48 space-y-1 overflow-y-auto text-sm text-slate-700">
-                        {trechos.map((segmento, index) => (
-                          <p key={`${video.id}-${index}`}>
-                            <span className="mr-2 font-mono text-xs text-slate-400">
-                              {formatMinutagem(segmento.inicio_segundos)}
-                            </span>
-                            {segmento.texto}
-                          </p>
-                        ))}
-                      </div>
+                      <>
+                        <p className="mb-2 text-xs text-slate-500">
+                          {trechos.length} trechos · até{" "}
+                          {formatMinutagem(
+                            Math.max(...trechos.map((segmento) => segmento.fim_segundos)),
+                          )}
+                        </p>
+                        <div className="max-h-56 space-y-1 overflow-y-auto text-sm text-slate-700">
+                          {trechos.map((segmento, index) => (
+                            <p key={`${video.id}-${index}`}>
+                              <span className="mr-2 font-mono text-xs text-slate-400">
+                                {formatMinutagem(segmento.inicio_segundos)}
+                              </span>
+                              {segmento.texto}
+                            </p>
+                          ))}
+                        </div>
+                      </>
                     )}
                   </div>
                 )}

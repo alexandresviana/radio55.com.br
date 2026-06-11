@@ -142,6 +142,9 @@ export async function initDatabase(): Promise<void> {
       ALTER TABLE youtube_videos
         ADD COLUMN IF NOT EXISTS tentativas INTEGER NOT NULL DEFAULT 0;
 
+      ALTER TABLE youtube_videos
+        ADD COLUMN IF NOT EXISTS duracao_video_segundos NUMERIC;
+
       CREATE INDEX IF NOT EXISTS idx_youtube_videos_status
         ON youtube_videos (status, criado_em);
 

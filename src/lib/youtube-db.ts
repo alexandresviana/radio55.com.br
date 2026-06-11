@@ -173,6 +173,16 @@ export async function obterProximoVideoPendente(): Promise<YoutubeVideo | null> 
            AND v.publicado_em IS NOT NULL
            AND v.publicado_em < NOW()
          )
+         OR (
+           v.status = 'concluido'
+           AND COALESCE(v.duracao_video_segundos, 0) > 120
+           AND COALESCE((
+             SELECT MAX(s.fim_segundos)
+             FROM youtube_transcricao_segmentos s
+             WHERE s.video_db_id = v.id
+           ), 0) < v.duracao_video_segundos * 0.7
+           AND COALESCE(v.tentativas, 0) < 3
+         )
        )
      ORDER BY
        CASE v.status
@@ -187,6 +197,18 @@ export async function obterProximoVideoPendente(): Promise<YoutubeVideo | null> 
 
   const row = result.rows[0];
   return row ? mapVideo(row) : null;
+}
+
+export async function salvarDuracaoVideoYoutube(
+  id: number,
+  duracaoSegundos: number,
+): Promise<void> {
+  if (!isDatabaseConfigured()) return;
+
+  await getPool().query(
+    `UPDATE youtube_videos SET duracao_video_segundos = $2 WHERE id = $1`,
+    [id, duracaoSegundos],
+  );
 }
 
 export async function atualizarStatusVideoYoutube(

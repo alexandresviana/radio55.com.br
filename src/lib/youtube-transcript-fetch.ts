@@ -10,6 +10,10 @@ import {
   YoutubeAguardandoEstreiaError,
 } from "@/lib/youtube-transcript-innertube";
 import { fetchYoutubeTranscriptViaPlayzone } from "@/lib/youtube-transcript-playzone";
+import {
+  duracaoTranscriptSegundos,
+  escolherTranscriptMaisLongo,
+} from "@/lib/youtube-transcript-utils";
 
 export interface YoutubeTranscriptSegment {
   inicioSegundos: number;
@@ -30,6 +34,18 @@ const LANGUAGE_PRIORITY = ["pt", "pt-BR", "pt-br", "en", "en-US"];
 
 type ProviderName = "youtube-transcript-plus" | "playzone" | "innertube";
 
+function mapSegments(
+  segments: { offset: number; duration: number; text: string }[],
+): YoutubeTranscriptSegment[] {
+  return segments
+    .map((segment) => ({
+      inicioSegundos: segment.offset,
+      fimSegundos: segment.offset + segment.duration,
+      texto: segment.text.trim(),
+    }))
+    .filter((segment) => segment.texto.length > 0);
+}
+
 async function fetchViaTranscriptPlus(
   videoId: string,
 ): Promise<YoutubeTranscriptSegment[]> {
@@ -44,7 +60,9 @@ async function fetchViaTranscriptPlus(
     // listLanguages falhou — tenta prioridade fixa
   }
 
+  let melhor: YoutubeTranscriptSegment[] = [];
   let lastError: unknown;
+
   for (const lang of languagesToTry) {
     try {
       const segments = await fetchTranscript(videoId, {
@@ -54,7 +72,9 @@ async function fetchViaTranscriptPlus(
       });
 
       const mapped = mapSegments(segments);
-      if (mapped.length > 0) return mapped;
+      if (duracaoTranscriptSegundos(mapped) > duracaoTranscriptSegundos(melhor)) {
+        melhor = mapped;
+      }
     } catch (error) {
       lastError = error;
       if (
@@ -68,19 +88,9 @@ async function fetchViaTranscriptPlus(
     }
   }
 
-  throw lastError ?? new YoutubeSemTranscriptError("Nenhuma legenda via youtube-transcript-plus");
-}
+  if (melhor.length > 0) return melhor;
 
-function mapSegments(
-  segments: { offset: number; duration: number; text: string }[],
-): YoutubeTranscriptSegment[] {
-  return segments
-    .map((segment) => ({
-      inicioSegundos: segment.offset,
-      fimSegundos: segment.offset + segment.duration,
-      texto: segment.text.trim(),
-    }))
-    .filter((segment) => segment.texto.length > 0);
+  throw lastError ?? new YoutubeSemTranscriptError("Nenhuma legenda via youtube-transcript-plus");
 }
 
 async function runProvider(
@@ -118,16 +128,18 @@ function isUnavailableError(error: unknown): boolean {
 export async function fetchYoutubeTranscript(
   videoId: string,
 ): Promise<{ segmentos: YoutubeTranscriptSegment[]; fonte: ProviderName }> {
-  const providers: ProviderName[] = ["youtube-transcript-plus", "playzone", "innertube"];
+  const providers: ProviderName[] = ["innertube", "playzone", "youtube-transcript-plus"];
+  const candidatos: { segmentos: YoutubeTranscriptSegment[]; fonte: ProviderName }[] = [];
   const errors: string[] = [];
 
   for (const provider of providers) {
     try {
       const segmentos = await runProvider(provider, videoId);
       if (segmentos.length > 0) {
-        return { segmentos, fonte: provider };
+        candidatos.push({ segmentos, fonte: provider });
+      } else {
+        errors.push(`${provider}: legenda vazia`);
       }
-      errors.push(`${provider}: legenda vazia`);
     } catch (error) {
       if (error instanceof YoutubeAguardandoEstreiaError) {
         throw error;
@@ -140,6 +152,15 @@ export async function fetchYoutubeTranscript(
         console.warn(`[youtube-transcript] ${provider} falhou para ${videoId}: ${message}`);
       }
     }
+  }
+
+  const melhor = escolherTranscriptMaisLongo(candidatos);
+  if (melhor) {
+    const duracaoMin = (duracaoTranscriptSegundos(melhor.segmentos) / 60).toFixed(1);
+    console.info(
+      `[youtube-transcript] ${videoId}: ${melhor.fonte} (${melhor.segmentos.length} trechos, ${duracaoMin} min)`,
+    );
+    return { segmentos: melhor.segmentos, fonte: melhor.fonte as ProviderName };
   }
 
   throw new YoutubeSemTranscriptError(

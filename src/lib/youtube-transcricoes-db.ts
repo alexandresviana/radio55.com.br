@@ -18,25 +18,29 @@ export async function salvarSegmentosYoutube(
     videoDbId,
   ]);
 
-  const values: unknown[] = [];
-  const placeholders: string[] = [];
+  const CHUNK_SIZE = 250;
+  for (let offset = 0; offset < segmentos.length; offset += CHUNK_SIZE) {
+    const chunk = segmentos.slice(offset, offset + CHUNK_SIZE);
+    const values: unknown[] = [];
+    const placeholders: string[] = [];
 
-  segmentos.forEach((segmento, index) => {
-    const base = index * 4;
-    placeholders.push(`($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`);
-    values.push(videoDbId, segmento.inicioSegundos, segmento.fimSegundos, segmento.texto);
-  });
+    chunk.forEach((segmento, index) => {
+      const base = index * 4;
+      placeholders.push(`($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`);
+      values.push(videoDbId, segmento.inicioSegundos, segmento.fimSegundos, segmento.texto);
+    });
 
-  await getPool().query(
-    `INSERT INTO youtube_transcricao_segmentos (video_db_id, inicio_segundos, fim_segundos, texto)
-     VALUES ${placeholders.join(", ")}`,
-    values,
-  );
+    await getPool().query(
+      `INSERT INTO youtube_transcricao_segmentos (video_db_id, inicio_segundos, fim_segundos, texto)
+       VALUES ${placeholders.join(", ")}`,
+      values,
+    );
+  }
 }
 
 export async function listarSegmentosYoutube(
   videoDbId: number,
-  limite = 200,
+  limite = 5000,
 ): Promise<YoutubeTranscricaoSegmento[]> {
   if (!isDatabaseConfigured()) return [];
 
