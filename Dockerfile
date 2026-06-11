@@ -43,11 +43,12 @@ ENV HF_HUB_OFFLINE=1
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/data ./data
+COPY --from=builder /app/data/emissoras.json /app/data-seed/emissoras.json
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-RUN mkdir -p /app/data/gravacoes /app/data/trechos /app/data/whisper-cache \
-  && chown -R nextjs:nodejs /app/data /app/whisper-cache-builtin /opt/whisper
+RUN mkdir -p /app/data/gravacoes /app/data/trechos /app/data/whisper-cache /app/data-seed \
+  && chown -R nextjs:nodejs /app/data /app/data-seed /app/whisper-cache-builtin /opt/whisper
 
 USER nextjs
 EXPOSE 3000

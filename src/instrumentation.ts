@@ -5,11 +5,16 @@ export async function register() {
     const { startRecorderService } = await import("@/lib/recorder");
     const { startTranscriptionService } = await import("@/lib/transcription");
     const { startYoutubeMonitorService } = await import("@/lib/youtube-monitor");
+    const { startBunnyStorageUploader } = await import("@/lib/bunny-storage-uploader");
+
+    const { readEmissoras } = await import("@/lib/emissoras");
 
     await initDatabase();
+    await readEmissoras();
     void startGravacoesIndexer();
     void startRecorderService();
     void startTranscriptionService();
     void startYoutubeMonitorService();
+    void startBunnyStorageUploader();
   }
 }

@@ -152,6 +152,57 @@ export async function obterGravacaoPorId(id: number): Promise<GravacaoArquivo | 
   };
 }
 
+export interface GravacaoPendenteUpload {
+  id: number;
+  municipio: string;
+  radio_nome: string;
+  arquivo: string;
+  caminho: string;
+  tamanho_bytes: number;
+  em_gravacao: boolean;
+}
+
+export async function listarGravacoesPendentesUpload(
+  limite = 10,
+): Promise<GravacaoPendenteUpload[]> {
+  if (!isDatabaseConfigured()) return [];
+
+  const safeLimite = Math.min(Math.max(limite, 1), 50);
+  const result = await getPool().query<GravacaoPendenteUpload>(
+    `SELECT id, municipio, radio_nome, arquivo, caminho, tamanho_bytes, em_gravacao
+     FROM gravacao_arquivos
+     WHERE removido_em IS NULL
+       AND bunny_uploaded_em IS NULL
+       AND tamanho_bytes >= 65536
+     ORDER BY em_gravacao ASC, gravado_em DESC
+     LIMIT $1`,
+    [safeLimite],
+  );
+
+  return result.rows.map((row) => ({
+    ...row,
+    tamanho_bytes: Number(row.tamanho_bytes),
+    em_gravacao: Boolean(row.em_gravacao),
+  }));
+}
+
+export async function marcarGravacaoEnviadaStorage(
+  id: number,
+  bunnyPath: string,
+  sizeBytes?: number,
+): Promise<void> {
+  if (!isDatabaseConfigured()) return;
+
+  await getPool().query(
+    `UPDATE gravacao_arquivos
+     SET bunny_path = $2,
+         bunny_uploaded_em = NOW(),
+         bunny_upload_bytes = COALESCE($3, tamanho_bytes)
+     WHERE id = $1`,
+    [id, bunnyPath, sizeBytes ?? null],
+  );
+}
+
 export async function listarRadiosGravadas(): Promise<
   { municipio: string; radio_nome: string }[]
 > {

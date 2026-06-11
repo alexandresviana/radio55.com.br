@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isDatabaseConfigured } from "@/lib/db";
-import { listarPreviewsTranscricaoYoutube } from "@/lib/youtube-transcricoes-db";
+import { listarResumosTranscricaoYoutube } from "@/lib/youtube-transcricoes-db";
 import { getYoutubeMonitorStatus } from "@/lib/youtube-monitor";
 
 export const runtime = "nodejs";
@@ -14,10 +14,10 @@ export async function GET() {
     );
   }
 
-  const previews = await listarPreviewsTranscricaoYoutube(5);
+  const resumos = await listarResumosTranscricaoYoutube(8);
 
   return NextResponse.json({
     monitor: getYoutubeMonitorStatus(),
-    previews,
+    resumos,
   });
 }

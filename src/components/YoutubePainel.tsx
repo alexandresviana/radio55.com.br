@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatMinutagem } from "@/lib/text-normalize";
 
 interface MonitorStatus {
@@ -24,16 +24,20 @@ interface YoutubeVideo {
   segmentos_total?: number;
 }
 
-interface TranscricaoSegmento {
-  inicio_segundos: number;
-  texto: string;
-}
-
-interface TranscricaoPreview {
+interface TranscricaoResumo {
+  videoDbId: number;
   videoId: string;
   titulo: string;
   canalTitulo: string;
-  segmentos: TranscricaoSegmento[];
+  segmentosTotal: number;
+  resumo: string;
+  duracaoSegundos: number | null;
+}
+
+interface TranscricaoSegmento {
+  inicio_segundos: number;
+  fim_segundos: number;
+  texto: string;
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -42,7 +46,16 @@ const STATUS_LABEL: Record<string, string> = {
   concluido: "Concluído",
   erro: "Erro",
   sem_transcript: "Sem legenda",
+  aguardando: "Aguardando estreia",
 };
+
+const FILTROS = [
+  { id: "todos", label: "Todos" },
+  { id: "pendente", label: "Fila" },
+  { id: "aguardando", label: "Aguardando" },
+  { id: "concluido", label: "Concluídos" },
+  { id: "sem_transcript", label: "Sem legenda" },
+] as const;
 
 function formatDateTime(iso: string | null): string {
   if (!iso) return "—";
@@ -57,18 +70,24 @@ function formatDateTime(iso: string | null): string {
 export default function YoutubePainel() {
   const [monitor, setMonitor] = useState<MonitorStatus | null>(null);
   const [videos, setVideos] = useState<YoutubeVideo[]>([]);
-  const [previews, setPreviews] = useState<TranscricaoPreview[]>([]);
+  const [resumos, setResumos] = useState<TranscricaoResumo[]>([]);
+  const [filtro, setFiltro] = useState<(typeof FILTROS)[number]["id"]>("todos");
+  const [expandido, setExpandido] = useState<number | null>(null);
+  const [segmentos, setSegmentos] = useState<Record<number, TranscricaoSegmento[]>>({});
+  const [carregandoSegmentos, setCarregandoSegmentos] = useState<number | null>(null);
   const [erro, setErro] = useState("");
 
   const carregar = useCallback(async () => {
+    const statusParam =
+      filtro !== "todos" ? `&status=${filtro === "pendente" ? "pendente" : filtro}` : "";
     const [statusRes, videosRes] = await Promise.all([
       fetch("/api/youtube/status"),
-      fetch("/api/youtube/videos?limite=30"),
+      fetch(`/api/youtube/videos?limite=20${statusParam}`),
     ]);
 
     const statusData = (await statusRes.json()) as {
       monitor?: MonitorStatus;
-      previews?: TranscricaoPreview[];
+      resumos?: TranscricaoResumo[];
       error?: string;
     };
     const videosData = (await videosRes.json()) as {
@@ -83,17 +102,45 @@ export default function YoutubePainel() {
 
     setErro("");
     setMonitor(statusData.monitor ?? null);
-    setPreviews(statusData.previews ?? []);
+    setResumos(statusData.resumos ?? []);
     setVideos(videosData.videos ?? []);
-  }, []);
+  }, [filtro]);
 
   useEffect(() => {
     void carregar();
     const timer = setInterval(() => {
       void carregar();
-    }, 10_000);
+    }, 15_000);
     return () => clearInterval(timer);
   }, [carregar]);
+
+  const resumosPorVideo = useMemo(() => {
+    const map = new Map<number, TranscricaoResumo>();
+    for (const resumo of resumos) {
+      map.set(resumo.videoDbId, resumo);
+    }
+    return map;
+  }, [resumos]);
+
+  async function toggleTranscricao(videoDbId: number) {
+    if (expandido === videoDbId) {
+      setExpandido(null);
+      return;
+    }
+
+    setExpandido(videoDbId);
+
+    if (segmentos[videoDbId]) return;
+
+    setCarregandoSegmentos(videoDbId);
+    const res = await fetch(`/api/youtube/transcricoes?video_db_id=${videoDbId}&limite=120`);
+    const data = (await res.json()) as { segmentos?: TranscricaoSegmento[] };
+    setCarregandoSegmentos(null);
+
+    if (res.ok && data.segmentos) {
+      setSegmentos((prev) => ({ ...prev, [videoDbId]: data.segmentos ?? [] }));
+    }
+  }
 
   if (!monitor && videos.length === 0 && !erro) {
     return null;
@@ -105,7 +152,7 @@ export default function YoutubePainel() {
         <div>
           <h2 className="text-lg font-semibold text-slate-900">Monitoramento de vídeos</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Sincroniza novos vídeos via RSS e processa legendas automaticamente.
+            Legendas via múltiplas fontes. Estreias agendadas ficam em aguardando e são reprocessadas.
           </p>
         </div>
         <button
@@ -125,8 +172,8 @@ export default function YoutubePainel() {
             <p className="text-xs uppercase tracking-wide text-slate-500">Serviço</p>
             <p className="mt-1 font-medium text-slate-900">
               {monitor.ativo ? "Ativo" : "Inativo"}
-              {monitor.sincronizando ? " · sincronizando" : ""}
-              {monitor.processando ? " · processando" : ""}
+              {monitor.sincronizando ? " · sync" : ""}
+              {monitor.processando ? " · proc." : ""}
             </p>
           </div>
           <div className="rounded-xl bg-slate-50 px-4 py-3">
@@ -152,61 +199,39 @@ export default function YoutubePainel() {
         <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{monitor.erro}</p>
       )}
 
-      {previews.length > 0 && (
-        <div className="mb-5">
-          <h3 className="mb-2 text-sm font-semibold text-slate-800">Transcrições recentes</h3>
-          <div className="space-y-3">
-            {previews.map((preview) => (
-              <div key={preview.videoId} className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="font-medium text-slate-900">{preview.titulo}</p>
-                    <p className="text-xs text-slate-500">{preview.canalTitulo}</p>
-                  </div>
-                  <a
-                    href={`https://www.youtube.com/watch?v=${preview.videoId}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-xs font-medium text-red-600 hover:text-red-700"
-                  >
-                    Abrir no YouTube
-                  </a>
-                </div>
-                <div className="max-h-40 space-y-1 overflow-y-auto text-sm text-slate-700">
-                  {preview.segmentos.slice(0, 12).map((segmento, index) => (
-                    <p key={`${preview.videoId}-${index}`}>
-                      <span className="mr-2 font-mono text-xs text-slate-400">
-                        {formatMinutagem(segmento.inicio_segundos)}
-                      </span>
-                      {segmento.texto}
-                    </p>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <div className="mb-3 flex flex-wrap gap-2">
+        {FILTROS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => setFiltro(item.id)}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+              filtro === item.id
+                ? "bg-slate-900 text-white"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
 
-      <h3 className="mb-2 text-sm font-semibold text-slate-800">Fila de vídeos</h3>
       {videos.length === 0 ? (
-        <p className="text-sm text-slate-400">Nenhum vídeo na fila ainda.</p>
+        <p className="text-sm text-slate-400">Nenhum vídeo neste filtro.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-left text-sm">
-            <thead>
-              <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-500">
-                <th className="px-2 py-2">Vídeo</th>
-                <th className="px-2 py-2">Canal</th>
-                <th className="px-2 py-2">Publicado</th>
-                <th className="px-2 py-2">Status</th>
-                <th className="px-2 py-2">Trechos</th>
-              </tr>
-            </thead>
-            <tbody>
-              {videos.map((video) => (
-                <tr key={video.id} className="border-b border-slate-50">
-                  <td className="px-2 py-3">
+        <div className="space-y-2">
+          {videos.map((video) => {
+            const resumo = resumosPorVideo.get(video.id);
+            const aberto = expandido === video.id;
+            const trechos = segmentos[video.id] ?? [];
+
+            return (
+              <div
+                key={video.id}
+                className="rounded-xl border border-slate-100 bg-slate-50/80"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3 p-3">
+                  <div className="min-w-0 flex-1">
                     <a
                       href={`https://www.youtube.com/watch?v=${video.video_id}`}
                       target="_blank"
@@ -215,24 +240,67 @@ export default function YoutubePainel() {
                     >
                       {video.titulo}
                     </a>
-                    {video.erro_msg && (
-                      <p className="mt-1 text-xs text-red-600">{video.erro_msg}</p>
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      {video.canal_titulo} · {formatDateTime(video.publicado_em)}
+                    </p>
+                    {video.status === "concluido" && resumo && (
+                      <p className="mt-1 line-clamp-2 text-sm text-slate-600">
+                        {resumo.resumo}
+                        {resumo.segmentosTotal > 0 && (
+                          <span className="ml-2 text-xs text-slate-400">
+                            ({resumo.segmentosTotal} trechos
+                            {resumo.duracaoSegundos
+                              ? ` · ${formatMinutagem(resumo.duracaoSegundos)}`
+                              : ""}
+                            )
+                          </span>
+                        )}
+                      </p>
                     )}
-                  </td>
-                  <td className="px-2 py-3 text-slate-600">{video.canal_titulo}</td>
-                  <td className="px-2 py-3 text-slate-600">
-                    {formatDateTime(video.publicado_em)}
-                  </td>
-                  <td className="px-2 py-3">
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700">
+                    {video.erro_msg && (
+                      <p className="mt-1 text-xs text-amber-700">{video.erro_msg}</p>
+                    )}
+                  </div>
+
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className="rounded-full bg-white px-2 py-0.5 text-xs text-slate-700 ring-1 ring-slate-200">
                       {STATUS_LABEL[video.status] ?? video.status}
                     </span>
-                  </td>
-                  <td className="px-2 py-3">{video.segmentos_total ?? 0}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    {video.status === "concluido" && (
+                      <button
+                        type="button"
+                        onClick={() => void toggleTranscricao(video.id)}
+                        className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700 hover:bg-slate-100"
+                      >
+                        {aberto ? "Ocultar" : "Transcrição"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {aberto && (
+                  <div className="border-t border-slate-100 bg-white px-3 py-3">
+                    {carregandoSegmentos === video.id ? (
+                      <p className="text-sm text-slate-500">Carregando trechos...</p>
+                    ) : trechos.length === 0 ? (
+                      <p className="text-sm text-slate-400">Nenhum trecho salvo.</p>
+                    ) : (
+                      <div className="max-h-48 space-y-1 overflow-y-auto text-sm text-slate-700">
+                        {trechos.map((segmento, index) => (
+                          <p key={`${video.id}-${index}`}>
+                            <span className="mr-2 font-mono text-xs text-slate-400">
+                              {formatMinutagem(segmento.inicio_segundos)}
+                            </span>
+                            {segmento.texto}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </section>

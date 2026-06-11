@@ -1,6 +1,14 @@
 #!/bin/sh
 set -e
 
+DATA_DIR="${DATA_DIR:-/app/data}"
+mkdir -p "${DATA_DIR}/gravacoes" "${DATA_DIR}/trechos" "${DATA_DIR}/whisper-cache"
+
+if [ ! -f "${DATA_DIR}/emissoras.json" ] && [ -f /app/data-seed/emissoras.json ]; then
+  echo "[entrypoint] Seed inicial de emissoras.json em ${DATA_DIR}..."
+  cp /app/data-seed/emissoras.json "${DATA_DIR}/emissoras.json"
+fi
+
 DEFAULT_MODEL_DIR="/app/data/whisper-cache"
 BUILTIN_MODEL_DIR="/app/whisper-cache-builtin"
 MODEL_DIR="${WHISPER_CACHE_DIR:-$DEFAULT_MODEL_DIR}"

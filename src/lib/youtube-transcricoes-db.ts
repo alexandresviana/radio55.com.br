@@ -56,15 +56,17 @@ export async function listarSegmentosYoutube(
   }));
 }
 
-export async function listarPreviewsTranscricaoYoutube(
-  limiteVideos = 5,
+export async function listarResumosTranscricaoYoutube(
+  limiteVideos = 8,
 ): Promise<
   {
     videoDbId: number;
     videoId: string;
     titulo: string;
     canalTitulo: string;
-    segmentos: YoutubeTranscricaoSegmento[];
+    segmentosTotal: number;
+    resumo: string;
+    duracaoSegundos: number | null;
   }[]
 > {
   if (!isDatabaseConfigured()) return [];
@@ -74,27 +76,35 @@ export async function listarPreviewsTranscricaoYoutube(
     video_id: string;
     titulo: string;
     canal_titulo: string;
+    segmentos_total: string;
+    resumo: string | null;
+    duracao_segundos: string | null;
   }>(
-    `SELECT v.id, v.video_id, v.titulo, c.titulo AS canal_titulo
+    `SELECT
+       v.id,
+       v.video_id,
+       v.titulo,
+       c.titulo AS canal_titulo,
+       COUNT(s.id)::text AS segmentos_total,
+       LEFT((ARRAY_AGG(s.texto ORDER BY s.inicio_segundos))[1], 180) AS resumo,
+       MAX(s.fim_segundos)::text AS duracao_segundos
      FROM youtube_videos v
      JOIN youtube_canais c ON c.id = v.canal_id
+     LEFT JOIN youtube_transcricao_segmentos s ON s.video_db_id = v.id
      WHERE v.status = 'concluido'
+     GROUP BY v.id, v.video_id, v.titulo, c.titulo, v.processado_em
      ORDER BY v.processado_em DESC NULLS LAST
      LIMIT $1`,
     [limiteVideos],
   );
 
-  const previews = [];
-  for (const video of videos.rows) {
-    const segmentos = await listarSegmentosYoutube(video.id, 80);
-    previews.push({
-      videoDbId: video.id,
-      videoId: video.video_id,
-      titulo: video.titulo,
-      canalTitulo: video.canal_titulo,
-      segmentos,
-    });
-  }
-
-  return previews;
+  return videos.rows.map((row) => ({
+    videoDbId: row.id,
+    videoId: row.video_id,
+    titulo: row.titulo,
+    canalTitulo: row.canal_titulo,
+    segmentosTotal: Number(row.segmentos_total ?? 0),
+    resumo: row.resumo?.trim() || "Sem trechos",
+    duracaoSegundos: row.duracao_segundos ? Number(row.duracao_segundos) : null,
+  }));
 }

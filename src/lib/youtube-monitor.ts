@@ -12,6 +12,7 @@ import {
 } from "@/lib/youtube-db";
 import {
   fetchYoutubeTranscript,
+  YoutubeAguardandoEstreiaError,
   YoutubeSemTranscriptError,
   type YoutubeTranscriptSegment,
 } from "@/lib/youtube-transcript-fetch";
@@ -109,15 +110,17 @@ class YoutubeMonitorService {
     await atualizarStatusVideoYoutube(video.id, "processando");
 
     try {
-      const segmentos = await fetchYoutubeTranscript(video.video_id);
+      const { segmentos, fonte } = await fetchYoutubeTranscript(video.video_id);
       await salvarSegmentosYoutube(video.id, segmentos);
       await this.detectarPalavras(video.id, segmentos);
-      await atualizarStatusVideoYoutube(video.id, "concluido");
+      await atualizarStatusVideoYoutube(video.id, "concluido", `fonte: ${fonte}`);
       this.videosProcessados += 1;
       this.lastProcessAt = new Date().toISOString();
       this.lastError = null;
     } catch (error) {
-      if (error instanceof YoutubeSemTranscriptError) {
+      if (error instanceof YoutubeAguardandoEstreiaError) {
+        await atualizarStatusVideoYoutube(video.id, "aguardando", error.message);
+      } else if (error instanceof YoutubeSemTranscriptError) {
         await atualizarStatusVideoYoutube(video.id, "sem_transcript", error.message);
       } else {
         const message = error instanceof Error ? error.message : "Erro ao processar vídeo";

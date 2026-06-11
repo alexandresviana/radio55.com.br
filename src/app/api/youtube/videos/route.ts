@@ -11,6 +11,7 @@ const STATUS_VALUES = new Set<YoutubeVideoStatus>([
   "concluido",
   "erro",
   "sem_transcript",
+  "aguardando",
 ]);
 
 export async function GET(request: NextRequest) {

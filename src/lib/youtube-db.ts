@@ -5,7 +5,8 @@ export type YoutubeVideoStatus =
   | "processando"
   | "concluido"
   | "erro"
-  | "sem_transcript";
+  | "sem_transcript"
+  | "aguardando";
 
 export interface YoutubeCanal {
   id: number;
@@ -163,8 +164,24 @@ export async function obterProximoVideoPendente(): Promise<YoutubeVideo | null> 
        c.titulo AS canal_titulo
      FROM youtube_videos v
      JOIN youtube_canais c ON c.id = v.canal_id
-     WHERE v.status = 'pendente' AND c.ativo = TRUE
-     ORDER BY v.publicado_em DESC NULLS LAST, v.id ASC
+     WHERE c.ativo = TRUE
+       AND (
+         v.status IN ('pendente', 'aguardando')
+         OR (
+           v.status = 'sem_transcript'
+           AND COALESCE(v.tentativas, 0) < 5
+           AND v.publicado_em IS NOT NULL
+           AND v.publicado_em < NOW()
+         )
+       )
+     ORDER BY
+       CASE v.status
+         WHEN 'pendente' THEN 0
+         WHEN 'aguardando' THEN 1
+         ELSE 2
+       END,
+       v.publicado_em DESC NULLS LAST,
+       v.id ASC
      LIMIT 1`,
   );
 
@@ -184,7 +201,14 @@ export async function atualizarStatusVideoYoutube(
      SET
        status = $2,
        erro_msg = $3,
-       processado_em = CASE WHEN $2 IN ('concluido', 'erro', 'sem_transcript') THEN NOW() ELSE processado_em END
+       tentativas = CASE
+         WHEN $2 IN ('sem_transcript', 'erro', 'aguardando') THEN COALESCE(tentativas, 0) + 1
+         ELSE tentativas
+       END,
+       processado_em = CASE
+         WHEN $2 IN ('concluido', 'erro', 'sem_transcript', 'aguardando') THEN NOW()
+         ELSE processado_em
+       END
      WHERE id = $1`,
     [id, status, erroMsg ?? null],
   );

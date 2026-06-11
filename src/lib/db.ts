@@ -134,9 +134,13 @@ export async function initDatabase(): Promise<void> {
         publicado_em TIMESTAMPTZ,
         status TEXT NOT NULL DEFAULT 'pendente',
         erro_msg TEXT,
+        tentativas INTEGER NOT NULL DEFAULT 0,
         processado_em TIMESTAMPTZ,
         criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+
+      ALTER TABLE youtube_videos
+        ADD COLUMN IF NOT EXISTS tentativas INTEGER NOT NULL DEFAULT 0;
 
       CREATE INDEX IF NOT EXISTS idx_youtube_videos_status
         ON youtube_videos (status, criado_em);
@@ -170,6 +174,25 @@ export async function initDatabase(): Promise<void> {
 
       CREATE INDEX IF NOT EXISTS idx_youtube_deteccoes_detectado_em
         ON youtube_palavra_deteccoes (detectado_em DESC);
+
+      CREATE TABLE IF NOT EXISTS emissoras_config (
+        id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+        dados JSONB NOT NULL,
+        atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      ALTER TABLE gravacao_arquivos
+        ADD COLUMN IF NOT EXISTS bunny_path TEXT;
+
+      ALTER TABLE gravacao_arquivos
+        ADD COLUMN IF NOT EXISTS bunny_uploaded_em TIMESTAMPTZ;
+
+      ALTER TABLE gravacao_arquivos
+        ADD COLUMN IF NOT EXISTS bunny_upload_bytes BIGINT;
+
+      CREATE INDEX IF NOT EXISTS idx_gravacao_arquivos_bunny_pendente
+        ON gravacao_arquivos (gravado_em DESC)
+        WHERE removido_em IS NULL AND bunny_uploaded_em IS NULL;
 
     `);
   });
