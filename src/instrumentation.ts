@@ -4,10 +4,12 @@ export async function register() {
     const { startGravacoesIndexer } = await import("@/lib/gravacoes-indexer");
     const { startRecorderService } = await import("@/lib/recorder");
     const { startTranscriptionService } = await import("@/lib/transcription");
+    const { startYoutubeMonitorService } = await import("@/lib/youtube-monitor");
 
     await initDatabase();
     void startGravacoesIndexer();
     void startRecorderService();
     void startTranscriptionService();
+    void startYoutubeMonitorService();
   }
 }

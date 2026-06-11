@@ -112,6 +112,65 @@ export async function initDatabase(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_transcricao_segmentos_gravacao
         ON transcricao_segmentos (gravacao_id, inicio_segundos);
 
+      CREATE TABLE IF NOT EXISTS youtube_canais (
+        id SERIAL PRIMARY KEY,
+        channel_id TEXT NOT NULL UNIQUE,
+        titulo TEXT NOT NULL DEFAULT '',
+        url_entrada TEXT NOT NULL DEFAULT '',
+        ativo BOOLEAN NOT NULL DEFAULT TRUE,
+        ultima_verificacao_em TIMESTAMPTZ,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_youtube_canais_ativo
+        ON youtube_canais (ativo)
+        WHERE ativo = TRUE;
+
+      CREATE TABLE IF NOT EXISTS youtube_videos (
+        id SERIAL PRIMARY KEY,
+        canal_id INTEGER NOT NULL REFERENCES youtube_canais(id) ON DELETE CASCADE,
+        video_id TEXT NOT NULL UNIQUE,
+        titulo TEXT NOT NULL DEFAULT '',
+        publicado_em TIMESTAMPTZ,
+        status TEXT NOT NULL DEFAULT 'pendente',
+        erro_msg TEXT,
+        processado_em TIMESTAMPTZ,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_youtube_videos_status
+        ON youtube_videos (status, criado_em);
+
+      CREATE INDEX IF NOT EXISTS idx_youtube_videos_canal
+        ON youtube_videos (canal_id, publicado_em DESC);
+
+      CREATE TABLE IF NOT EXISTS youtube_transcricao_segmentos (
+        id SERIAL PRIMARY KEY,
+        video_db_id INTEGER NOT NULL REFERENCES youtube_videos(id) ON DELETE CASCADE,
+        inicio_segundos NUMERIC NOT NULL,
+        fim_segundos NUMERIC NOT NULL,
+        texto TEXT NOT NULL,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_youtube_transcricao_video
+        ON youtube_transcricao_segmentos (video_db_id, inicio_segundos);
+
+      CREATE TABLE IF NOT EXISTS youtube_palavra_deteccoes (
+        id SERIAL PRIMARY KEY,
+        palavra_chave_id INTEGER REFERENCES palavras_chave(id) ON DELETE SET NULL,
+        video_db_id INTEGER NOT NULL REFERENCES youtube_videos(id) ON DELETE CASCADE,
+        termo TEXT NOT NULL,
+        inicio_segundos NUMERIC NOT NULL,
+        fim_segundos NUMERIC NOT NULL,
+        contexto TEXT NOT NULL DEFAULT '',
+        detectado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_youtube_deteccoes_detectado_em
+        ON youtube_palavra_deteccoes (detectado_em DESC);
+
     `);
   });
 }
