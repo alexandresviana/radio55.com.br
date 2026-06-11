@@ -100,6 +100,18 @@ export async function initDatabase(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_palavra_deteccoes_gravacao
         ON palavra_deteccoes (gravacao_id, inicio_segundos);
 
+      CREATE TABLE IF NOT EXISTS transcricao_segmentos (
+        id SERIAL PRIMARY KEY,
+        gravacao_id INTEGER NOT NULL REFERENCES gravacao_arquivos(id) ON DELETE CASCADE,
+        inicio_segundos NUMERIC NOT NULL,
+        fim_segundos NUMERIC NOT NULL,
+        texto TEXT NOT NULL,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_transcricao_segmentos_gravacao
+        ON transcricao_segmentos (gravacao_id, inicio_segundos);
+
     `);
   });
 }

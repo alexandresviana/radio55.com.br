@@ -26,6 +26,17 @@ interface DeteccaoItem {
   trecho_caminho: string | null;
 }
 
+interface TranscricaoPreview {
+  gravacao_id: number;
+  municipio: string;
+  radio_nome: string;
+  arquivo: string;
+  preview: string;
+  segmentos: number;
+  inicio_segundos: number | null;
+  fim_segundos: number | null;
+}
+
 function formatBytes(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -34,12 +45,14 @@ function formatBytes(bytes: number): string {
 export default function GravacoesAtivas() {
   const [gravacoes, setGravacoes] = useState<RecordingStatusItem[]>([]);
   const [deteccoes, setDeteccoes] = useState<DeteccaoItem[]>([]);
+  const [previews, setPreviews] = useState<TranscricaoPreview[]>([]);
   const [transcricaoAtiva, setTranscricaoAtiva] = useState(false);
 
   const carregar = useCallback(async () => {
-    const [statusRes, deteccoesRes] = await Promise.all([
+    const [statusRes, deteccoesRes, transcricoesRes] = await Promise.all([
       fetch("/api/gravacoes/status"),
       fetch("/api/deteccoes?ao_vivo=1&limite=30"),
+      fetch("/api/transcricoes?ao_vivo=1"),
     ]);
 
     if (statusRes.ok) {
@@ -54,6 +67,15 @@ export default function GravacoesAtivas() {
       };
       setDeteccoes(data.deteccoes ?? []);
       setTranscricaoAtiva(Boolean(data.transcricao?.ativo));
+    }
+
+    if (transcricoesRes.ok) {
+      const data = (await transcricoesRes.json()) as {
+        previews?: TranscricaoPreview[];
+        transcricao?: { ativo?: boolean };
+      };
+      setPreviews(data.previews ?? []);
+      setTranscricaoAtiva((prev) => prev || Boolean(data.transcricao?.ativo));
     }
   }, []);
 
@@ -118,6 +140,43 @@ export default function GravacoesAtivas() {
           ))}
         </ul>
       </div>
+
+      {previews.length > 0 && (
+        <div className="rounded-2xl border border-sky-200 bg-sky-50/50 p-4">
+          <h3 className="text-sm font-semibold text-sky-900">Transcrição — últimos 30 minutos</h3>
+          <p className="mt-1 text-xs text-sky-800">
+            Preview automático do que foi transcrito nas gravações em andamento.
+          </p>
+
+          <div className="mt-3 space-y-3">
+            {previews.map((item) => (
+              <div
+                key={item.gravacao_id}
+                className="rounded-lg border border-sky-100 bg-white/90 px-3 py-3"
+              >
+                <div className="mb-2 flex flex-wrap items-center gap-2 text-sm">
+                  <span className="font-medium text-slate-800">
+                    {item.radio_nome} · {item.municipio}
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    {item.segmentos} trecho(s)
+                    {item.inicio_segundos != null && item.fim_segundos != null && (
+                      <>
+                        {" "}
+                        · {formatMinutagem(item.inicio_segundos)} –{" "}
+                        {formatMinutagem(item.fim_segundos)}
+                      </>
+                    )}
+                  </span>
+                </div>
+                <pre className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded-lg bg-slate-50 p-3 font-sans text-xs leading-relaxed text-slate-700">
+                  {item.preview}
+                </pre>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {deteccoes.length > 0 && (
         <div className="rounded-2xl border border-rose-200 bg-rose-50/50 p-4">

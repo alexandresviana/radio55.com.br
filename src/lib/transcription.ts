@@ -12,6 +12,7 @@ import { isDatabaseConfigured } from "@/lib/db";
 import { extractMp3Clip, extractWavSegment } from "@/lib/ffmpeg-audio";
 import { obterGravacaoPorCaminho } from "@/lib/gravacoes-db";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
+import { salvarSegmentosTranscricao } from "@/lib/transcricoes-db";
 import { getActiveRecordingPaths } from "@/lib/recorder";
 import { encontrarPalavrasNoTexto, normalizeText } from "@/lib/text-normalize";
 
@@ -68,8 +69,6 @@ class TranscriptionService {
     if (this.busy || !isDatabaseConfigured()) return;
 
     const keywords = await listarPalavrasChaveAtivas();
-    if (keywords.length === 0) return;
-
     const activePaths = [...getActiveRecordingPaths()];
     if (activePaths.length === 0) return;
 
@@ -111,13 +110,24 @@ class TranscriptionService {
     try {
       await extractWavSegment(filePath, startSecond, duration, wavPath);
       const segments = await this.transcribeWav(wavPath);
-      await this.detectInSegments({
-        segments,
-        chunkStart: startSecond,
-        gravacaoId: gravacao.id,
-        filePath,
-        keywords,
-      });
+      await salvarSegmentosTranscricao(
+        gravacao.id,
+        segments.map((segment) => ({
+          inicioSegundos: startSecond + segment.start,
+          fimSegundos: startSecond + segment.end,
+          texto: segment.text,
+        })),
+      );
+
+      if (keywords.length > 0) {
+        await this.detectInSegments({
+          segments,
+          chunkStart: startSecond,
+          gravacaoId: gravacao.id,
+          filePath,
+          keywords,
+        });
+      }
 
       const nextSecond = Math.max(startSecond + duration - OVERLAP_SECONDS, 0);
       await salvarProgressoTranscricao({
