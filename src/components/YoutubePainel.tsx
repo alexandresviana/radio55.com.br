@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatMinutagem } from "@/lib/text-normalize";
+import { youtubeThumbnailUrl } from "@/lib/youtube-thumbnail";
 
 interface MonitorStatus {
   ativo: boolean;
@@ -57,6 +58,8 @@ const FILTROS = [
   { id: "sem_transcript", label: "Sem legenda" },
 ] as const;
 
+const POR_PAGINA = 15;
+
 function formatDateTime(iso: string | null): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleString("pt-BR", {
@@ -72,6 +75,8 @@ export default function YoutubePainel() {
   const [videos, setVideos] = useState<YoutubeVideo[]>([]);
   const [resumos, setResumos] = useState<TranscricaoResumo[]>([]);
   const [filtro, setFiltro] = useState<(typeof FILTROS)[number]["id"]>("todos");
+  const [pagina, setPagina] = useState(0);
+  const [total, setTotal] = useState(0);
   const [expandido, setExpandido] = useState<number | null>(null);
   const [segmentos, setSegmentos] = useState<Record<number, TranscricaoSegmento[]>>({});
   const [carregandoSegmentos, setCarregandoSegmentos] = useState<number | null>(null);
@@ -83,7 +88,9 @@ export default function YoutubePainel() {
       filtro !== "todos" ? `&status=${filtro === "pendente" ? "pendente" : filtro}` : "";
     const [statusRes, videosRes] = await Promise.all([
       fetch("/api/youtube/status"),
-      fetch(`/api/youtube/videos?limite=20${statusParam}`),
+      fetch(
+        `/api/youtube/videos?limite=${POR_PAGINA}&offset=${pagina * POR_PAGINA}${statusParam}`,
+      ),
     ]);
 
     const statusData = (await statusRes.json()) as {
@@ -93,6 +100,7 @@ export default function YoutubePainel() {
     };
     const videosData = (await videosRes.json()) as {
       videos?: YoutubeVideo[];
+      total?: number;
       error?: string;
     };
 
@@ -105,7 +113,8 @@ export default function YoutubePainel() {
     setMonitor(statusData.monitor ?? null);
     setResumos(statusData.resumos ?? []);
     setVideos(videosData.videos ?? []);
-  }, [filtro]);
+    setTotal(videosData.total ?? 0);
+  }, [filtro, pagina]);
 
   useEffect(() => {
     void carregar();
@@ -114,6 +123,11 @@ export default function YoutubePainel() {
     }, 15_000);
     return () => clearInterval(timer);
   }, [carregar]);
+
+  useEffect(() => {
+    setPagina(0);
+    setExpandido(null);
+  }, [filtro]);
 
   const resumosPorVideo = useMemo(() => {
     const map = new Map<number, TranscricaoResumo>();
@@ -150,6 +164,8 @@ export default function YoutubePainel() {
       setSegmentos((prev) => ({ ...prev, [videoDbId]: data.segmentos ?? [] }));
     }
   }
+
+  const totalPaginas = Math.max(1, Math.ceil(total / POR_PAGINA));
 
   if (!monitor && videos.length === 0 && !erro) {
     return null;
@@ -228,107 +244,147 @@ export default function YoutubePainel() {
       {videos.length === 0 ? (
         <p className="text-sm text-slate-400">Nenhum vídeo neste filtro.</p>
       ) : (
-        <div className="space-y-2">
-          {videos.map((video) => {
-            const resumo = resumosPorVideo.get(video.id);
-            const aberto = expandido === video.id;
-            const trechos = segmentos[video.id] ?? [];
+        <>
+          <p className="mb-2 text-xs text-slate-500">{total} vídeo(s) no total</p>
+          <div className="space-y-2">
+            {videos.map((video) => {
+              const resumo = resumosPorVideo.get(video.id);
+              const aberto = expandido === video.id;
+              const trechos = segmentos[video.id] ?? [];
 
-            return (
-              <div
-                key={video.id}
-                className="rounded-xl border border-slate-100 bg-slate-50/80"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3 p-3">
-                  <div className="min-w-0 flex-1">
+              return (
+                <div key={video.id} className="rounded-xl border border-slate-100 bg-slate-50/80">
+                  <div className="flex flex-wrap items-start gap-3 p-3">
                     <a
                       href={`https://www.youtube.com/watch?v=${video.video_id}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="font-medium text-slate-900 hover:text-red-600"
+                      className="block w-36 shrink-0 overflow-hidden rounded-lg ring-1 ring-slate-200"
                     >
-                      {video.titulo}
+                      <img
+                        src={youtubeThumbnailUrl(video.video_id)}
+                        alt=""
+                        className="aspect-video w-full object-cover"
+                        loading="lazy"
+                      />
                     </a>
-                    <p className="mt-0.5 text-xs text-slate-500">
-                      {video.canal_titulo} · {formatDateTime(video.publicado_em)}
-                    </p>
-                    {video.status === "concluido" && resumo && (
-                      <p className="mt-1 line-clamp-2 text-sm text-slate-600">
-                        {resumo.resumo}
-                        {resumo.segmentosTotal > 0 && (
-                          <span className="ml-2 text-xs text-slate-400">
-                            ({resumo.segmentosTotal} trechos
-                            {resumo.duracaoSegundos
-                              ? ` · ${formatMinutagem(resumo.duracaoSegundos)}`
-                              : ""}
-                            )
-                          </span>
-                        )}
+
+                    <div className="min-w-0 flex-1">
+                      <a
+                        href={`https://www.youtube.com/watch?v=${video.video_id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-medium text-slate-900 hover:text-red-600"
+                      >
+                        {video.titulo}
+                      </a>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        {video.canal_titulo} · {formatDateTime(video.publicado_em)}
                       </p>
-                    )}
-                    {video.erro_msg && (
-                      <p className="mt-1 text-xs text-amber-700">{video.erro_msg}</p>
-                    )}
-                  </div>
-
-                  <div className="flex shrink-0 items-center gap-2">
-                    <span className="rounded-full bg-white px-2 py-0.5 text-xs text-slate-700 ring-1 ring-slate-200">
-                      {STATUS_LABEL[video.status] ?? video.status}
-                    </span>
-                    {video.status === "concluido" && (
-                      <button
-                        type="button"
-                        onClick={() => void toggleTranscricao(video.id)}
-                        className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700 hover:bg-slate-100"
-                      >
-                        {aberto ? "Ocultar" : "Transcrição"}
-                      </button>
-                    )}
-                    {(video.status === "concluido" || video.status === "sem_transcript") && (
-                      <button
-                        type="button"
-                        disabled={reprocessando === video.id}
-                        onClick={() => void reprocessarVideo(video.id)}
-                        className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs text-amber-800 hover:bg-amber-100 disabled:opacity-60"
-                      >
-                        {reprocessando === video.id ? "..." : "Reprocessar"}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {aberto && (
-                  <div className="border-t border-slate-100 bg-white px-3 py-3">
-                    {carregandoSegmentos === video.id ? (
-                      <p className="text-sm text-slate-500">Carregando trechos...</p>
-                    ) : trechos.length === 0 ? (
-                      <p className="text-sm text-slate-400">Nenhum trecho salvo.</p>
-                    ) : (
-                      <>
-                        <p className="mb-2 text-xs text-slate-500">
-                          {trechos.length} trechos · até{" "}
-                          {formatMinutagem(
-                            Math.max(...trechos.map((segmento) => segmento.fim_segundos)),
+                      {video.status === "concluido" && resumo && (
+                        <p className="mt-1 line-clamp-2 text-sm text-slate-600">
+                          {resumo.resumo}
+                          {resumo.segmentosTotal > 0 && (
+                            <span className="ml-2 text-xs text-slate-400">
+                              ({resumo.segmentosTotal} trechos
+                              {resumo.duracaoSegundos
+                                ? ` · ${formatMinutagem(resumo.duracaoSegundos)}`
+                                : ""}
+                              )
+                            </span>
                           )}
                         </p>
-                        <div className="max-h-56 space-y-1 overflow-y-auto text-sm text-slate-700">
-                          {trechos.map((segmento, index) => (
-                            <p key={`${video.id}-${index}`}>
-                              <span className="mr-2 font-mono text-xs text-slate-400">
-                                {formatMinutagem(segmento.inicio_segundos)}
-                              </span>
-                              {segmento.texto}
-                            </p>
-                          ))}
-                        </div>
-                      </>
-                    )}
+                      )}
+                      {video.erro_msg && (
+                        <p className="mt-1 text-xs text-amber-700">{video.erro_msg}</p>
+                      )}
+                    </div>
+
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className="rounded-full bg-white px-2 py-0.5 text-xs text-slate-700 ring-1 ring-slate-200">
+                        {STATUS_LABEL[video.status] ?? video.status}
+                      </span>
+                      {video.status === "concluido" && (
+                        <button
+                          type="button"
+                          onClick={() => void toggleTranscricao(video.id)}
+                          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700 hover:bg-slate-100"
+                        >
+                          {aberto ? "Ocultar" : "Transcrição"}
+                        </button>
+                      )}
+                      {(video.status === "concluido" || video.status === "sem_transcript") && (
+                        <button
+                          type="button"
+                          disabled={reprocessando === video.id}
+                          onClick={() => void reprocessarVideo(video.id)}
+                          className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs text-amber-800 hover:bg-amber-100 disabled:opacity-60"
+                        >
+                          {reprocessando === video.id ? "..." : "Reprocessar"}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                )}
+
+                  {aberto && (
+                    <div className="border-t border-slate-100 bg-white px-3 py-3">
+                      {carregandoSegmentos === video.id ? (
+                        <p className="text-sm text-slate-500">Carregando trechos...</p>
+                      ) : trechos.length === 0 ? (
+                        <p className="text-sm text-slate-400">Nenhum trecho salvo.</p>
+                      ) : (
+                        <>
+                          <p className="mb-2 text-xs text-slate-500">
+                            {trechos.length} trechos · até{" "}
+                            {formatMinutagem(
+                              Math.max(...trechos.map((segmento) => segmento.fim_segundos)),
+                            )}
+                          </p>
+                          <div className="max-h-56 space-y-1 overflow-y-auto text-sm text-slate-700">
+                            {trechos.map((segmento, index) => (
+                              <p key={`${video.id}-${index}`}>
+                                <span className="mr-2 font-mono text-xs text-slate-400">
+                                  {formatMinutagem(segmento.inicio_segundos)}
+                                </span>
+                                {segmento.texto}
+                              </p>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {totalPaginas > 1 && (
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs text-slate-500">
+                Página {pagina + 1} de {totalPaginas}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={pagina === 0}
+                  onClick={() => setPagina((prev) => Math.max(0, prev - 1))}
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                >
+                  Anterior
+                </button>
+                <button
+                  type="button"
+                  disabled={pagina >= totalPaginas - 1}
+                  onClick={() => setPagina((prev) => prev + 1)}
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                >
+                  Próxima
+                </button>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          )}
+        </>
       )}
     </section>
   );

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isDatabaseConfigured } from "@/lib/db";
-import { buscarYoutubeVideos, type YoutubeVideoStatus } from "@/lib/youtube-db";
+import {
+  buscarYoutubeVideos,
+  contarYoutubeVideos,
+  type YoutubeVideoStatus,
+} from "@/lib/youtube-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,11 +29,17 @@ export async function GET(request: NextRequest) {
   const status =
     statusParam && STATUS_VALUES.has(statusParam) ? statusParam : undefined;
 
-  const videos = await buscarYoutubeVideos({
+  const limite = params.get("limite") ? Number(params.get("limite")) : 20;
+  const offset = params.get("offset") ? Number(params.get("offset")) : 0;
+  const filtros = {
     canalId: Number.isFinite(canalId) ? canalId : undefined,
     status,
-    limite: params.get("limite") ? Number(params.get("limite")) : undefined,
-  });
+  };
 
-  return NextResponse.json({ videos });
+  const [videos, total] = await Promise.all([
+    buscarYoutubeVideos({ ...filtros, limite, offset }),
+    contarYoutubeVideos(filtros),
+  ]);
+
+  return NextResponse.json({ videos, total, limite, offset });
 }

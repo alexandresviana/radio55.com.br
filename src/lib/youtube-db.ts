@@ -236,14 +236,33 @@ export async function atualizarStatusVideoYoutube(
   );
 }
 
+export async function contarYoutubeVideos(params: {
+  canalId?: number;
+  status?: YoutubeVideoStatus;
+}): Promise<number> {
+  if (!isDatabaseConfigured()) return 0;
+
+  const result = await getPool().query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total
+     FROM youtube_videos v
+     WHERE ($1::int IS NULL OR v.canal_id = $1)
+       AND ($2::text IS NULL OR v.status = $2)`,
+    [params.canalId ?? null, params.status ?? null],
+  );
+
+  return Number(result.rows[0]?.total ?? 0);
+}
+
 export async function buscarYoutubeVideos(params: {
   canalId?: number;
   status?: YoutubeVideoStatus;
   limite?: number;
+  offset?: number;
 }): Promise<YoutubeVideo[]> {
   if (!isDatabaseConfigured()) return [];
 
   const limite = Math.min(Math.max(params.limite ?? 50, 1), 200);
+  const offset = Math.max(params.offset ?? 0, 0);
 
   const result = await getPool().query<YoutubeVideo & { segmentos_total: string }>(
     `SELECT
@@ -265,8 +284,8 @@ export async function buscarYoutubeVideos(params: {
        AND ($2::text IS NULL OR v.status = $2)
      GROUP BY v.id, c.titulo
      ORDER BY v.publicado_em DESC NULLS LAST, v.id DESC
-     LIMIT $3`,
-    [params.canalId ?? null, params.status ?? null, limite],
+     LIMIT $3 OFFSET $4`,
+    [params.canalId ?? null, params.status ?? null, limite, offset],
   );
 
   return result.rows.map((row) => ({

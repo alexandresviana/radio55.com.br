@@ -1,8 +1,10 @@
 import { isDatabaseConfigured } from "@/lib/db";
-import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
-import { encontrarPalavrasNoTexto } from "@/lib/text-normalize";
 import { fetchChannelVideosFromRss } from "@/lib/youtube-channel";
-import { registrarDeteccaoYoutube } from "@/lib/youtube-deteccoes-db";
+import {
+  detectarPalavrasEmSegmentosYoutube,
+  escanearDeteccoesVideoYoutube,
+} from "@/lib/youtube-deteccao";
+import { listarVideosConcluidosParaReescanear } from "@/lib/youtube-deteccoes-db";
 import {
   atualizarStatusVideoYoutube,
   listarYoutubeCanaisAtivos,
@@ -17,12 +19,13 @@ import {
   fetchYoutubeTranscript,
   YoutubeAguardandoEstreiaError,
   YoutubeSemTranscriptError,
-  type YoutubeTranscriptSegment,
 } from "@/lib/youtube-transcript-fetch";
 import { salvarSegmentosYoutube } from "@/lib/youtube-transcricoes-db";
 
 const SYNC_MS = 5 * 60 * 1000;
 const PROCESS_MS = 20_000;
+const RESCAN_MS = 45_000;
+const RESCAN_LOTE = 4;
 
 type MonitorGlobal = typeof globalThis & {
   __radio55YoutubeMonitor?: YoutubeMonitorService;
@@ -32,8 +35,11 @@ class YoutubeMonitorService {
   private started = false;
   private syncTimer?: NodeJS.Timeout;
   private processTimer?: NodeJS.Timeout;
+  private rescanTimer?: NodeJS.Timeout;
   private syncing = false;
   private processing = false;
+  private rescanning = false;
+  private rescanOffset = 0;
   private lastError: string | null = null;
   private lastSyncAt: string | null = null;
   private lastProcessAt: string | null = null;
@@ -49,6 +55,7 @@ class YoutubeMonitorService {
     this.started = true;
     void this.syncCanais();
     void this.processarFila();
+    void this.reescanearDeteccoes();
 
     this.syncTimer = setInterval(() => {
       void this.syncCanais();
@@ -57,6 +64,10 @@ class YoutubeMonitorService {
     this.processTimer = setInterval(() => {
       void this.processarFila();
     }, PROCESS_MS);
+
+    this.rescanTimer = setInterval(() => {
+      void this.reescanearDeteccoes();
+    }, RESCAN_MS);
   }
 
   getStatus() {
@@ -132,7 +143,14 @@ class YoutubeMonitorService {
       }
 
       await salvarSegmentosYoutube(video.id, segmentos);
-      await this.detectarPalavras(video.id, segmentos);
+      await detectarPalavrasEmSegmentosYoutube(
+        video.id,
+        segmentos.map((item) => ({
+          inicioSegundos: item.inicioSegundos,
+          fimSegundos: item.fimSegundos,
+          texto: item.texto,
+        })),
+      );
       await atualizarStatusVideoYoutube(
         video.id,
         "concluido",
@@ -157,33 +175,46 @@ class YoutubeMonitorService {
     }
   }
 
-  private async detectarPalavras(
-    videoDbId: number,
-    segmentos: YoutubeTranscriptSegment[],
-  ): Promise<void> {
-    const palavras = await listarPalavrasChaveAtivas();
-    if (palavras.length === 0) return;
+  private async reescanearDeteccoes(): Promise<void> {
+    if (this.rescanning || !isDatabaseConfigured()) return;
 
-    const termos = palavras.map((item) => item.termo);
+    this.rescanning = true;
+    try {
+      const videoIds = await listarVideosConcluidosParaReescanear(
+        RESCAN_LOTE,
+        this.rescanOffset,
+      );
 
-    for (const segmento of segmentos) {
-      const matches = encontrarPalavrasNoTexto(segmento.texto, termos);
-      for (const match of matches) {
-        const palavra = palavras.find(
-          (item) => item.termo.toLowerCase() === match.termo.toLowerCase(),
-        );
-
-        await registrarDeteccaoYoutube({
-          palavraChaveId: palavra?.id ?? null,
-          videoDbId,
-          termo: match.termo,
-          inicioSegundos: segmento.inicioSegundos,
-          fimSegundos: segmento.fimSegundos,
-          contexto: segmento.texto.trim(),
-        });
+      if (videoIds.length === 0) {
+        this.rescanOffset = 0;
+        return;
       }
+
+      for (const videoDbId of videoIds) {
+        await escanearDeteccoesVideoYoutube(videoDbId);
+      }
+
+      this.rescanOffset += videoIds.length;
+    } catch (error) {
+      console.error(
+        "[youtube] reescaneamento de detecções:",
+        error instanceof Error ? error.message : error,
+      );
+    } finally {
+      this.rescanning = false;
     }
   }
+}
+
+export async function reescanearDeteccoesYoutubeAgora(limite = 20): Promise<number> {
+  const videoIds = await listarVideosConcluidosParaReescanear(limite, 0);
+  let total = 0;
+
+  for (const videoDbId of videoIds) {
+    total += await escanearDeteccoesVideoYoutube(videoDbId);
+  }
+
+  return total;
 }
 
 export function getYoutubeMonitorStatus() {
