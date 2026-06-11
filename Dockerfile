@@ -26,7 +26,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && adduser --system --uid 1001 nextjs
 
 COPY scripts ./scripts
-RUN chmod +x /app/scripts/docker-entrypoint.sh
+RUN chmod +x /app/scripts/docker-entrypoint.sh \
+  && chown -R nextjs:nodejs /app/scripts
 
 ENV WHISPER_PYTHON=/opt/whisper/bin/python
 ENV WHISPER_SCRIPT=/app/scripts/transcribe.py
