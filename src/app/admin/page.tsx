@@ -245,8 +245,9 @@ export default function AdminPage() {
                   {atual.radios.map((radio, idx) => (
                     <div
                       key={idx}
-                      className="grid gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4 sm:grid-cols-[1fr_80px_140px_120px_auto]"
+                      className="space-y-3 rounded-xl border border-slate-100 bg-slate-50 p-4"
                     >
+                      <div className="grid gap-3 sm:grid-cols-[1fr_80px_140px_120px_auto]">
                       <div>
                         <label className="mb-1 block text-xs text-slate-500">Nome</label>
                         <input
@@ -318,6 +319,28 @@ export default function AdminPage() {
                         >
                           Remover
                         </button>
+                      </div>
+                      </div>
+
+                      <div>
+                        <label className="mb-1 block text-xs text-slate-500">
+                          URL do stream
+                        </label>
+                        <input
+                          type="url"
+                          value={radio.streamUrl ?? ""}
+                          onChange={(e) => {
+                            const radios = [...atual.radios];
+                            radios[idx] = { ...radio, streamUrl: e.target.value };
+                            atualizarMunicipio(selecionado, { radios });
+                          }}
+                          className="w-full rounded-lg border border-slate-200 px-3 py-2 font-mono text-xs"
+                          placeholder="https://exemplo.com/stream (vazio = radios.com.br)"
+                        />
+                        <p className="mt-1 text-xs text-slate-400">
+                          Usada para ouvir ao vivo e gravar. Deixe vazio para usar a URL do
+                          radios.com.br.
+                        </p>
                       </div>
                     </div>
                   ))}

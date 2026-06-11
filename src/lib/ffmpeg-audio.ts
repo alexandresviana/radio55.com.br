@@ -3,6 +3,28 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
 
+/** Flags para streams ao vivo (AAC/icecast) com pacotes corrompidos ocasionais. */
+export const FFMPEG_LIVE_INPUT_FLAGS = [
+  "-fflags",
+  "+discardcorrupt+genpts",
+  "-err_detect",
+  "ignore_err",
+  "-max_error_rate",
+  "1.0",
+  "-thread_queue_size",
+  "512",
+];
+
+/** Flags para ler MP3 local (inclusive arquivo ainda crescendo). */
+export const FFMPEG_FILE_INPUT_FLAGS = ["-fflags", "+discardcorrupt+genpts"];
+
+const BENIGN_FFMPEG_PATTERNS =
+  /channel element.*not allocated|invalid data found when processing input|discarding invalid/i;
+
+export function isBenignFfmpegMessage(message: string): boolean {
+  return BENIGN_FFMPEG_PATTERNS.test(message);
+}
+
 function runFfmpeg(args: string[]): Promise<void> {
   return new Promise((resolve, reject) => {
     const proc = spawn("ffmpeg", args, { stdio: ["ignore", "ignore", "pipe"] });
@@ -15,7 +37,13 @@ function runFfmpeg(args: string[]): Promise<void> {
     proc.on("error", reject);
     proc.on("exit", (code) => {
       if (code === 0) resolve();
-      else reject(new Error(stderr.trim().slice(-300) || `ffmpeg saiu com código ${code}`));
+      else {
+        const trimmed = stderr.trim();
+        const lines = trimmed.split("\n").filter((line) => !isBenignFfmpegMessage(line));
+        const relevant = lines.join("\n").trim().slice(-300);
+        if (relevant) reject(new Error(relevant));
+        else resolve();
+      }
     });
   });
 }
@@ -33,6 +61,7 @@ export async function extractWavSegment(
     "-loglevel",
     "error",
     "-y",
+    ...FFMPEG_FILE_INPUT_FLAGS,
     "-ss",
     String(Math.max(0, startSeconds)),
     "-i",
@@ -65,6 +94,7 @@ export async function extractMp3Clip(
     "-loglevel",
     "error",
     "-y",
+    ...FFMPEG_FILE_INPUT_FLAGS,
     "-ss",
     String(start),
     "-i",
@@ -84,6 +114,7 @@ export function streamMp3FromSeconds(inputPath: string, startSeconds: number): R
     "-hide_banner",
     "-loglevel",
     "error",
+    ...FFMPEG_FILE_INPUT_FLAGS,
     "-ss",
     String(Math.max(0, startSeconds)),
     "-i",

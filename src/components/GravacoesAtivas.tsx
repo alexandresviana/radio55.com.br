@@ -26,12 +26,18 @@ interface DeteccaoItem {
   trecho_caminho: string | null;
 }
 
+interface TranscricaoTrecho {
+  inicio_segundos: number;
+  horario: string;
+  texto: string;
+}
+
 interface TranscricaoPreview {
   gravacao_id: number;
   municipio: string;
   radio_nome: string;
   arquivo: string;
-  preview: string;
+  trechos: TranscricaoTrecho[];
   segmentos: number;
   inicio_segundos: number | null;
   fim_segundos: number | null;
@@ -169,9 +175,23 @@ export default function GravacoesAtivas() {
                     )}
                   </span>
                 </div>
-                <pre className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded-lg bg-slate-50 p-3 font-sans text-xs leading-relaxed text-slate-700">
-                  {item.preview}
-                </pre>
+                <ul className="max-h-48 space-y-2 overflow-y-auto rounded-lg bg-slate-50 p-3">
+                  {item.trechos.map((trecho) => (
+                    <li
+                      key={`${item.gravacao_id}-${trecho.inicio_segundos}-${trecho.horario}`}
+                      className="flex gap-3 text-xs leading-relaxed"
+                    >
+                      <time
+                        dateTime={trecho.horario}
+                        className="shrink-0 font-mono font-medium text-sky-800"
+                        title={formatMinutagem(trecho.inicio_segundos)}
+                      >
+                        {trecho.horario}
+                      </time>
+                      <span className="text-slate-700">{trecho.texto}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>

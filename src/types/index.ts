@@ -4,6 +4,8 @@ export interface Radio {
   tipo: "comercial" | "comunitaria";
   /** Quando true, a emissora é gravada continuamente em MP3 (retenção 24h). */
   gravar?: boolean;
+  /** URL do stream ao vivo. Vazio = usa o mapeamento do radios.com.br. */
+  streamUrl?: string;
 }
 
 export interface RadioStreamInfo {

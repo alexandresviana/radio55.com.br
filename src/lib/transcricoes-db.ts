@@ -1,11 +1,12 @@
 import { getPool, isDatabaseConfigured } from "@/lib/db";
-import { formatMinutagem } from "@/lib/text-normalize";
+import { formatHorarioGravacao, formatMinutagem } from "@/lib/text-normalize";
 
 const PREVIEW_JANELA_SEGUNDOS = 30 * 60;
 const PREVIEW_MAX_CARACTERES = 4_000;
 
 export interface TranscricaoSegmento {
   inicio_segundos: number;
+  horario: string;
   texto: string;
 }
 
@@ -14,7 +15,7 @@ export interface TranscricaoPreview {
   municipio: string;
   radio_nome: string;
   arquivo: string;
-  preview: string;
+  trechos: TranscricaoSegmento[];
   segmentos: number;
   inicio_segundos: number | null;
   fim_segundos: number | null;
@@ -66,6 +67,7 @@ export async function buscarPreviewsAoVivo(
     municipio: string;
     radio_nome: string;
     arquivo: string;
+    gravado_em: Date;
     inicio_segundos: string;
     texto: string;
   }>(
@@ -74,6 +76,7 @@ export async function buscarPreviewsAoVivo(
        g.municipio,
        g.radio_nome,
        g.arquivo,
+       g.gravado_em,
        s.inicio_segundos,
        s.texto
      FROM gravacao_arquivos g
@@ -96,45 +99,49 @@ export async function buscarPreviewsAoVivo(
       municipio: string;
       radio_nome: string;
       arquivo: string;
+      gravado_em: Date;
       segmentos: TranscricaoSegmento[];
     }
   >();
 
   for (const row of result.rows) {
+    const inicioSegundos = Number(row.inicio_segundos);
     const atual = porGravacao.get(row.gravacao_id) ?? {
       gravacao_id: row.gravacao_id,
       municipio: row.municipio,
       radio_nome: row.radio_nome,
       arquivo: row.arquivo,
+      gravado_em: row.gravado_em,
       segmentos: [],
     };
 
     atual.segmentos.push({
-      inicio_segundos: Number(row.inicio_segundos),
+      inicio_segundos: inicioSegundos,
+      horario: formatHorarioGravacao(row.gravado_em, inicioSegundos),
       texto: row.texto,
     });
     porGravacao.set(row.gravacao_id, atual);
   }
 
   return [...porGravacao.values()].map((item) => {
-    const linhas = item.segmentos.map(
-      (seg) => `[${formatMinutagem(seg.inicio_segundos)}] ${seg.texto}`,
-    );
-    let preview = linhas.join("\n");
-    if (preview.length > PREVIEW_MAX_CARACTERES) {
-      preview = `…${preview.slice(-PREVIEW_MAX_CARACTERES)}`;
+    let trechos = item.segmentos;
+    let totalChars = trechos.reduce((sum, seg) => sum + seg.texto.length, 0);
+
+    while (totalChars > PREVIEW_MAX_CARACTERES && trechos.length > 1) {
+      totalChars -= trechos[0]?.texto.length ?? 0;
+      trechos = trechos.slice(1);
     }
 
-    const inicio = item.segmentos[0]?.inicio_segundos ?? null;
-    const fim = item.segmentos.at(-1)?.inicio_segundos ?? null;
+    const inicio = trechos[0]?.inicio_segundos ?? null;
+    const fim = trechos.at(-1)?.inicio_segundos ?? null;
 
     return {
       gravacao_id: item.gravacao_id,
       municipio: item.municipio,
       radio_nome: item.radio_nome,
       arquivo: item.arquivo,
-      preview,
-      segmentos: item.segmentos.length,
+      trechos,
+      segmentos: trechos.length,
       inicio_segundos: inicio,
       fim_segundos: fim,
     };

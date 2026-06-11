@@ -28,14 +28,29 @@ export async function readMunicipios(): Promise<string[]> {
   return geo.features.map((f) => f.properties.name).sort((a, b) => a.localeCompare(b, "pt-BR"));
 }
 
+function isValidStreamUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url.trim());
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function isValidRadio(radio: Radio): boolean {
+  const streamOk =
+    radio.streamUrl === undefined ||
+    (typeof radio.streamUrl === "string" &&
+      (radio.streamUrl.trim() === "" || isValidStreamUrl(radio.streamUrl)));
+
   return (
     typeof radio.nome === "string" &&
     radio.nome.trim().length > 0 &&
     typeof radio.pj === "number" &&
     radio.pj >= 0 &&
     (radio.tipo === "comercial" || radio.tipo === "comunitaria") &&
-    (radio.gravar === undefined || typeof radio.gravar === "boolean")
+    (radio.gravar === undefined || typeof radio.gravar === "boolean") &&
+    streamOk
   );
 }
 

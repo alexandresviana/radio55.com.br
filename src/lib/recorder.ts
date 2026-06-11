@@ -4,6 +4,7 @@ import path from "node:path";
 import { getGravacoesDir } from "@/lib/data-dir";
 import { readEmissoras } from "@/lib/emissoras";
 import { finalizarGravacao, marcarGravacaoRemovida } from "@/lib/gravacoes-db";
+import { FFMPEG_LIVE_INPUT_FLAGS, isBenignFfmpegMessage } from "@/lib/ffmpeg-audio";
 import { formatRecordingFilename, radioOutputDir } from "@/lib/gravacoes-path";
 import { getRadioStream, makeStreamKey } from "@/lib/radios-streams";
 
@@ -139,9 +140,8 @@ class RecorderService {
       args.push("-tls_verify", "0");
     }
 
+    args.push(...FFMPEG_LIVE_INPUT_FLAGS, "-i", info.streamUrl);
     args.push(
-      "-i",
-      info.streamUrl,
       "-c:a",
       "libmp3lame",
       "-b:a",
@@ -167,7 +167,8 @@ class RecorderService {
 
     proc.stderr?.on("data", (chunk: Buffer) => {
       const message = chunk.toString().trim();
-      if (message) this.errors.set(key, message.slice(-200));
+      if (!message || isBenignFfmpegMessage(message)) return;
+      this.errors.set(key, message.slice(-200));
     });
 
     proc.on("exit", async (code, signal) => {

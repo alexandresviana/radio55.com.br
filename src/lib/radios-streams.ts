@@ -1,5 +1,6 @@
 import { readFile } from "fs/promises";
 import path from "path";
+import { readEmissoras } from "@/lib/emissoras";
 
 export interface RadioStreamInfo {
   municipio: string;
@@ -27,6 +28,21 @@ export async function getRadioStream(
   municipio: string,
   nome: string,
 ): Promise<RadioStreamInfo | null> {
+  const emissoras = await readEmissoras();
+  const radio = emissoras[municipio]?.radios.find((item) => item.nome === nome);
+  const customUrl = radio?.streamUrl?.trim();
+
+  if (customUrl) {
+    return {
+      municipio,
+      nome,
+      radiosId: 0,
+      radiosUrl: "",
+      title: nome,
+      streamUrl: normalizeStreamUrl(customUrl),
+    };
+  }
+
   const data = await readRadioStreams();
   const entry = data[makeStreamKey(municipio, nome)];
   if (!entry) return null;

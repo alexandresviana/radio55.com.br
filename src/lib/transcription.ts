@@ -20,6 +20,7 @@ const POLL_MS = 15_000;
 const CHUNK_SECONDS = 30;
 const OVERLAP_SECONDS = 2;
 const MIN_NEW_SECONDS = 18;
+const LIVE_EDGE_MARGIN_SEC = 12;
 const BYTES_PER_SECOND = 12_000;
 
 interface WhisperSegment {
@@ -95,11 +96,15 @@ class TranscriptionService {
 
     const progress = await obterProgressoTranscricao(filePath);
     const startSecond = Math.max(0, (progress?.ultimo_segundo ?? 0) - OVERLAP_SECONDS);
-    const availableSeconds = fileStat.size / BYTES_PER_SECOND;
+    const availableSeconds = Math.max(
+      0,
+      fileStat.size / BYTES_PER_SECOND - LIVE_EDGE_MARGIN_SEC,
+    );
 
     if (availableSeconds - startSecond < MIN_NEW_SECONDS) return;
 
     const duration = Math.min(CHUNK_SECONDS, availableSeconds - startSecond);
+    if (duration < 10) return;
     const gravacao = await obterGravacaoPorCaminho(filePath);
     if (!gravacao) return;
 

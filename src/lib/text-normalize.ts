@@ -7,6 +7,20 @@ export function normalizeText(value: string): string {
     .trim();
 }
 
+export function formatHorarioGravacao(
+  gravadoEm: Date | string,
+  offsetSegundos: number,
+): string {
+  const base = gravadoEm instanceof Date ? gravadoEm : new Date(gravadoEm);
+  const instant = new Date(base.getTime() + Math.max(0, offsetSegundos) * 1000);
+
+  return instant.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
 export function formatMinutagem(totalSeconds: number): string {
   const safe = Math.max(0, Math.floor(totalSeconds));
   const hours = Math.floor(safe / 3600);
