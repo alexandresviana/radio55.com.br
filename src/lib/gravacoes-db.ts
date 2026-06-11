@@ -108,6 +108,29 @@ export async function buscarGravacoes(
   }));
 }
 
+export async function obterGravacaoPorCaminho(
+  caminho: string,
+): Promise<GravacaoArquivo | null> {
+  if (!isDatabaseConfigured()) return null;
+
+  const result = await getPool().query<GravacaoArquivo>(
+    `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes, em_gravacao
+     FROM gravacao_arquivos
+     WHERE caminho = $1 AND removido_em IS NULL`,
+    [caminho],
+  );
+
+  const row = result.rows[0];
+  if (!row) return null;
+
+  return {
+    ...row,
+    gravado_em: new Date(row.gravado_em).toISOString(),
+    tamanho_bytes: Number(row.tamanho_bytes),
+    em_gravacao: Boolean(row.em_gravacao),
+  };
+}
+
 export async function obterGravacaoPorId(id: number): Promise<GravacaoArquivo | null> {
   if (!isDatabaseConfigured()) return null;
 

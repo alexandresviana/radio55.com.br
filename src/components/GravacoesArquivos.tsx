@@ -98,21 +98,13 @@ export default function GravacoesArquivos() {
     void buscar();
   }, [carregarOpcoes, buscar]);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      void buscar();
-      void carregarOpcoes();
-    }, 10_000);
-    return () => clearInterval(timer);
-  }, [buscar, carregarOpcoes]);
-
   return (
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">Arquivos gravados</h2>
           <p className="mt-1 text-sm text-slate-500">
-            MP3 indexados automaticamente. Busque por rádio, data e horário.
+            MP3 indexados automaticamente. Use Atualizar para recarregar a lista.
           </p>
         </div>
         <button

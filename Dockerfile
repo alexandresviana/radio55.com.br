@@ -10,21 +10,34 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-FROM base AS runner
+FROM node:20-bookworm-slim AS runner
 ENV NODE_ENV=production
 ENV PORT=3000
+WORKDIR /app
 
-RUN apk add --no-cache ffmpeg && \
-    addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    python3 \
+    python3-pip \
+    python3-venv \
+  && rm -rf /var/lib/apt/lists/* \
+  && python3 -m venv /opt/whisper \
+  && /opt/whisper/bin/pip install --no-cache-dir faster-whisper \
+  && addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 nextjs
+
+ENV WHISPER_PYTHON=/opt/whisper/bin/python
+ENV WHISPER_SCRIPT=/app/scripts/transcribe.py
+ENV HF_HOME=/app/data/whisper-cache
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/data ./data
+COPY --from=builder /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Volume persistente: monte em /app/data (emissoras + MP3 gravados)
-RUN mkdir -p /app/data/gravacoes && chown -R nextjs:nodejs /app/data
+RUN mkdir -p /app/data/gravacoes /app/data/trechos /app/data/whisper-cache \
+  && chown -R nextjs:nodejs /app/data /opt/whisper
 
 USER nextjs
 EXPOSE 3000

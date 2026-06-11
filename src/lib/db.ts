@@ -66,6 +66,40 @@ export async function initDatabase(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_gravacao_arquivos_ativos
         ON gravacao_arquivos (removido_em)
         WHERE removido_em IS NULL;
+
+      CREATE TABLE IF NOT EXISTS palavras_chave (
+        id SERIAL PRIMARY KEY,
+        termo TEXT NOT NULL UNIQUE,
+        ativo BOOLEAN NOT NULL DEFAULT TRUE,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS transcricao_progresso (
+        caminho TEXT PRIMARY KEY,
+        gravacao_id INTEGER REFERENCES gravacao_arquivos(id) ON DELETE CASCADE,
+        ultimo_segundo NUMERIC NOT NULL DEFAULT 0,
+        atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS palavra_deteccoes (
+        id SERIAL PRIMARY KEY,
+        palavra_chave_id INTEGER REFERENCES palavras_chave(id) ON DELETE SET NULL,
+        gravacao_id INTEGER REFERENCES gravacao_arquivos(id) ON DELETE CASCADE,
+        termo TEXT NOT NULL,
+        inicio_segundos NUMERIC NOT NULL,
+        fim_segundos NUMERIC NOT NULL,
+        contexto TEXT NOT NULL DEFAULT '',
+        trecho_caminho TEXT,
+        detectado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_palavra_deteccoes_detectado_em
+        ON palavra_deteccoes (detectado_em DESC);
+
+      CREATE INDEX IF NOT EXISTS idx_palavra_deteccoes_gravacao
+        ON palavra_deteccoes (gravacao_id, inicio_segundos);
+
     `);
   });
 }

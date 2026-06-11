@@ -2,6 +2,7 @@ import { stat } from "node:fs/promises";
 import path from "node:path";
 import { NextRequest, NextResponse } from "next/server";
 import { getGravacoesDir } from "@/lib/data-dir";
+import { streamMp3FromSeconds } from "@/lib/ffmpeg-audio";
 import { obterGravacaoPorId } from "@/lib/gravacoes-db";
 import {
   isFileStillRecording,
@@ -39,6 +40,18 @@ export async function GET(
     await stat(resolved);
   } catch {
     return new NextResponse("Arquivo não existe no disco", { status: 404 });
+  }
+
+  const startAt = Number(request.nextUrl.searchParams.get("t"));
+  if (Number.isFinite(startAt) && startAt > 0) {
+    const stream = streamMp3FromSeconds(resolved, startAt);
+    return new NextResponse(stream as unknown as ReadableStream, {
+      headers: {
+        "Content-Type": "audio/mpeg",
+        "Cache-Control": "no-store",
+        "Content-Disposition": `inline; filename="${gravacao.arquivo}"`,
+      },
+    });
   }
 
   const aoVivo = gravacao.em_gravacao || isFileStillRecording(resolved);

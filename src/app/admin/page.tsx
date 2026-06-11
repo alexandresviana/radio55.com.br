@@ -2,26 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import GravacoesArquivos from "@/components/GravacoesArquivos";
+import GravacoesAtivas from "@/components/GravacoesAtivas";
 import Header from "@/components/Header";
+import PainelDeteccoes from "@/components/PainelDeteccoes";
+import PalavrasChave from "@/components/PalavrasChave";
 import { REGIOES } from "@/lib/regioes";
 import type { EmissorasData, Radio } from "@/types";
-
-interface RecordingStatusItem {
-  key: string;
-  municipio: string;
-  nome: string;
-  ativo: boolean;
-  arquivos: number;
-  ultimoArquivo: string | null;
-  arquivoAtual: string | null;
-  tamanhoAtualBytes: number | null;
-  erro: string | null;
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 const emptyRadio = (): Radio => ({ nome: "", pj: 1, tipo: "comunitaria", gravar: false });
 
@@ -33,15 +19,6 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
-  const [gravacoes, setGravacoes] = useState<RecordingStatusItem[]>([]);
-
-  const carregarGravacoes = useCallback(async () => {
-    const res = await fetch("/api/gravacoes/status");
-    if (!res.ok) return;
-    const data = (await res.json()) as { gravacoes: RecordingStatusItem[] };
-    setGravacoes(data.gravacoes);
-  }, []);
-
   const carregar = useCallback(async () => {
     setLoading(true);
     const [emRes, munRes] = await Promise.all([
@@ -50,20 +27,12 @@ export default function AdminPage() {
     ]);
     setEmissoras(await emRes.json());
     setMunicipios(await munRes.json());
-    await carregarGravacoes();
     setLoading(false);
-  }, [carregarGravacoes]);
+  }, []);
 
   useEffect(() => {
     carregar();
   }, [carregar]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      void carregarGravacoes();
-    }, 10_000);
-    return () => clearInterval(timer);
-  }, [carregarGravacoes]);
 
   const municipiosDisponiveis = useMemo(
     () => municipios.filter((m) => !emissoras[m]),
@@ -89,7 +58,6 @@ export default function AdminPage() {
       return;
     }
     setEmissoras(data);
-    await carregarGravacoes();
     setMessage({ type: "ok", text: "Salvo com sucesso!" });
     setTimeout(() => setMessage(null), 3000);
   }
@@ -164,49 +132,11 @@ export default function AdminPage() {
           </p>
         )}
 
-        {gravacoes.length > 0 && (
-          <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
-            <h2 className="text-sm font-semibold text-amber-900">Gravações ativas</h2>
-            <p className="mt-1 text-xs text-amber-800">
-              Gravação contínua em um único MP3 por sessão. Arquivos removidos após 24 horas.
-            </p>
-            <ul className="mt-3 space-y-2">
-              {gravacoes.map((item) => (
-                <li
-                  key={item.key}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white/80 px-3 py-2 text-sm"
-                >
-                  <span className="font-medium text-slate-800">
-                    {item.nome} · {item.municipio}
-                  </span>
-                  <span className="flex items-center gap-2 text-xs">
-                    <span
-                      className={`rounded-full px-2 py-0.5 font-medium ${
-                        item.ativo
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {item.ativo ? "Gravando" : "Parado"}
-                    </span>
-                    <span className="text-slate-500">{item.arquivos} arquivo(s)</span>
-                    {item.tamanhoAtualBytes != null && (
-                      <span className="font-medium text-emerald-700">
-                        {formatBytes(item.tamanhoAtualBytes)}
-                      </span>
-                    )}
-                  </span>
-                  {item.arquivoAtual && (
-                    <p className="w-full font-mono text-xs text-slate-500">{item.arquivoAtual}</p>
-                  )}
-                  {item.erro && (
-                    <p className="w-full text-xs text-red-600">{item.erro}</p>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <GravacoesAtivas />
+
+        <PalavrasChave />
+
+        <PainelDeteccoes />
 
         <GravacoesArquivos />
 

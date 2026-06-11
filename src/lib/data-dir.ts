@@ -8,3 +8,11 @@ export function getDataDir(): string {
 export function getGravacoesDir(): string {
   return path.join(getDataDir(), "gravacoes");
 }
+
+export function getTrechosDir(): string {
+  return path.join(getDataDir(), "trechos");
+}
+
+export function getWhisperCacheDir(): string {
+  return path.join(getDataDir(), "whisper-cache");
+}
