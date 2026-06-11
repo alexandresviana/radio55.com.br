@@ -29,6 +29,13 @@ COPY scripts ./scripts
 RUN chmod +x /app/scripts/docker-entrypoint.sh \
   && chown -R nextjs:nodejs /app/scripts
 
+# Modelo baixado no build (CI) — no boot copia para o volume, sem depender do Hugging Face
+ENV WHISPER_MODEL=base
+RUN mkdir -p /app/whisper-cache-builtin \
+  && HF_HUB_OFFLINE=0 WHISPER_CACHE_DIR=/app/whisper-cache-builtin \
+    /opt/whisper/bin/python /app/scripts/download-whisper-model.py \
+  && touch /app/whisper-cache-builtin/.model-ready
+
 ENV WHISPER_PYTHON=/opt/whisper/bin/python
 ENV WHISPER_SCRIPT=/app/scripts/transcribe.py
 ENV WHISPER_CACHE_DIR=/app/data/whisper-cache
@@ -40,7 +47,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 RUN mkdir -p /app/data/gravacoes /app/data/trechos /app/data/whisper-cache \
-  && chown -R nextjs:nodejs /app/data /opt/whisper
+  && chown -R nextjs:nodejs /app/data /app/whisper-cache-builtin /opt/whisper
 
 USER nextjs
 EXPOSE 3000
