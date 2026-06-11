@@ -147,13 +147,17 @@ class TranscriptionService {
       throw new Error("Whisper não disponível neste ambiente");
     }
 
+    const modelCacheDir =
+      process.env.WHISPER_CACHE_DIR?.trim() || getWhisperCacheDir();
+
     const stdout = await new Promise<string>((resolve, reject) => {
       const proc = spawn(pythonPath, [scriptPath, wavPath], {
         env: {
           ...process.env,
-          HF_HOME: getWhisperCacheDir(),
-          WHISPER_CACHE_DIR: getWhisperCacheDir(),
+          HF_HOME: modelCacheDir,
+          WHISPER_CACHE_DIR: modelCacheDir,
           WHISPER_MODEL: process.env.WHISPER_MODEL ?? "base",
+          HF_HUB_OFFLINE: process.env.HF_HUB_OFFLINE ?? "1",
         },
         stdio: ["ignore", "pipe", "pipe"],
       });

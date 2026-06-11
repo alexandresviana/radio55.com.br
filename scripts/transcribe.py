@@ -11,7 +11,8 @@ def main() -> int:
 
     audio_path = sys.argv[1]
     model_name = os.environ.get("WHISPER_MODEL", "base")
-    cache_dir = os.environ.get("HF_HOME") or os.environ.get("WHISPER_CACHE_DIR")
+    cache_dir = os.environ.get("WHISPER_CACHE_DIR") or os.environ.get("HF_HOME")
+    local_only = os.environ.get("HF_HUB_OFFLINE", "").lower() in ("1", "true", "yes")
 
     try:
         from faster_whisper import WhisperModel
@@ -19,14 +20,24 @@ def main() -> int:
         print("faster-whisper não instalado", file=sys.stderr)
         return 2
 
-    kwargs = {
+    kwargs: dict = {
         "device": "cpu",
         "compute_type": "int8",
     }
     if cache_dir:
         kwargs["download_root"] = cache_dir
+    if local_only:
+        kwargs["local_files_only"] = True
 
-    model = WhisperModel(model_name, **kwargs)
+    try:
+        model = WhisperModel(model_name, **kwargs)
+    except Exception as error:
+        if local_only:
+            print(
+                f"Modelo local indisponível em {cache_dir}: {error}",
+                file=sys.stderr,
+            )
+        raise
     segments, info = model.transcribe(
         audio_path,
         language="pt",

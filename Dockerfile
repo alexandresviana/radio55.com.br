@@ -15,6 +15,8 @@ ENV NODE_ENV=production
 ENV PORT=3000
 WORKDIR /app
 
+ARG WHISPER_MODEL=base
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     python3 \
@@ -26,18 +28,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs
 
+COPY scripts ./scripts
+
+ENV WHISPER_CACHE_DIR=/opt/whisper-models
+
+RUN mkdir -p /opt/whisper-models \
+  && HF_HUB_OFFLINE=0 WHISPER_MODEL="${WHISPER_MODEL}" WHISPER_CACHE_DIR=/opt/whisper-models \
+     /opt/whisper/bin/python /app/scripts/download-whisper-model.py
+
+ENV HF_HUB_OFFLINE=1
+
 ENV WHISPER_PYTHON=/opt/whisper/bin/python
 ENV WHISPER_SCRIPT=/app/scripts/transcribe.py
-ENV HF_HOME=/app/data/whisper-cache
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/data ./data
-COPY --from=builder /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-RUN mkdir -p /app/data/gravacoes /app/data/trechos /app/data/whisper-cache \
-  && chown -R nextjs:nodejs /app/data /opt/whisper
+RUN mkdir -p /app/data/gravacoes /app/data/trechos \
+  && chown -R nextjs:nodejs /app/data /opt/whisper /opt/whisper-models
 
 USER nextjs
 EXPOSE 3000
