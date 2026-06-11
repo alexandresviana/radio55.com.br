@@ -1,11 +1,10 @@
-FROM node:20-alpine AS base
+FROM node:20-bookworm-slim AS deps
 WORKDIR /app
-
-FROM base AS deps
 COPY package.json package-lock.json ./
 RUN npm ci
 
-FROM base AS builder
+FROM node:20-bookworm-slim AS builder
+WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build

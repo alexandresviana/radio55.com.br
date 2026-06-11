@@ -1,5 +1,5 @@
 import { getPool, isDatabaseConfigured } from "@/lib/db";
-import { formatHorarioGravacao, formatMinutagem } from "@/lib/text-normalize";
+import { formatHorarioGravacao } from "@/lib/text-normalize";
 
 const PREVIEW_JANELA_SEGUNDOS = 30 * 60;
 const PREVIEW_MAX_CARACTERES = 4_000;
