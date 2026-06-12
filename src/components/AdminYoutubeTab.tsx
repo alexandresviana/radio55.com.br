@@ -1,6 +1,7 @@
 "use client";
 
 import CanaisYouTube from "@/components/CanaisYouTube";
+import YoutubeBuscaTranscricoes from "@/components/YoutubeBuscaTranscricoes";
 import YoutubeDeteccoes from "@/components/YoutubeDeteccoes";
 import YoutubePainel from "@/components/YoutubePainel";
 
@@ -16,6 +17,7 @@ export default function AdminYoutubeTab() {
 
       <CanaisYouTube />
       <YoutubePainel />
+      <YoutubeBuscaTranscricoes />
       <YoutubeDeteccoes />
     </>
   );

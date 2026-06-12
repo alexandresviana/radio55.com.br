@@ -1,4 +1,5 @@
 import { getPool, isDatabaseConfigured } from "@/lib/db";
+import { normalizeText } from "@/lib/text-normalize";
 
 export interface YoutubeTranscricaoSegmento {
   id: number;
@@ -110,5 +111,88 @@ export async function listarResumosTranscricaoYoutube(
     segmentosTotal: Number(row.segmentos_total ?? 0),
     resumo: row.resumo?.trim() || "Sem trechos",
     duracaoSegundos: row.duracao_segundos ? Number(row.duracao_segundos) : null,
+  }));
+}
+
+export interface YoutubeTranscricaoBuscaResultado {
+  id: number;
+  video_db_id: number;
+  inicio_segundos: number;
+  fim_segundos: number;
+  texto: string;
+  video_id: string;
+  video_titulo: string;
+  canal_titulo: string;
+  publicado_em: string | null;
+}
+
+function termoBuscaSql(termo: string): { ilike: string; normalizado: string } {
+  const trimmed = termo.trim();
+  return {
+    ilike: `%${trimmed}%`,
+    normalizado: `%${normalizeText(trimmed)}%`,
+  };
+}
+
+export async function contarBuscaNasTranscricoesYoutube(termo: string): Promise<number> {
+  if (!isDatabaseConfigured() || !termo.trim()) return 0;
+
+  const busca = termoBuscaSql(termo);
+
+  const result = await getPool().query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total
+     FROM youtube_transcricao_segmentos s
+     JOIN youtube_videos v ON v.id = s.video_db_id
+     WHERE v.status = 'concluido'
+       AND (
+         s.texto ILIKE $1
+         OR translate(lower(s.texto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $2
+       )`,
+    [busca.ilike, busca.normalizado],
+  );
+
+  return Number(result.rows[0]?.total ?? 0);
+}
+
+export async function buscarNasTranscricoesYoutube(params: {
+  termo: string;
+  limite?: number;
+  offset?: number;
+}): Promise<YoutubeTranscricaoBuscaResultado[]> {
+  if (!isDatabaseConfigured() || !params.termo.trim()) return [];
+
+  const limite = Math.min(Math.max(params.limite ?? 30, 1), 200);
+  const offset = Math.max(params.offset ?? 0, 0);
+  const busca = termoBuscaSql(params.termo);
+
+  const result = await getPool().query<YoutubeTranscricaoBuscaResultado & { publicado_em: Date | null }>(
+    `SELECT
+       s.id,
+       s.video_db_id,
+       s.inicio_segundos,
+       s.fim_segundos,
+       s.texto,
+       v.video_id,
+       v.titulo AS video_titulo,
+       c.titulo AS canal_titulo,
+       v.publicado_em
+     FROM youtube_transcricao_segmentos s
+     JOIN youtube_videos v ON v.id = s.video_db_id
+     JOIN youtube_canais c ON c.id = v.canal_id
+     WHERE v.status = 'concluido'
+       AND (
+         s.texto ILIKE $1
+         OR translate(lower(s.texto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $2
+       )
+     ORDER BY v.publicado_em DESC NULLS LAST, s.inicio_segundos ASC
+     LIMIT $3 OFFSET $4`,
+    [busca.ilike, busca.normalizado, limite, offset],
+  );
+
+  return result.rows.map((row) => ({
+    ...row,
+    inicio_segundos: Number(row.inicio_segundos),
+    fim_segundos: Number(row.fim_segundos),
+    publicado_em: row.publicado_em ? new Date(row.publicado_em).toISOString() : null,
   }));
 }
