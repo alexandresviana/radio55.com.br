@@ -29,6 +29,12 @@ export async function GET(
     return new NextResponse("Arquivo não encontrado", { status: 404 });
   }
 
+  if (gravacao.arquivo_valido === false) {
+    return new NextResponse(gravacao.arquivo_erro ?? "Arquivo MP3 inválido ou truncado", {
+      status: 422,
+    });
+  }
+
   const gravacoesRoot = path.resolve(getGravacoesDir());
   const resolved = path.resolve(gravacao.caminho);
 

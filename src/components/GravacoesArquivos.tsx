@@ -10,6 +10,8 @@ interface GravacaoArquivo {
   gravado_em: string;
   tamanho_bytes: number;
   em_gravacao: boolean;
+  arquivo_valido: boolean | null;
+  arquivo_erro: string | null;
 }
 
 interface RadioOption {
@@ -233,22 +235,35 @@ export default function GravacoesArquivos() {
                         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-600" />
                         Ao vivo
                       </span>
+                    ) : item.arquivo_valido === false ? (
+                      <span
+                        className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800"
+                        title={item.arquivo_erro ?? "Arquivo truncado ou ilegível"}
+                      >
+                        Inválido
+                      </span>
                     ) : (
                       <span className="text-xs text-slate-400">Finalizado</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <audio
-                      controls
-                      preload={item.em_gravacao ? "auto" : "none"}
-                      src={`/api/gravacoes/${item.id}/arquivo`}
-                      className="h-8 max-w-[220px]"
-                      title={
-                        item.em_gravacao
-                          ? "Reprodução ao vivo — o áudio continua conforme a gravação avança"
-                          : undefined
-                      }
-                    />
+                    {item.arquivo_valido === false ? (
+                      <span className="text-xs text-amber-700" title={item.arquivo_erro ?? undefined}>
+                        Indisponível
+                      </span>
+                    ) : (
+                      <audio
+                        controls
+                        preload={item.em_gravacao ? "auto" : "none"}
+                        src={`/api/gravacoes/${item.id}/arquivo`}
+                        className="h-8 max-w-[220px]"
+                        title={
+                          item.em_gravacao
+                            ? "Reprodução ao vivo — o áudio continua conforme a gravação avança"
+                            : undefined
+                        }
+                      />
+                    )}
                   </td>
                 </tr>
               ))}

@@ -193,6 +193,12 @@ export async function initDatabase(): Promise<void> {
       ALTER TABLE gravacao_arquivos
         ADD COLUMN IF NOT EXISTS bunny_upload_bytes BIGINT;
 
+      ALTER TABLE gravacao_arquivos
+        ADD COLUMN IF NOT EXISTS arquivo_valido BOOLEAN;
+
+      ALTER TABLE gravacao_arquivos
+        ADD COLUMN IF NOT EXISTS arquivo_erro TEXT;
+
       CREATE INDEX IF NOT EXISTS idx_gravacao_arquivos_bunny_pendente
         ON gravacao_arquivos (gravado_em DESC)
         WHERE removido_em IS NULL AND bunny_uploaded_em IS NULL;

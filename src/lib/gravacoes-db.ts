@@ -1,4 +1,5 @@
 import { getPool, isDatabaseConfigured, withClient } from "@/lib/db";
+import { validateAndRepairMp3 } from "@/lib/mp3-integrity";
 
 export interface GravacaoArquivo {
   id: number;
@@ -9,6 +10,19 @@ export interface GravacaoArquivo {
   gravado_em: string;
   tamanho_bytes: number;
   em_gravacao: boolean;
+  arquivo_valido: boolean | null;
+  arquivo_erro: string | null;
+}
+
+function mapGravacaoRow(row: GravacaoArquivo): GravacaoArquivo {
+  return {
+    ...row,
+    gravado_em: new Date(row.gravado_em).toISOString(),
+    tamanho_bytes: Number(row.tamanho_bytes),
+    em_gravacao: Boolean(row.em_gravacao),
+    arquivo_valido: row.arquivo_valido == null ? null : Boolean(row.arquivo_valido),
+    arquivo_erro: row.arquivo_erro ?? null,
+  };
 }
 
 export interface BuscaGravacoesParams {
@@ -53,11 +67,21 @@ export async function registrarGravacao(input: {
 export async function finalizarGravacao(caminho: string): Promise<void> {
   if (!isDatabaseConfigured()) return;
 
+  const validacao = await validateAndRepairMp3(caminho);
+
   await getPool().query(
     `UPDATE gravacao_arquivos
-     SET em_gravacao = FALSE
+     SET em_gravacao = FALSE,
+         tamanho_bytes = $2,
+         arquivo_valido = $3,
+         arquivo_erro = $4
      WHERE caminho = $1 AND removido_em IS NULL`,
-    [caminho],
+    [
+      caminho,
+      validacao.sizeBytes,
+      validacao.ok,
+      validacao.error,
+    ],
   );
 }
 
@@ -80,7 +104,8 @@ export async function buscarGravacoes(
   const limite = Math.min(Math.max(params.limite ?? 50, 1), 200);
 
   const result = await getPool().query<GravacaoArquivo>(
-    `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes, em_gravacao
+    `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes, em_gravacao,
+            arquivo_valido, arquivo_erro
      FROM gravacao_arquivos
      WHERE removido_em IS NULL
        AND ($1::text IS NULL OR municipio = $1)
@@ -100,12 +125,7 @@ export async function buscarGravacoes(
     ],
   );
 
-  return result.rows.map((row) => ({
-    ...row,
-    gravado_em: new Date(row.gravado_em).toISOString(),
-    tamanho_bytes: Number(row.tamanho_bytes),
-    em_gravacao: Boolean(row.em_gravacao),
-  }));
+  return result.rows.map(mapGravacaoRow);
 }
 
 export async function obterGravacaoPorCaminho(
@@ -114,7 +134,8 @@ export async function obterGravacaoPorCaminho(
   if (!isDatabaseConfigured()) return null;
 
   const result = await getPool().query<GravacaoArquivo>(
-    `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes, em_gravacao
+    `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes, em_gravacao,
+            arquivo_valido, arquivo_erro
      FROM gravacao_arquivos
      WHERE caminho = $1 AND removido_em IS NULL`,
     [caminho],
@@ -123,19 +144,15 @@ export async function obterGravacaoPorCaminho(
   const row = result.rows[0];
   if (!row) return null;
 
-  return {
-    ...row,
-    gravado_em: new Date(row.gravado_em).toISOString(),
-    tamanho_bytes: Number(row.tamanho_bytes),
-    em_gravacao: Boolean(row.em_gravacao),
-  };
+  return mapGravacaoRow(row);
 }
 
 export async function obterGravacaoPorId(id: number): Promise<GravacaoArquivo | null> {
   if (!isDatabaseConfigured()) return null;
 
   const result = await getPool().query<GravacaoArquivo>(
-    `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes, em_gravacao
+    `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes, em_gravacao,
+            arquivo_valido, arquivo_erro
      FROM gravacao_arquivos
      WHERE id = $1 AND removido_em IS NULL`,
     [id],
@@ -144,12 +161,7 @@ export async function obterGravacaoPorId(id: number): Promise<GravacaoArquivo | 
   const row = result.rows[0];
   if (!row) return null;
 
-  return {
-    ...row,
-    gravado_em: new Date(row.gravado_em).toISOString(),
-    tamanho_bytes: Number(row.tamanho_bytes),
-    em_gravacao: Boolean(row.em_gravacao),
-  };
+  return mapGravacaoRow(row);
 }
 
 export interface GravacaoPendenteUpload {
@@ -174,6 +186,7 @@ export async function listarGravacoesPendentesUpload(
      WHERE removido_em IS NULL
        AND bunny_uploaded_em IS NULL
        AND tamanho_bytes >= 65536
+       AND COALESCE(arquivo_valido, TRUE) = TRUE
      ORDER BY em_gravacao ASC, gravado_em DESC
      LIMIT $1`,
     [safeLimite],

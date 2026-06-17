@@ -4,15 +4,30 @@ import path from "node:path";
 import { getGravacoesDir } from "@/lib/data-dir";
 import { readEmissoras } from "@/lib/emissoras";
 import { finalizarGravacao, marcarGravacaoRemovida } from "@/lib/gravacoes-db";
-import { FFMPEG_LIVE_INPUT_FLAGS, isBenignFfmpegMessage } from "@/lib/ffmpeg-audio";
+import { isBenignFfmpegMessage } from "@/lib/ffmpeg-audio";
 import { formatRecordingFilename, radioOutputDir } from "@/lib/gravacoes-path";
 import { getRadioStream, makeStreamKey } from "@/lib/radios-streams";
+import { buildFfmpegStreamInputArgs, probeStreamUrl } from "@/lib/stream-input";
 
 const RECORDINGS_DIR = getGravacoesDir();
 const RETENTION_MS = 24 * 60 * 60 * 1000;
 const CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
 const SYNC_INTERVAL_MS = 5 * 60 * 1000;
 const RESTART_DELAY_MS = 15_000;
+const ROTATE_MS = Number(process.env.RECORDING_ROTATE_MS ?? 60 * 60 * 1000);
+const GRACEFUL_STOP_TIMEOUT_MS = 12_000;
+
+type StopReason = "rotate" | "shutdown" | "disabled" | "restart";
+
+interface ActiveRecording {
+  proc: ChildProcess;
+  municipio: string;
+  nome: string;
+  filePath: string;
+  intentionalStop: boolean;
+  stopReason?: StopReason;
+  rotateTimer: NodeJS.Timeout;
+}
 
 export interface RecordingStatus {
   key: string;
@@ -30,21 +45,57 @@ export interface RecordingStatus {
 
 type RecorderGlobal = typeof globalThis & {
   __radio55Recorder?: RecorderService;
+  __radio55RecorderShutdownHook?: boolean;
 };
 
+function waitForExit(proc: ChildProcess, timeoutMs: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (proc.exitCode != null || proc.killed) {
+      resolve(true);
+      return;
+    }
+
+    const timer = setTimeout(() => resolve(false), timeoutMs);
+
+    proc.once("exit", () => {
+      clearTimeout(timer);
+      resolve(true);
+    });
+  });
+}
+
+async function stopFfmpegGracefully(proc: ChildProcess): Promise<void> {
+  if (proc.exitCode != null || proc.killed) return;
+
+  if (proc.stdin && !proc.stdin.destroyed) {
+    proc.stdin.write("q");
+    const exited = await waitForExit(proc, GRACEFUL_STOP_TIMEOUT_MS);
+    if (exited) return;
+  }
+
+  proc.kill("SIGINT");
+  const exited = await waitForExit(proc, 5_000);
+  if (exited) return;
+
+  proc.kill("SIGKILL");
+  await waitForExit(proc, 2_000);
+}
+
 class RecorderService {
-  private processes = new Map<string, ChildProcess>();
-  private activeFiles = new Map<string, string>();
+  private recordings = new Map<string, ActiveRecording>();
   private activeFileSizes = new Map<string, number>();
   private errors = new Map<string, string>();
   private cleanupTimer?: NodeJS.Timeout;
   private syncTimer?: NodeJS.Timeout;
   private sizeTimer?: NodeJS.Timeout;
   private started = false;
+  private shuttingDown = false;
 
   async start(): Promise<void> {
     if (this.started) return;
     this.started = true;
+
+    this.registerShutdownHook();
 
     await mkdir(RECORDINGS_DIR, { recursive: true });
     await this.sync();
@@ -63,14 +114,27 @@ class RecorderService {
     }, 10_000);
   }
 
+  private registerShutdownHook(): void {
+    const globalRef = globalThis as RecorderGlobal;
+    if (globalRef.__radio55RecorderShutdownHook) return;
+    globalRef.__radio55RecorderShutdownHook = true;
+
+    const handler = () => {
+      void this.shutdownAll();
+    };
+
+    process.once("SIGTERM", handler);
+    process.once("SIGINT", handler);
+  }
+
   getActivePaths(): Set<string> {
-    return new Set(this.activeFiles.values());
+    return new Set([...this.recordings.values()].map((item) => item.filePath));
   }
 
   private async refreshActiveFileSizes(): Promise<void> {
-    for (const [key, filePath] of this.activeFiles.entries()) {
+    for (const [key, recording] of this.recordings.entries()) {
       try {
-        const fileStat = await stat(filePath);
+        const fileStat = await stat(recording.filePath);
         this.activeFileSizes.set(key, fileStat.size);
       } catch {
         this.activeFileSizes.delete(key);
@@ -79,6 +143,8 @@ class RecorderService {
   }
 
   async sync(): Promise<void> {
+    if (this.shuttingDown) return;
+
     const emissoras = await readEmissoras();
     const desired = new Set<string>();
 
@@ -89,22 +155,52 @@ class RecorderService {
         const key = makeStreamKey(municipio, radio.nome);
         desired.add(key);
 
-        if (!this.processes.has(key)) {
+        if (!this.recordings.has(key)) {
           await this.startOne(municipio, radio.nome);
         }
       }
     }
 
-    for (const key of this.processes.keys()) {
+    for (const key of this.recordings.keys()) {
       if (!desired.has(key)) {
-        this.stopOne(key);
+        await this.stopOne(key, "disabled");
         this.errors.delete(key);
       }
     }
   }
 
+  async forceRestart(opts?: { municipio?: string; nome?: string }): Promise<number> {
+    let restarted = 0;
+
+    for (const [key, recording] of this.recordings.entries()) {
+      if (opts?.municipio && recording.municipio !== opts.municipio) continue;
+      if (opts?.nome && recording.nome !== opts.nome) continue;
+
+      await this.stopOne(key, "restart");
+      restarted += 1;
+    }
+
+    if (!this.shuttingDown) {
+      await this.sync();
+    }
+
+    return restarted;
+  }
+
+  async shutdownAll(): Promise<void> {
+    if (this.shuttingDown) return;
+    this.shuttingDown = true;
+
+    const stops = [...this.recordings.keys()].map((key) => this.stopOne(key, "shutdown"));
+    await Promise.all(stops);
+  }
+
   private async startOne(municipio: string, nome: string): Promise<void> {
+    if (this.shuttingDown) return;
+
     const key = makeStreamKey(municipio, nome);
+    if (this.recordings.has(key)) return;
+
     const info = await getRadioStream(municipio, nome);
 
     if (!info?.streamUrl) {
@@ -116,32 +212,29 @@ class RecorderService {
     await mkdir(outputDir, { recursive: true });
 
     const outputFile = path.join(outputDir, formatRecordingFilename());
-    this.activeFiles.set(key, outputFile);
     this.activeFileSizes.set(key, 0);
+
+    const probe = await probeStreamUrl(info.streamUrl);
+    if (!probe.ok) {
+      this.errors.set(
+        key,
+        `Stream Icecast/Shoutcast inacessível — ${probe.error ?? "sem áudio"}`,
+      );
+      setTimeout(() => {
+        if (!this.shuttingDown) {
+          void this.startOne(municipio, nome);
+        }
+      }, RESTART_DELAY_MS);
+      return;
+    }
 
     const args = [
       "-hide_banner",
       "-loglevel",
       "error",
-      "-nostdin",
-      "-user_agent",
-      "Mozilla/5.0 (compatible; radio55-recorder/1.0)",
-      "-reconnect",
-      "1",
-      "-reconnect_at_eof",
-      "1",
-      "-reconnect_streamed",
-      "1",
-      "-reconnect_delay_max",
-      "30",
-    ];
-
-    if (info.streamUrl.startsWith("https://")) {
-      args.push("-tls_verify", "0");
-    }
-
-    args.push(...FFMPEG_LIVE_INPUT_FLAGS, "-i", info.streamUrl);
-    args.push(
+      ...buildFfmpegStreamInputArgs(info.streamUrl),
+      "-map",
+      "0:a:0?",
       "-c:a",
       "libmp3lame",
       "-b:a",
@@ -160,48 +253,99 @@ class RecorderService {
       "mp3",
       "-y",
       outputFile,
-    );
+    ];
 
-    const proc = spawn("ffmpeg", args, { stdio: ["ignore", "ignore", "pipe"] });
+    const proc = spawn("ffmpeg", args, { stdio: ["pipe", "ignore", "pipe"] });
     this.errors.delete(key);
+
+    const rotateTimer = setTimeout(() => {
+      void this.stopOne(key, "rotate");
+    }, ROTATE_MS);
+
+    const recording: ActiveRecording = {
+      proc,
+      municipio,
+      nome,
+      filePath: outputFile,
+      intentionalStop: false,
+      rotateTimer,
+    };
+
+    this.recordings.set(key, recording);
 
     proc.stderr?.on("data", (chunk: Buffer) => {
       const message = chunk.toString().trim();
       if (!message || isBenignFfmpegMessage(message)) return;
-      this.errors.set(key, message.slice(-200));
+
+      const resumo = message.slice(-240);
+      this.errors.set(key, resumo);
+
+      if (/stream ends prematurely|connection reset|timed out|i\/o error/i.test(message)) {
+        console.warn(`[recorder] ${key}: ${resumo}`);
+      }
     });
 
     proc.on("exit", async (code, signal) => {
-      this.processes.delete(key);
+      clearTimeout(rotateTimer);
 
-      const finishedFile = this.activeFiles.get(key);
-      this.activeFiles.delete(key);
+      const current = this.recordings.get(key);
+      const finishedFile = current?.filePath;
+      const intentional = current?.intentionalStop ?? false;
+      const stopReason = current?.stopReason;
+      const municipioAtual = current?.municipio ?? municipio;
+      const nomeAtual = current?.nome ?? nome;
+
+      this.recordings.delete(key);
       this.activeFileSizes.delete(key);
 
       if (finishedFile) {
-        await finalizarGravacao(finishedFile);
+        try {
+          await finalizarGravacao(finishedFile);
+        } catch (error) {
+          console.error(
+            `[recorder] falha ao finalizar ${finishedFile}:`,
+            error instanceof Error ? error.message : error,
+          );
+        }
       }
 
-      if (signal === "SIGTERM" || signal === "SIGKILL") return;
+      if (this.shuttingDown || stopReason === "shutdown" || stopReason === "disabled") {
+        return;
+      }
 
-      this.errors.set(
-        key,
-        code === 0 ? "Gravação encerrada" : `ffmpeg saiu com código ${code ?? "desconhecido"}`,
-      );
+      if (stopReason === "rotate" || stopReason === "restart") {
+        await this.startOne(municipioAtual, nomeAtual);
+        return;
+      }
+
+      if (signal === "SIGTERM" || signal === "SIGKILL") {
+        if (intentional) return;
+      }
+
+      const message =
+        code === 0
+          ? "Gravação encerrada — reiniciando"
+          : `Stream caiu (código ${code ?? "?"}) — reiniciando em ${RESTART_DELAY_MS / 1000}s`;
+
+      this.errors.set(key, message);
 
       setTimeout(() => {
-        void this.sync();
+        if (!this.shuttingDown) {
+          void this.startOne(municipioAtual, nomeAtual);
+        }
       }, RESTART_DELAY_MS);
     });
-
-    this.processes.set(key, proc);
   }
 
-  private stopOne(key: string): void {
-    const proc = this.processes.get(key);
-    if (!proc) return;
-    proc.kill("SIGTERM");
-    this.processes.delete(key);
+  private async stopOne(key: string, reason: StopReason): Promise<void> {
+    const recording = this.recordings.get(key);
+    if (!recording) return;
+
+    recording.intentionalStop = true;
+    recording.stopReason = reason;
+    clearTimeout(recording.rotateTimer);
+
+    await stopFfmpegGracefully(recording.proc);
   }
 
   async cleanup(): Promise<number> {
@@ -253,19 +397,20 @@ class RecorderService {
         const info = await getRadioStream(municipio, radio.nome);
         const outputDir = radioOutputDir(municipio, radio.nome);
         const files = await this.listMp3Files(outputDir);
-        const arquivoAtual = this.activeFiles.get(key) ?? null;
+        const recording = this.recordings.get(key);
+        const arquivoAtual = recording ? path.basename(recording.filePath) : null;
         const tamanhoAtualBytes = this.activeFileSizes.get(key) ?? null;
 
         statuses.push({
           key,
           municipio,
           nome: radio.nome,
-          ativo: this.processes.has(key),
+          ativo: this.recordings.has(key),
           streamUrl: info?.streamUrl ?? null,
           diretorio: outputDir,
           arquivos: files.length,
-          ultimoArquivo: arquivoAtual ? path.basename(arquivoAtual) : (files.at(-1) ?? null),
-          arquivoAtual: arquivoAtual ? path.basename(arquivoAtual) : null,
+          ultimoArquivo: arquivoAtual ?? files.at(-1) ?? null,
+          arquivoAtual,
           tamanhoAtualBytes,
           erro: this.errors.get(key) ?? null,
         });
@@ -299,6 +444,17 @@ export async function startRecorderService(): Promise<void> {
 
 export async function syncRecordings(): Promise<void> {
   await getService().sync();
+}
+
+export async function reiniciarGravacoes(opts?: {
+  municipio?: string;
+  nome?: string;
+}): Promise<number> {
+  return getService().forceRestart(opts);
+}
+
+export async function shutdownRecorderService(): Promise<void> {
+  await getService().shutdownAll();
 }
 
 export async function getRecordingStatus(): Promise<RecordingStatus[]> {

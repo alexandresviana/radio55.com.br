@@ -28,9 +28,10 @@ export async function GET(request: NextRequest) {
       info.streamUrl!,
       {
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; radio55/1.0)",
+          "User-Agent": "Mozilla/5.0 (compatible; radio55/1.0; Icecast)",
           Accept: "*/*",
-          "Icy-MetaData": "1",
+          "Icy-MetaData": "0",
+          Connection: "keep-alive",
         },
       },
       (res) => {

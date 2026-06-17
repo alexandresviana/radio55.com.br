@@ -55,6 +55,7 @@ export default function GravacoesAtivas() {
   const [transcricaoAtiva, setTranscricaoAtiva] = useState(false);
   const [transcricaoExpandida, setTranscricaoExpandida] = useState<number | null>(null);
   const [deteccoesExpandidas, setDeteccoesExpandidas] = useState(true);
+  const [reiniciando, setReiniciando] = useState<string | null>(null);
 
   const carregar = useCallback(async () => {
     const [statusRes, deteccoesRes, transcricoesRes] = await Promise.all([
@@ -87,6 +88,26 @@ export default function GravacoesAtivas() {
     }
   }, []);
 
+  const reiniciar = useCallback(
+    async (opts?: { municipio?: string; nome?: string; key?: string }) => {
+      setReiniciando(opts?.key ?? "todas");
+      const res = await fetch("/api/gravacoes/reiniciar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          municipio: opts?.municipio,
+          nome: opts?.nome,
+        }),
+      });
+      setReiniciando(null);
+
+      if (res.ok) {
+        await carregar();
+      }
+    },
+    [carregar],
+  );
+
   useEffect(() => {
     void carregar();
     const timer = setInterval(() => {
@@ -104,14 +125,25 @@ export default function GravacoesAtivas() {
           <div>
             <h2 className="text-sm font-semibold text-amber-900">Gravações ativas</h2>
             <p className="mt-1 text-xs text-amber-800">
-              Atualização automática a cada 10s. Transcrição e detecção de palavras em paralelo.
+              Atualização automática a cada 10s. Se a stream cair, reinicia sozinha em ~15s.
+              Arquivos rotacionam a cada 1h para evitar MP3 truncado.
             </p>
           </div>
-          {transcricaoAtiva && (
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
-              Transcrição ativa
-            </span>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {transcricaoAtiva && (
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                Transcrição ativa
+              </span>
+            )}
+            <button
+              type="button"
+              disabled={reiniciando === "todas"}
+              onClick={() => void reiniciar()}
+              className="rounded-lg border border-amber-300 bg-white px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-60"
+            >
+              {reiniciando === "todas" ? "Reiniciando..." : "Reiniciar todas"}
+            </button>
+          </div>
         </div>
 
         <ul className="mt-3 space-y-2">
@@ -143,7 +175,23 @@ export default function GravacoesAtivas() {
               {item.arquivoAtual && (
                 <p className="w-full font-mono text-xs text-slate-500">{item.arquivoAtual}</p>
               )}
-              {item.erro && <p className="w-full text-xs text-red-600">{item.erro}</p>}
+              {item.erro && <p className="w-full text-xs text-amber-800">{item.erro}</p>}
+              <div className="w-full">
+                <button
+                  type="button"
+                  disabled={reiniciando === item.key}
+                  onClick={() =>
+                    void reiniciar({
+                      municipio: item.municipio,
+                      nome: item.nome,
+                      key: item.key,
+                    })
+                  }
+                  className="rounded border border-amber-200 bg-white px-2 py-0.5 text-xs text-amber-900 hover:bg-amber-100 disabled:opacity-60"
+                >
+                  {reiniciando === item.key ? "Reiniciando..." : "Reiniciar"}
+                </button>
+              </div>
             </li>
           ))}
         </ul>

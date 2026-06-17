@@ -6,8 +6,10 @@ import { isDatabaseConfigured } from "@/lib/db";
 import { getActiveRecordingPaths } from "@/lib/recorder";
 import { parseMp3Timestamp, resolveRadioFromFilePath } from "@/lib/gravacoes-path";
 
+import { MIN_PLAYABLE_MP3_BYTES } from "@/lib/mp3-integrity";
+
 const INDEX_INTERVAL_MS = 10_000;
-const MIN_FILE_BYTES = 1_024;
+const MIN_FILE_BYTES = MIN_PLAYABLE_MP3_BYTES;
 
 type IndexerGlobal = typeof globalThis & {
   __radio55Indexer?: GravacoesIndexer;

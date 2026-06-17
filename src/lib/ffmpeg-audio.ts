@@ -19,7 +19,7 @@ export const FFMPEG_LIVE_INPUT_FLAGS = [
 export const FFMPEG_FILE_INPUT_FLAGS = ["-fflags", "+discardcorrupt+genpts"];
 
 const BENIGN_FFMPEG_PATTERNS =
-  /channel element.*not allocated|invalid data found when processing input|discarding invalid/i;
+  /channel element.*not allocated|invalid data found when processing input|discarding invalid|aac_adtstoasc|estimating duration|could not find codec parameters/i;
 
 export function isBenignFfmpegMessage(message: string): boolean {
   return BENIGN_FFMPEG_PATTERNS.test(message);
