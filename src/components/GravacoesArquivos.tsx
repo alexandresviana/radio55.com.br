@@ -12,6 +12,7 @@ interface GravacaoArquivo {
   em_gravacao: boolean;
   arquivo_valido: boolean | null;
   arquivo_erro: string | null;
+  bunny_uploaded_em: string | null;
 }
 
 interface RadioOption {
@@ -242,8 +243,17 @@ export default function GravacoesArquivos() {
                       >
                         Inválido
                       </span>
+                    ) : item.bunny_uploaded_em ? (
+                      <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-800">
+                        No storage
+                      </span>
                     ) : (
-                      <span className="text-xs text-slate-400">Finalizado</span>
+                      <span
+                        className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600"
+                        title="Aguardando envio ao Bunny Storage"
+                      >
+                        Enviando...
+                      </span>
                     )}
                   </td>
                   <td className="px-4 py-3">
@@ -251,6 +261,8 @@ export default function GravacoesArquivos() {
                       <span className="text-xs text-amber-700" title={item.arquivo_erro ?? undefined}>
                         Indisponível
                       </span>
+                    ) : !item.em_gravacao && !item.bunny_uploaded_em ? (
+                      <span className="text-xs text-slate-500">Aguardando storage</span>
                     ) : (
                       <audio
                         controls

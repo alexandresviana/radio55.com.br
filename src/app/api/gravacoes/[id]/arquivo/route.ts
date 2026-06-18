@@ -1,6 +1,13 @@
-import { stat } from "node:fs/promises";
+import { access } from "node:fs/promises";
 import path from "node:path";
 import { NextRequest, NextResponse } from "next/server";
+import {
+  fetchFileFromBunnyStorage,
+  getBunnyCdnUrl,
+  getBunnyStorageConfig,
+  isBunnyStorageConfigured,
+  buildBunnyStorageApiUrl,
+} from "@/lib/bunny-storage";
 import { getGravacoesDir } from "@/lib/data-dir";
 import { streamMp3FromSeconds } from "@/lib/ffmpeg-audio";
 import { obterGravacaoPorId } from "@/lib/gravacoes-db";
@@ -12,6 +19,21 @@ import {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+async function arquivoLocalExiste(filePath: string): Promise<boolean> {
+  try {
+    await access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function bunnyFfmpegHeaders(): string | undefined {
+  const config = getBunnyStorageConfig();
+  if (!config) return undefined;
+  return `AccessKey: ${config.accessKey}\r\n`;
+}
 
 export async function GET(
   request: NextRequest,
@@ -42,15 +64,49 @@ export async function GET(
     return new NextResponse("Caminho inválido", { status: 400 });
   }
 
-  try {
-    await stat(resolved);
-  } catch {
-    return new NextResponse("Arquivo não existe no disco", { status: 404 });
-  }
+  const temLocal = await arquivoLocalExiste(resolved);
+  const temStorage = Boolean(gravacao.bunny_path && gravacao.bunny_uploaded_em);
 
   const startAt = Number(request.nextUrl.searchParams.get("t"));
-  if (Number.isFinite(startAt) && startAt > 0) {
-    const stream = streamMp3FromSeconds(resolved, startAt);
+  const querSeek = Number.isFinite(startAt) && startAt > 0;
+
+  if (temLocal) {
+    const aoVivo = gravacao.em_gravacao || isFileStillRecording(resolved);
+
+    if (querSeek) {
+      const stream = streamMp3FromSeconds(resolved, startAt);
+      return new NextResponse(stream as unknown as ReadableStream, {
+        headers: {
+          "Content-Type": "audio/mpeg",
+          "Cache-Control": "no-store",
+          "Content-Disposition": `inline; filename="${gravacao.arquivo}"`,
+        },
+      });
+    }
+
+    if (aoVivo) {
+      return serveGrowingFile(resolved, gravacao.arquivo, request);
+    }
+
+    return serveCompleteFile(resolved, gravacao.arquivo, request);
+  }
+
+  if (!temStorage || !isBunnyStorageConfigured() || !gravacao.bunny_path) {
+    return new NextResponse(
+      gravacao.em_gravacao
+        ? "Gravação em andamento — arquivo ainda não disponível"
+        : "Arquivo aguardando envio ao Bunny Storage ou não existe no disco",
+      { status: 404 },
+    );
+  }
+
+  if (querSeek) {
+    const storageUrl = buildBunnyStorageApiUrl(gravacao.bunny_path);
+    if (!storageUrl) {
+      return new NextResponse("Storage não configurado", { status: 503 });
+    }
+
+    const stream = streamMp3FromSeconds(storageUrl, startAt, bunnyFfmpegHeaders());
     return new NextResponse(stream as unknown as ReadableStream, {
       headers: {
         "Content-Type": "audio/mpeg",
@@ -60,11 +116,37 @@ export async function GET(
     });
   }
 
-  const aoVivo = gravacao.em_gravacao || isFileStillRecording(resolved);
-
-  if (aoVivo) {
-    return serveGrowingFile(resolved, gravacao.arquivo, request);
+  const cdnUrl = getBunnyCdnUrl(gravacao.bunny_path);
+  if (cdnUrl && !request.headers.get("range")) {
+    return NextResponse.redirect(cdnUrl, 302);
   }
 
-  return serveCompleteFile(resolved, gravacao.arquivo, request);
+  try {
+    const upstream = await fetchFileFromBunnyStorage(
+      gravacao.bunny_path,
+      request.headers.get("range"),
+    );
+
+    const headers: Record<string, string> = {
+      "Content-Type": upstream.headers.get("content-type") ?? "audio/mpeg",
+      "Cache-Control": "private, max-age=3600",
+      "Content-Disposition": `inline; filename="${gravacao.arquivo}"`,
+      "Accept-Ranges": "bytes",
+    };
+
+    const contentLength = upstream.headers.get("content-length");
+    const contentRange = upstream.headers.get("content-range");
+    if (contentLength) headers["Content-Length"] = contentLength;
+    if (contentRange) headers["Content-Range"] = contentRange;
+
+    return new NextResponse(upstream.body, {
+      status: upstream.status === 206 ? 206 : 200,
+      headers,
+    });
+  } catch (error) {
+    return new NextResponse(
+      error instanceof Error ? error.message : "Erro ao ler arquivo no storage",
+      { status: 502 },
+    );
+  }
 }

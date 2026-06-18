@@ -4,6 +4,7 @@ import path from "node:path";
 import { getGravacoesDir } from "@/lib/data-dir";
 import { readEmissoras } from "@/lib/emissoras";
 import { finalizarGravacao, marcarGravacaoRemovida } from "@/lib/gravacoes-db";
+import { tentarUploadGravacaoPorCaminho } from "@/lib/bunny-storage-uploader";
 import { isBenignFfmpegMessage } from "@/lib/ffmpeg-audio";
 import { formatRecordingFilename, radioOutputDir } from "@/lib/gravacoes-path";
 import { getRadioStream, makeStreamKey } from "@/lib/radios-streams";
@@ -301,6 +302,12 @@ class RecorderService {
       if (finishedFile) {
         try {
           await finalizarGravacao(finishedFile);
+          void tentarUploadGravacaoPorCaminho(finishedFile).catch((error) => {
+            console.error(
+              "[recorder] falha ao enviar para Bunny Storage:",
+              error instanceof Error ? error.message : error,
+            );
+          });
         } catch (error) {
           console.error(
             `[recorder] falha ao finalizar ${finishedFile}:`,

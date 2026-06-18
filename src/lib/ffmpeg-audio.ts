@@ -109,12 +109,23 @@ export async function extractMp3Clip(
   ]);
 }
 
-export function streamMp3FromSeconds(inputPath: string, startSeconds: number): Readable {
+export function streamMp3FromSeconds(
+  inputPath: string,
+  startSeconds: number,
+  httpHeaders?: string,
+): Readable {
   const args = [
     "-hide_banner",
     "-loglevel",
     "error",
     ...FFMPEG_FILE_INPUT_FLAGS,
+  ];
+
+  if (httpHeaders) {
+    args.push("-headers", httpHeaders);
+  }
+
+  args.push(
     "-ss",
     String(Math.max(0, startSeconds)),
     "-i",
@@ -126,7 +137,7 @@ export function streamMp3FromSeconds(inputPath: string, startSeconds: number): R
     "-f",
     "mp3",
     "pipe:1",
-  ];
+  );
 
   const proc = spawn("ffmpeg", args, { stdio: ["ignore", "pipe", "pipe"] });
 

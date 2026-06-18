@@ -58,6 +58,61 @@ export function buildBunnyRemotePath(parts: string[]): string {
     .join("/");
 }
 
+export function buildBunnyStorageApiUrl(remotePath: string): string | null {
+  const config = getBunnyStorageConfig();
+  if (!config) return null;
+
+  const segments = remotePath.split("/").filter(Boolean);
+  const fileName = segments.pop();
+  if (!fileName) return null;
+
+  const directory = segments.map((segment) => encodeURIComponent(segment)).join("/");
+  const encodedFileName = encodeURIComponent(fileName);
+
+  return directory
+    ? `https://${config.host}/${encodeURIComponent(config.zone)}/${directory}/${encodedFileName}`
+    : `https://${config.host}/${encodeURIComponent(config.zone)}/${encodedFileName}`;
+}
+
+export function getBunnyCdnUrl(remotePath: string): string | null {
+  const base = process.env.BUNNY_STORAGE_CDN_BASE?.trim();
+  if (!base) return null;
+
+  const normalizedPath = remotePath.replace(/^\/+/, "");
+  return `${base.replace(/\/+$/, "")}/${normalizedPath}`;
+}
+
+export async function fetchFileFromBunnyStorage(
+  remotePath: string,
+  rangeHeader?: string | null,
+): Promise<Response> {
+  const config = getBunnyStorageConfig();
+  const url = buildBunnyStorageApiUrl(remotePath);
+
+  if (!config || !url) {
+    throw new Error("Bunny Storage não configurado");
+  }
+
+  const headers: Record<string, string> = {
+    AccessKey: config.accessKey,
+  };
+
+  if (rangeHeader) {
+    headers.Range = rangeHeader;
+  }
+
+  const response = await fetch(url, { headers });
+
+  if (!response.ok && response.status !== 206) {
+    const body = await response.text().catch(() => "");
+    throw new Error(
+      `Download Bunny Storage falhou (${response.status})${body ? `: ${body.slice(0, 200)}` : ""}`,
+    );
+  }
+
+  return response;
+}
+
 export async function uploadFileToBunnyStorage(input: {
   localPath: string;
   remotePath: string;

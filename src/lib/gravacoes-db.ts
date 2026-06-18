@@ -12,9 +12,13 @@ export interface GravacaoArquivo {
   em_gravacao: boolean;
   arquivo_valido: boolean | null;
   arquivo_erro: string | null;
+  bunny_path: string | null;
+  bunny_uploaded_em: string | null;
 }
 
-function mapGravacaoRow(row: GravacaoArquivo): GravacaoArquivo {
+function mapGravacaoRow(
+  row: GravacaoArquivo & { bunny_uploaded_em?: Date | string | null },
+): GravacaoArquivo {
   return {
     ...row,
     gravado_em: new Date(row.gravado_em).toISOString(),
@@ -22,6 +26,10 @@ function mapGravacaoRow(row: GravacaoArquivo): GravacaoArquivo {
     em_gravacao: Boolean(row.em_gravacao),
     arquivo_valido: row.arquivo_valido == null ? null : Boolean(row.arquivo_valido),
     arquivo_erro: row.arquivo_erro ?? null,
+    bunny_path: row.bunny_path ?? null,
+    bunny_uploaded_em: row.bunny_uploaded_em
+      ? new Date(row.bunny_uploaded_em).toISOString()
+      : null,
   };
 }
 
@@ -105,7 +113,7 @@ export async function buscarGravacoes(
 
   const result = await getPool().query<GravacaoArquivo>(
     `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes, em_gravacao,
-            arquivo_valido, arquivo_erro
+            arquivo_valido, arquivo_erro, bunny_path, bunny_uploaded_em
      FROM gravacao_arquivos
      WHERE removido_em IS NULL
        AND ($1::text IS NULL OR municipio = $1)
@@ -135,7 +143,7 @@ export async function obterGravacaoPorCaminho(
 
   const result = await getPool().query<GravacaoArquivo>(
     `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes, em_gravacao,
-            arquivo_valido, arquivo_erro
+            arquivo_valido, arquivo_erro, bunny_path, bunny_uploaded_em
      FROM gravacao_arquivos
      WHERE caminho = $1 AND removido_em IS NULL`,
     [caminho],
@@ -152,7 +160,7 @@ export async function obterGravacaoPorId(id: number): Promise<GravacaoArquivo | 
 
   const result = await getPool().query<GravacaoArquivo>(
     `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes, em_gravacao,
-            arquivo_valido, arquivo_erro
+            arquivo_valido, arquivo_erro, bunny_path, bunny_uploaded_em
      FROM gravacao_arquivos
      WHERE id = $1 AND removido_em IS NULL`,
     [id],
@@ -185,6 +193,7 @@ export async function listarGravacoesPendentesUpload(
      FROM gravacao_arquivos
      WHERE removido_em IS NULL
        AND bunny_uploaded_em IS NULL
+       AND em_gravacao = FALSE
        AND tamanho_bytes >= 65536
        AND COALESCE(arquivo_valido, TRUE) = TRUE
      ORDER BY em_gravacao ASC, gravado_em DESC
