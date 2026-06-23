@@ -84,6 +84,7 @@ export async function extractMp3Clip(
   outputPath: string,
   clipSeconds = 25,
   preSeconds = 10,
+  httpHeaders?: string,
 ): Promise<void> {
   await mkdir(path.dirname(outputPath), { recursive: true });
 
@@ -97,6 +98,7 @@ export async function extractMp3Clip(
     ...FFMPEG_FILE_INPUT_FLAGS,
     "-ss",
     String(start),
+    ...(httpHeaders ? ["-headers", httpHeaders] : []),
     "-i",
     inputPath,
     "-t",

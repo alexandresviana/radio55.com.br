@@ -11,6 +11,10 @@ export async function register() {
 
     await initDatabase();
     await readEmissoras();
+
+    const { limparTrechosInexistentes } = await import("@/lib/trecho-deteccao");
+    void limparTrechosInexistentes();
+
     void startGravacoesIndexer();
     void startRecorderService();
     void startTranscriptionService();

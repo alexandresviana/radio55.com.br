@@ -1,9 +1,8 @@
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
-import path from "node:path";
 import { NextRequest, NextResponse } from "next/server";
-import { getTrechosDir } from "@/lib/data-dir";
 import { obterDeteccaoPorId } from "@/lib/deteccoes-db";
+import { ensureTrechoFile } from "@/lib/trecho-deteccao";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,25 +19,22 @@ export async function GET(
   }
 
   const deteccao = await obterDeteccaoPorId(id);
-  if (!deteccao?.trecho_caminho) {
-    return new NextResponse("Trecho não disponível", { status: 404 });
+  if (!deteccao) {
+    return new NextResponse("Detecção não encontrada", { status: 404 });
   }
 
-  const trechosRoot = path.resolve(getTrechosDir());
-  const resolved = path.resolve(deteccao.trecho_caminho);
-
-  if (!resolved.startsWith(trechosRoot + path.sep)) {
-    return new NextResponse("Caminho inválido", { status: 400 });
+  const trechoPath = await ensureTrechoFile(deteccao);
+  if (!trechoPath) {
+    return new NextResponse(
+      deteccao.trecho_caminho
+        ? "Trecho não encontrado — gravação original indisponível para recorte"
+        : "Trecho não disponível",
+      { status: 404 },
+    );
   }
 
-  let fileStat;
-  try {
-    fileStat = await stat(resolved);
-  } catch {
-    return new NextResponse("Arquivo não existe no disco", { status: 404 });
-  }
-
-  const stream = createReadStream(resolved);
+  const fileStat = await stat(trechoPath);
+  const stream = createReadStream(trechoPath);
 
   return new NextResponse(stream as unknown as ReadableStream, {
     headers: {

@@ -180,6 +180,29 @@ export async function atualizarTrechoDeteccao(
   );
 }
 
+export async function limparTrechoCaminho(id: number): Promise<void> {
+  if (!isDatabaseConfigured()) return;
+
+  await getPool().query(
+    `UPDATE palavra_deteccoes SET trecho_caminho = NULL WHERE id = $1`,
+    [id],
+  );
+}
+
+export async function listarDeteccoesComTrecho(): Promise<
+  { id: number; trecho_caminho: string }[]
+> {
+  if (!isDatabaseConfigured()) return [];
+
+  const result = await getPool().query<{ id: number; trecho_caminho: string }>(
+    `SELECT id, trecho_caminho
+     FROM palavra_deteccoes
+     WHERE trecho_caminho IS NOT NULL`,
+  );
+
+  return result.rows;
+}
+
 export async function obterProgressoTranscricao(
   caminho: string,
 ): Promise<{ ultimo_segundo: number; gravacao_id: number | null } | null> {
