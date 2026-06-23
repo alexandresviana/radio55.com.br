@@ -6,9 +6,20 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const gravacoes = await getRecordingStatus();
-  return NextResponse.json({
-    gravacoes,
-    bunny_storage: getBunnyStorageUploaderStatus(),
-  });
+  try {
+    const gravacoes = await getRecordingStatus();
+    return NextResponse.json({
+      gravacoes,
+      bunny_storage: getBunnyStorageUploaderStatus(),
+    });
+  } catch (error) {
+    console.error("[gravacoes/status]", error);
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Erro ao obter status das gravações",
+        gravacoes: [],
+      },
+      { status: 500 },
+    );
+  }
 }

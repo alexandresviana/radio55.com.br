@@ -60,6 +60,8 @@ export default function GravacoesAtivas() {
   const [paginaTranscricoes, setPaginaTranscricoes] = useState(0);
   const [paginaDeteccoes, setPaginaDeteccoes] = useState(0);
   const [totalDeteccoes, setTotalDeteccoes] = useState(0);
+  const [statusErro, setStatusErro] = useState("");
+  const [statusCarregando, setStatusCarregando] = useState(true);
 
   const carregar = useCallback(async () => {
     const [statusRes, deteccoesRes, transcricoesRes] = await Promise.all([
@@ -71,9 +73,18 @@ export default function GravacoesAtivas() {
     ]);
 
     if (statusRes.ok) {
-      const data = (await statusRes.json()) as { gravacoes: RecordingStatusItem[] };
+      const data = (await statusRes.json()) as {
+        gravacoes?: RecordingStatusItem[];
+        error?: string;
+      };
       setGravacoes(data.gravacoes ?? []);
+      setStatusErro("");
+    } else {
+      const data = (await statusRes.json().catch(() => ({}))) as { error?: string };
+      setGravacoes([]);
+      setStatusErro(data.error ?? "Erro ao carregar gravações ativas");
     }
+    setStatusCarregando(false);
 
     if (deteccoesRes.ok) {
       const data = (await deteccoesRes.json()) as {
@@ -153,7 +164,7 @@ export default function GravacoesAtivas() {
     }
   }, [paginaDeteccoes, totalPaginasDeteccoes, totalDeteccoes]);
 
-  if (gravacoes.length === 0) return null;
+  const gravando = gravacoes.filter((item) => item.ativo).length;
 
   return (
     <div className="mb-6 space-y-4">
@@ -172,6 +183,11 @@ export default function GravacoesAtivas() {
                 Transcrição ativa
               </span>
             )}
+            {gravacoes.length > 0 && (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
+                {gravando}/{gravacoes.length} gravando
+              </span>
+            )}
             <button
               type="button"
               disabled={reiniciando === "todas"}
@@ -183,8 +199,20 @@ export default function GravacoesAtivas() {
           </div>
         </div>
 
-        <ul className="mt-3 space-y-2">
-          {gravacoes.map((item) => (
+        {statusErro && (
+          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{statusErro}</p>
+        )}
+
+        {statusCarregando ? (
+          <p className="mt-3 text-xs text-amber-800">Carregando status das gravações...</p>
+        ) : gravacoes.length === 0 ? (
+          <p className="mt-3 text-xs text-amber-800">
+            Nenhuma rádio com gravação habilitada. Marque <strong>Gravar</strong> no cadastro abaixo
+            e clique em <strong>Salvar alterações</strong>.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {gravacoes.map((item) => (
             <li
               key={item.key}
               className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white/80 px-3 py-2 text-sm"
@@ -231,7 +259,8 @@ export default function GravacoesAtivas() {
               </div>
             </li>
           ))}
-        </ul>
+          </ul>
+        )}
       </div>
 
       {previews.length > 0 && (

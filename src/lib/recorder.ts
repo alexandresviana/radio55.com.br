@@ -7,7 +7,7 @@ import { finalizarGravacao, marcarGravacaoRemovida } from "@/lib/gravacoes-db";
 import { tentarUploadGravacaoPorCaminho } from "@/lib/bunny-storage-uploader";
 import { isBenignFfmpegMessage } from "@/lib/ffmpeg-audio";
 import { formatRecordingFilename, radioOutputDir } from "@/lib/gravacoes-path";
-import { getRadioStream, makeStreamKey } from "@/lib/radios-streams";
+import { getRadioStream, makeStreamKey, readRadioStreams } from "@/lib/radios-streams";
 import { buildFfmpegStreamInputArgs, probeStreamUrl } from "@/lib/stream-input";
 
 const RECORDINGS_DIR = getGravacoesDir();
@@ -395,13 +395,27 @@ class RecorderService {
   async getStatus(): Promise<RecordingStatus[]> {
     const emissoras = await readEmissoras();
     const statuses: RecordingStatus[] = [];
+    let streams: Awaited<ReturnType<typeof readRadioStreams>> | null = null;
+
+    try {
+      streams = await readRadioStreams();
+    } catch (error) {
+      console.error("[recorder] Falha ao ler radios-streams.json:", error);
+    }
 
     for (const [municipio, data] of Object.entries(emissoras)) {
       for (const radio of data.radios) {
         if (!radio.gravar) continue;
 
         const key = makeStreamKey(municipio, radio.nome);
-        const info = await getRadioStream(municipio, radio.nome);
+        let info: Awaited<ReturnType<typeof getRadioStream>> = null;
+
+        try {
+          info = await getRadioStream(municipio, radio.nome);
+        } catch (error) {
+          console.error(`[recorder] Falha ao resolver stream ${key}:`, error);
+        }
+
         const outputDir = radioOutputDir(municipio, radio.nome);
         const files = await this.listMp3Files(outputDir);
         const recording = this.recordings.get(key);
@@ -413,7 +427,7 @@ class RecorderService {
           municipio,
           nome: radio.nome,
           ativo: this.recordings.has(key),
-          streamUrl: info?.streamUrl ?? null,
+          streamUrl: info?.streamUrl ?? streams?.[key]?.streamUrl ?? null,
           diretorio: outputDir,
           arquivos: files.length,
           ultimoArquivo: arquivoAtual ?? files.at(-1) ?? null,
