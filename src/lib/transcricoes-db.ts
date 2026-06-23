@@ -1,5 +1,5 @@
 import { getPool, isDatabaseConfigured } from "@/lib/db";
-import { formatHorarioGravacao } from "@/lib/text-normalize";
+import { formatHorarioGravacao, normalizeText } from "@/lib/text-normalize";
 
 const PREVIEW_JANELA_SEGUNDOS = 30 * 60;
 const PREVIEW_MAX_CARACTERES = 4_000;
@@ -146,4 +146,97 @@ export async function buscarPreviewsAoVivo(
       fim_segundos: fim,
     };
   });
+}
+
+export interface TranscricaoBuscaResultado {
+  id: number;
+  gravacao_id: number;
+  inicio_segundos: number;
+  fim_segundos: number;
+  texto: string;
+  municipio: string;
+  radio_nome: string;
+  arquivo: string;
+  gravado_em: string;
+  em_gravacao: boolean;
+}
+
+function termoBuscaSql(termo: string): { ilike: string; normalizado: string } {
+  const trimmed = termo.trim();
+  return {
+    ilike: `%${trimmed}%`,
+    normalizado: `%${normalizeText(trimmed)}%`,
+  };
+}
+
+function filtroTextoSegmento(alias: string): string {
+  return `(
+    ${alias}.texto ILIKE $1
+    OR translate(lower(${alias}.texto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $2
+  )`;
+}
+
+export async function contarBuscaNasTranscricoes(termo: string): Promise<number> {
+  if (!isDatabaseConfigured() || !termo.trim()) return 0;
+
+  const busca = termoBuscaSql(termo);
+
+  const result = await getPool().query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total
+     FROM transcricao_segmentos s
+     JOIN gravacao_arquivos g ON g.id = s.gravacao_id
+     WHERE g.removido_em IS NULL
+       AND ${filtroTextoSegmento("s")}`,
+    [busca.ilike, busca.normalizado],
+  );
+
+  return Number(result.rows[0]?.total ?? 0);
+}
+
+export async function buscarNasTranscricoes(params: {
+  termo: string;
+  limite?: number;
+  offset?: number;
+}): Promise<TranscricaoBuscaResultado[]> {
+  if (!isDatabaseConfigured() || !params.termo.trim()) return [];
+
+  const limite = Math.min(Math.max(params.limite ?? 30, 1), 200);
+  const offset = Math.max(params.offset ?? 0, 0);
+  const busca = termoBuscaSql(params.termo);
+
+  const result = await getPool().query<
+    TranscricaoBuscaResultado & { gravado_em: Date; em_gravacao: boolean }
+  >(
+    `SELECT
+       s.id,
+       s.gravacao_id,
+       s.inicio_segundos,
+       s.fim_segundos,
+       s.texto,
+       g.municipio,
+       g.radio_nome,
+       g.arquivo,
+       g.gravado_em,
+       g.em_gravacao
+     FROM transcricao_segmentos s
+     JOIN gravacao_arquivos g ON g.id = s.gravacao_id
+     WHERE g.removido_em IS NULL
+       AND ${filtroTextoSegmento("s")}
+     ORDER BY g.gravado_em DESC, s.inicio_segundos ASC
+     LIMIT $3 OFFSET $4`,
+    [busca.ilike, busca.normalizado, limite, offset],
+  );
+
+  return result.rows.map((row) => ({
+    id: row.id,
+    gravacao_id: row.gravacao_id,
+    inicio_segundos: Number(row.inicio_segundos),
+    fim_segundos: Number(row.fim_segundos),
+    texto: row.texto,
+    municipio: row.municipio,
+    radio_nome: row.radio_nome,
+    arquivo: row.arquivo,
+    gravado_em: new Date(row.gravado_em).toISOString(),
+    em_gravacao: Boolean(row.em_gravacao),
+  }));
 }

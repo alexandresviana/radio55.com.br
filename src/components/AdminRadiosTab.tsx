@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import BuscaTranscricoes from "@/components/BuscaTranscricoes";
 import GravacoesArquivos from "@/components/GravacoesArquivos";
 import GravacoesAtivas from "@/components/GravacoesAtivas";
 import PainelDeteccoes from "@/components/PainelDeteccoes";
@@ -122,6 +123,7 @@ export default function AdminRadiosTab() {
       )}
 
       <GravacoesAtivas />
+      <BuscaTranscricoes />
       <PainelDeteccoes />
       <GravacoesArquivos />
 

@@ -26,10 +26,11 @@ export interface BuscaDeteccoesParams {
 }
 
 function filtrosDeteccoesSql(params: BuscaDeteccoesParams) {
+  const termoBusca = params.termo ? `%${params.termo}%` : null;
   return [
     params.municipio ?? null,
     params.radio ?? null,
-    params.termo ? `%${params.termo}%` : null,
+    termoBusca,
     params.aoVivo ?? null,
   ];
 }
@@ -44,7 +45,7 @@ export async function contarDeteccoes(params: BuscaDeteccoesParams): Promise<num
      WHERE g.removido_em IS NULL
        AND ($1::text IS NULL OR g.municipio = $1)
        AND ($2::text IS NULL OR g.radio_nome = $2)
-       AND ($3::text IS NULL OR d.termo ILIKE $3)
+       AND ($3::text IS NULL OR d.termo ILIKE $3 OR d.contexto ILIKE $3)
        AND ($4::boolean IS NULL OR g.em_gravacao = $4)`,
     filtrosDeteccoesSql(params),
   );
@@ -158,7 +159,7 @@ export async function buscarDeteccoes(
      WHERE g.removido_em IS NULL
        AND ($1::text IS NULL OR g.municipio = $1)
        AND ($2::text IS NULL OR g.radio_nome = $2)
-       AND ($3::text IS NULL OR d.termo ILIKE $3)
+       AND ($3::text IS NULL OR d.termo ILIKE $3 OR d.contexto ILIKE $3)
        AND ($4::boolean IS NULL OR g.em_gravacao = $4)
      ORDER BY d.detectado_em DESC
      LIMIT $5 OFFSET $6`,

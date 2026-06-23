@@ -93,7 +93,8 @@ export default function PainelDeteccoes() {
         <div>
           <h2 className="text-lg font-semibold text-slate-900">Histórico de detecções</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Todas as ocorrências encontradas nas transcrições, com trecho de áudio e atalho no MP3.
+            Alertas de palavras-chave cadastradas. Para buscar qualquer termo no texto transcrito,
+            use a seção &quot;Buscar nas transcrições&quot; acima.
           </p>
         </div>
         <button
@@ -116,7 +117,7 @@ export default function PainelDeteccoes() {
           onKeyDown={(e) => {
             if (e.key === "Enter") aplicarBusca();
           }}
-          placeholder="Filtrar por palavra"
+          placeholder="Filtrar por palavra-chave ou contexto"
           className="min-w-[200px] rounded-lg border border-slate-200 px-3 py-2 text-sm"
         />
         <button
