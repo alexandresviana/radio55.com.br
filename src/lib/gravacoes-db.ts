@@ -40,6 +40,35 @@ export interface BuscaGravacoesParams {
   horaDe?: string;
   horaAte?: string;
   limite?: number;
+  offset?: number;
+}
+
+function filtrosGravacoesSql(params: BuscaGravacoesParams) {
+  return [
+    params.municipio ?? null,
+    params.radio ?? null,
+    params.dia ?? null,
+    params.horaDe ?? null,
+    params.horaAte ?? null,
+  ];
+}
+
+export async function contarGravacoes(params: BuscaGravacoesParams): Promise<number> {
+  if (!isDatabaseConfigured()) return 0;
+
+  const result = await getPool().query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total
+     FROM gravacao_arquivos
+     WHERE removido_em IS NULL
+       AND ($1::text IS NULL OR municipio = $1)
+       AND ($2::text IS NULL OR radio_nome = $2)
+       AND ($3::date IS NULL OR gravado_em::date = $3::date)
+       AND ($4::time IS NULL OR gravado_em::time >= $4::time)
+       AND ($5::time IS NULL OR gravado_em::time <= $5::time)`,
+    filtrosGravacoesSql(params),
+  );
+
+  return Number(result.rows[0]?.total ?? 0);
 }
 
 export async function registrarGravacao(input: {
@@ -110,6 +139,7 @@ export async function buscarGravacoes(
   if (!isDatabaseConfigured()) return [];
 
   const limite = Math.min(Math.max(params.limite ?? 50, 1), 200);
+  const offset = Math.max(params.offset ?? 0, 0);
 
   const result = await getPool().query<GravacaoArquivo>(
     `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes, em_gravacao,
@@ -122,15 +152,8 @@ export async function buscarGravacoes(
        AND ($4::time IS NULL OR gravado_em::time >= $4::time)
        AND ($5::time IS NULL OR gravado_em::time <= $5::time)
      ORDER BY em_gravacao DESC, gravado_em DESC
-     LIMIT $6`,
-    [
-      params.municipio ?? null,
-      params.radio ?? null,
-      params.dia ?? null,
-      params.horaDe ?? null,
-      params.horaAte ?? null,
-      limite,
-    ],
+     LIMIT $6 OFFSET $7`,
+    [...filtrosGravacoesSql(params), limite, offset],
   );
 
   return result.rows.map(mapGravacaoRow);

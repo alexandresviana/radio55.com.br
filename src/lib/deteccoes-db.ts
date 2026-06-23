@@ -22,6 +22,34 @@ export interface BuscaDeteccoesParams {
   termo?: string;
   aoVivo?: boolean;
   limite?: number;
+  offset?: number;
+}
+
+function filtrosDeteccoesSql(params: BuscaDeteccoesParams) {
+  return [
+    params.municipio ?? null,
+    params.radio ?? null,
+    params.termo ? `%${params.termo}%` : null,
+    params.aoVivo ?? null,
+  ];
+}
+
+export async function contarDeteccoes(params: BuscaDeteccoesParams): Promise<number> {
+  if (!isDatabaseConfigured()) return 0;
+
+  const result = await getPool().query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total
+     FROM palavra_deteccoes d
+     JOIN gravacao_arquivos g ON g.id = d.gravacao_id
+     WHERE g.removido_em IS NULL
+       AND ($1::text IS NULL OR g.municipio = $1)
+       AND ($2::text IS NULL OR g.radio_nome = $2)
+       AND ($3::text IS NULL OR d.termo ILIKE $3)
+       AND ($4::boolean IS NULL OR g.em_gravacao = $4)`,
+    filtrosDeteccoesSql(params),
+  );
+
+  return Number(result.rows[0]?.total ?? 0);
 }
 
 export async function registrarDeteccao(input: {
@@ -108,6 +136,7 @@ export async function buscarDeteccoes(
   if (!isDatabaseConfigured()) return [];
 
   const limite = Math.min(Math.max(params.limite ?? 50, 1), 200);
+  const offset = Math.max(params.offset ?? 0, 0);
 
   const result = await getPool().query<PalavraDeteccao>(
     `SELECT
@@ -132,14 +161,8 @@ export async function buscarDeteccoes(
        AND ($3::text IS NULL OR d.termo ILIKE $3)
        AND ($4::boolean IS NULL OR g.em_gravacao = $4)
      ORDER BY d.detectado_em DESC
-     LIMIT $5`,
-    [
-      params.municipio ?? null,
-      params.radio ?? null,
-      params.termo ? `%${params.termo}%` : null,
-      params.aoVivo ?? null,
-      limite,
-    ],
+     LIMIT $5 OFFSET $6`,
+    [...filtrosDeteccoesSql(params), limite, offset],
   );
 
   return result.rows.map(mapDeteccao);

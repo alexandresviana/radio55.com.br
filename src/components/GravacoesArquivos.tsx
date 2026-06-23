@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import PaginacaoLista, { POR_PAGINA_ADMIN } from "@/components/PaginacaoLista";
 
 interface GravacaoArquivo {
   id: number;
@@ -47,6 +48,8 @@ export default function GravacoesArquivos() {
   const [dia, setDia] = useState("");
   const [horaDe, setHoraDe] = useState("");
   const [horaAte, setHoraAte] = useState("");
+  const [pagina, setPagina] = useState(0);
+  const [total, setTotal] = useState(0);
 
   const municipios = useMemo(
     () => [...new Set(radios.map((r) => r.municipio))].sort((a, b) => a.localeCompare(b, "pt-BR")),
@@ -70,9 +73,11 @@ export default function GravacoesArquivos() {
     setRadios(data.radios ?? []);
   }, []);
 
-  const buscar = useCallback(async () => {
+  const buscar = useCallback(async (opts?: { pagina?: number }) => {
     setLoading(true);
     setErro("");
+
+    const paginaAtual = opts?.pagina ?? pagina;
 
     const params = new URLSearchParams();
     if (municipio) params.set("municipio", municipio);
@@ -80,26 +85,42 @@ export default function GravacoesArquivos() {
     if (dia) params.set("dia", dia);
     if (horaDe) params.set("horaDe", horaDe);
     if (horaAte) params.set("horaAte", horaAte);
-    params.set("limite", "100");
+    params.set("limite", String(POR_PAGINA_ADMIN));
+    params.set("offset", String(paginaAtual * POR_PAGINA_ADMIN));
 
     const res = await fetch(`/api/gravacoes?${params}`);
-    const data = (await res.json()) as { arquivos?: GravacaoArquivo[]; error?: string };
+    const data = (await res.json()) as {
+      arquivos?: GravacaoArquivo[];
+      total?: number;
+      error?: string;
+    };
 
     if (!res.ok) {
       setErro(data.error ?? "Erro ao buscar gravações");
       setArquivos([]);
+      setTotal(0);
       setLoading(false);
       return;
     }
 
     setArquivos(data.arquivos ?? []);
+    setTotal(data.total ?? 0);
     setLoading(false);
+  }, [municipio, radio, dia, horaDe, horaAte, pagina]);
+
+  useEffect(() => {
+    setPagina(0);
   }, [municipio, radio, dia, horaDe, horaAte]);
 
   useEffect(() => {
     void carregarOpcoes();
+  }, [carregarOpcoes]);
+
+  useEffect(() => {
     void buscar();
-  }, [carregarOpcoes, buscar]);
+  }, [buscar]);
+
+  const totalPaginas = Math.max(1, Math.ceil(total / POR_PAGINA_ADMIN));
 
   return (
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -189,7 +210,10 @@ export default function GravacoesArquivos() {
       <div className="mb-4">
         <button
           type="button"
-          onClick={() => void buscar()}
+          onClick={() => {
+            setPagina(0);
+            void buscar({ pagina: 0 });
+          }}
           className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-800"
         >
           Buscar
@@ -205,6 +229,7 @@ export default function GravacoesArquivos() {
       ) : arquivos.length === 0 ? (
         <p className="text-sm text-slate-500">Nenhum arquivo encontrado para os filtros selecionados.</p>
       ) : (
+        <>
         <div className="overflow-x-auto rounded-xl border border-slate-100">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
@@ -282,6 +307,15 @@ export default function GravacoesArquivos() {
             </tbody>
           </table>
         </div>
+        <PaginacaoLista
+          pagina={pagina}
+          totalPaginas={totalPaginas}
+          total={total}
+          loading={loading}
+          onAnterior={() => setPagina((p) => Math.max(0, p - 1))}
+          onProxima={() => setPagina((p) => Math.min(totalPaginas - 1, p + 1))}
+        />
+        </>
       )}
     </section>
   );

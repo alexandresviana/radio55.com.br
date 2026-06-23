@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatMinutagem } from "@/lib/text-normalize";
+import PaginacaoLista, { POR_PAGINA_ADMIN } from "@/components/PaginacaoLista";
 
 interface RecordingStatusItem {
   key: string;
@@ -56,11 +57,16 @@ export default function GravacoesAtivas() {
   const [transcricaoExpandida, setTranscricaoExpandida] = useState<number | null>(null);
   const [deteccoesExpandidas, setDeteccoesExpandidas] = useState(true);
   const [reiniciando, setReiniciando] = useState<string | null>(null);
+  const [paginaTranscricoes, setPaginaTranscricoes] = useState(0);
+  const [paginaDeteccoes, setPaginaDeteccoes] = useState(0);
+  const [totalDeteccoes, setTotalDeteccoes] = useState(0);
 
   const carregar = useCallback(async () => {
     const [statusRes, deteccoesRes, transcricoesRes] = await Promise.all([
       fetch("/api/gravacoes/status"),
-      fetch("/api/deteccoes?ao_vivo=1&limite=30"),
+      fetch(
+        `/api/deteccoes?ao_vivo=1&limite=${POR_PAGINA_ADMIN}&offset=${paginaDeteccoes * POR_PAGINA_ADMIN}`,
+      ),
       fetch("/api/transcricoes?ao_vivo=1"),
     ]);
 
@@ -72,9 +78,11 @@ export default function GravacoesAtivas() {
     if (deteccoesRes.ok) {
       const data = (await deteccoesRes.json()) as {
         deteccoes: DeteccaoItem[];
+        total?: number;
         transcricao?: { ativo?: boolean };
       };
       setDeteccoes(data.deteccoes ?? []);
+      setTotalDeteccoes(data.total ?? 0);
       setTranscricaoAtiva(Boolean(data.transcricao?.ativo));
     }
 
@@ -86,7 +94,7 @@ export default function GravacoesAtivas() {
       setPreviews(data.previews ?? []);
       setTranscricaoAtiva((prev) => prev || Boolean(data.transcricao?.ativo));
     }
-  }, []);
+  }, [paginaDeteccoes]);
 
   const reiniciar = useCallback(
     async (opts?: { municipio?: string; nome?: string; key?: string }) => {
@@ -115,6 +123,35 @@ export default function GravacoesAtivas() {
     }, 10_000);
     return () => clearInterval(timer);
   }, [carregar]);
+
+  const totalPaginasTranscricoes = useMemo(
+    () => Math.max(1, Math.ceil(previews.length / POR_PAGINA_ADMIN)),
+    [previews.length],
+  );
+  const previewsPagina = useMemo(
+    () =>
+      previews.slice(
+        paginaTranscricoes * POR_PAGINA_ADMIN,
+        paginaTranscricoes * POR_PAGINA_ADMIN + POR_PAGINA_ADMIN,
+      ),
+    [previews, paginaTranscricoes],
+  );
+  const totalPaginasDeteccoes = useMemo(
+    () => Math.max(1, Math.ceil(totalDeteccoes / POR_PAGINA_ADMIN)),
+    [totalDeteccoes],
+  );
+
+  useEffect(() => {
+    if (paginaTranscricoes >= totalPaginasTranscricoes) {
+      setPaginaTranscricoes(Math.max(0, totalPaginasTranscricoes - 1));
+    }
+  }, [paginaTranscricoes, totalPaginasTranscricoes]);
+
+  useEffect(() => {
+    if (paginaDeteccoes >= totalPaginasDeteccoes && totalDeteccoes > 0) {
+      setPaginaDeteccoes(Math.max(0, totalPaginasDeteccoes - 1));
+    }
+  }, [paginaDeteccoes, totalPaginasDeteccoes, totalDeteccoes]);
 
   if (gravacoes.length === 0) return null;
 
@@ -210,7 +247,7 @@ export default function GravacoesAtivas() {
           </div>
 
           <div className="mt-3 space-y-2">
-            {previews.map((item) => {
+            {previewsPagina.map((item) => {
               const aberto = transcricaoExpandida === item.gravacao_id;
               const ultimoTrecho = item.trechos.at(-1)?.texto ?? "";
               const previewTexto =
@@ -278,10 +315,19 @@ export default function GravacoesAtivas() {
               );
             })}
           </div>
+          <PaginacaoLista
+            pagina={paginaTranscricoes}
+            totalPaginas={totalPaginasTranscricoes}
+            total={previews.length}
+            onAnterior={() => setPaginaTranscricoes((p) => Math.max(0, p - 1))}
+            onProxima={() =>
+              setPaginaTranscricoes((p) => Math.min(totalPaginasTranscricoes - 1, p + 1))
+            }
+          />
         </div>
       )}
 
-      {deteccoes.length > 0 && (
+      {totalDeteccoes > 0 && (
         <div className="rounded-2xl border border-rose-200 bg-rose-50/50 p-4">
           <button
             type="button"
@@ -291,7 +337,7 @@ export default function GravacoesAtivas() {
             <div>
               <h3 className="text-sm font-semibold text-rose-900">Palavras detectadas (ao vivo)</h3>
               <p className="mt-1 text-xs text-rose-800">
-                {deteccoes.length} ocorrência(s) recentes nas gravações em andamento.
+                {totalDeteccoes} ocorrência(s) recentes nas gravações em andamento.
               </p>
             </div>
             <span className="shrink-0 rounded-lg border border-rose-200 px-2 py-1 text-xs text-rose-800">
@@ -339,6 +385,17 @@ export default function GravacoesAtivas() {
                 </div>
               ))}
             </div>
+          )}
+          {deteccoesExpandidas && (
+            <PaginacaoLista
+              pagina={paginaDeteccoes}
+              totalPaginas={totalPaginasDeteccoes}
+              total={totalDeteccoes}
+              onAnterior={() => setPaginaDeteccoes((p) => Math.max(0, p - 1))}
+              onProxima={() =>
+                setPaginaDeteccoes((p) => Math.min(totalPaginasDeteccoes - 1, p + 1))
+              }
+            />
           )}
         </div>
       )}
