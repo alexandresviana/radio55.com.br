@@ -94,8 +94,8 @@ export default function BuscaTranscricoes() {
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-slate-900">Buscar nas transcrições</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Pesquisa livre no texto transcrito — não depende de palavras-chave cadastradas. O banco
-          guarda os últimos ~30 minutos de cada gravação em andamento.
+          Pesquisa livre no texto transcrito — não depende de palavras-chave cadastradas.
+          O histórico completo de cada gravação fica salvo para buscas futuras.
         </p>
       </div>
 

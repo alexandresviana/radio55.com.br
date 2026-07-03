@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import AdminBuscaIATab from "@/components/AdminBuscaIATab";
 import AdminRadiosTab from "@/components/AdminRadiosTab";
 import AdminYoutubeTab from "@/components/AdminYoutubeTab";
 import Header from "@/components/Header";
 import PalavrasChave from "@/components/PalavrasChave";
 
-type AdminTab = "radios" | "youtube";
+type AdminTab = "radios" | "youtube" | "ia";
 
 const TABS: { id: AdminTab; label: string }[] = [
   { id: "radios", label: "Rádios" },
   { id: "youtube", label: "YouTube" },
+  { id: "ia", label: "Busca IA" },
 ];
 
 export default function AdminPage() {
@@ -24,7 +26,7 @@ export default function AdminPage() {
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-slate-900">Administração</h1>
           <p className="text-sm text-slate-500">
-            Monitore rádios ao vivo e canais do YouTube com as mesmas palavras-chave.
+            Monitore rádios ao vivo, canais do YouTube e pesquise transcrições com IA.
           </p>
         </div>
 
@@ -45,9 +47,11 @@ export default function AdminPage() {
           ))}
         </div>
 
-        <PalavrasChave />
+        {aba !== "ia" && <PalavrasChave />}
 
-        {aba === "radios" ? <AdminRadiosTab /> : <AdminYoutubeTab />}
+        {aba === "radios" && <AdminRadiosTab />}
+        {aba === "youtube" && <AdminYoutubeTab />}
+        {aba === "ia" && <AdminBuscaIATab />}
       </main>
     </div>
   );

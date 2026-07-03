@@ -37,24 +37,6 @@ export async function salvarSegmentosTranscricao(
       [gravacaoId, segmento.inicioSegundos, segmento.fimSegundos, texto],
     );
   }
-
-  await limparSegmentosAntigos(gravacaoId, PREVIEW_JANELA_SEGUNDOS);
-}
-
-async function limparSegmentosAntigos(
-  gravacaoId: number,
-  janelaSegundos: number,
-): Promise<void> {
-  await getPool().query(
-    `DELETE FROM transcricao_segmentos
-     WHERE gravacao_id = $1
-       AND inicio_segundos < (
-         SELECT COALESCE(MAX(inicio_segundos), 0) - $2
-         FROM transcricao_segmentos
-         WHERE gravacao_id = $1
-       )`,
-    [gravacaoId, janelaSegundos],
-  );
 }
 
 export async function buscarPreviewsAoVivo(
