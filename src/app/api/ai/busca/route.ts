@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { executarBuscaIA, isAiConfigured } from "@/lib/ai-busca";
+import { executarBuscaIA, getLimitePorPaginaIA, isAiConfigured } from "@/lib/ai-busca";
+import type { ConsultaInterpretada } from "@/lib/ai-busca-types";
 import { isDatabaseConfigured } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -18,9 +19,13 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: { prompt?: string };
+  let body: { prompt?: string; pagina?: number; interpretacao?: ConsultaInterpretada };
   try {
-    body = (await request.json()) as { prompt?: string };
+    body = (await request.json()) as {
+      prompt?: string;
+      pagina?: number;
+      interpretacao?: ConsultaInterpretada;
+    };
   } catch {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
@@ -34,8 +39,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Pergunta muito longa (máx. 2000 caracteres)" }, { status: 400 });
   }
 
+  const pagina = typeof body.pagina === "number" && body.pagina >= 0 ? Math.floor(body.pagina) : 0;
+
   try {
-    const resultado = await executarBuscaIA(prompt);
+    const resultado = await executarBuscaIA({
+      prompt,
+      pagina,
+      interpretacao: body.interpretacao,
+    });
     return NextResponse.json(resultado);
   } catch (error) {
     console.error("[ai/busca]", error);
@@ -50,5 +61,6 @@ export async function GET() {
   return NextResponse.json({
     disponivel: isAiConfigured() && isDatabaseConfigured(),
     modelo: process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini",
+    porPagina: getLimitePorPaginaIA(),
   });
 }

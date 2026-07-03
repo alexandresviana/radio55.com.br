@@ -1,8 +1,12 @@
 import { chatCompletion, isAiConfigured } from "@/lib/ai-client";
+import { getLimitePorPaginaIA } from "@/lib/ai-busca-config";
 import {
   buscarDeteccoesRadio,
   buscarTrechosRadio,
   buscarTrechosYoutube,
+  contarDeteccoesRadio,
+  contarTrechosRadio,
+  contarTrechosYoutube,
   type TrechoRadioEncontrado,
   type TrechoYoutubeEncontrado,
 } from "@/lib/ai-busca-db";
@@ -16,6 +20,14 @@ import { readEmissoras } from "@/lib/emissoras";
 import { listarYoutubeCanais } from "@/lib/youtube-db";
 
 export type { ConsultaInterpretada, FonteCitada, ResultadoBuscaIA } from "@/lib/ai-busca-types";
+
+export interface OpcoesBuscaIA {
+  prompt: string;
+  pagina?: number;
+  interpretacao?: ConsultaInterpretada;
+}
+
+type TrechoEncontrado = TrechoRadioEncontrado | TrechoYoutubeEncontrado;
 
 function hojeIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -183,39 +195,48 @@ function formatMomento(iso: string | null): string {
   });
 }
 
-function montarFontes(
+function mesclarPorMomento(
   radios: TrechoRadioEncontrado[],
   youtube: TrechoYoutubeEncontrado[],
-): FonteCitada[] {
-  const fontes: FonteCitada[] = [];
-
-  radios.forEach((item, index) => {
-    fontes.push({
-      ref: `R${index + 1}`,
-      tipo: "radio",
-      titulo: `${item.radio_nome} · ${item.municipio}`,
-      subtitulo: item.termo_detectado
-        ? `Alerta: ${item.termo_detectado} · ${item.arquivo}`
-        : item.arquivo,
-      momento: formatMomento(item.momento_iso),
-      texto: item.texto,
-      url: `/api/gravacoes/${item.gravacao_id}/arquivo?t=${Math.floor(item.inicio_segundos)}`,
-    });
+): TrechoEncontrado[] {
+  return [...radios, ...youtube].sort((a, b) => {
+    const ta = a.momento_iso ? new Date(a.momento_iso).getTime() : 0;
+    const tb = b.momento_iso ? new Date(b.momento_iso).getTime() : 0;
+    return tb - ta;
   });
+}
 
-  youtube.forEach((item, index) => {
-    fontes.push({
-      ref: `Y${index + 1}`,
-      tipo: "youtube",
+function montarFontesPagina(itens: TrechoEncontrado[]): FonteCitada[] {
+  let indiceRadio = 0;
+  let indiceYoutube = 0;
+
+  return itens.map((item) => {
+    if (item.tipo === "radio") {
+      indiceRadio += 1;
+      return {
+        ref: `R${indiceRadio}`,
+        tipo: "radio" as const,
+        titulo: `${item.radio_nome} · ${item.municipio}`,
+        subtitulo: item.termo_detectado
+          ? `Alerta: ${item.termo_detectado} · ${item.arquivo}`
+          : item.arquivo,
+        momento: formatMomento(item.momento_iso),
+        texto: item.texto,
+        url: `/api/gravacoes/${item.gravacao_id}/arquivo?t=${Math.floor(item.inicio_segundos)}`,
+      };
+    }
+
+    indiceYoutube += 1;
+    return {
+      ref: `Y${indiceYoutube}`,
+      tipo: "youtube" as const,
       titulo: item.video_titulo,
       subtitulo: item.canal_titulo,
       momento: formatMomento(item.momento_iso),
       texto: item.texto,
       url: `https://www.youtube.com/watch?v=${item.video_id}&t=${Math.floor(item.inicio_segundos)}s`,
-    });
+    };
   });
-
-  return fontes;
 }
 
 async function gerarResposta(
@@ -254,18 +275,23 @@ ${contexto}`,
   ]);
 }
 
-export async function executarBuscaIA(prompt: string): Promise<ResultadoBuscaIA> {
+export async function executarBuscaIA(opts: OpcoesBuscaIA): Promise<ResultadoBuscaIA> {
   if (!isAiConfigured()) {
     throw new Error("OPENAI_API_KEY não configurado — busca com IA indisponível");
   }
 
-  const interpretacao = await interpretarPromptUsuario(prompt.trim());
+  const prompt = opts.prompt.trim();
+  const pagina = Math.max(0, opts.pagina ?? 0);
+  const porPagina = getLimitePorPaginaIA();
+
+  const interpretacao =
+    opts.interpretacao ?? (await interpretarPromptUsuario(prompt));
 
   if (interpretacao.termos.length === 0 && !interpretacao.radio_nome && !interpretacao.data) {
     throw new Error("Não foi possível extrair termos ou filtros da pergunta");
   }
 
-  const filtros = {
+  const filtrosBase = {
     termos: interpretacao.termos,
     radio_nome: interpretacao.radio_nome,
     municipio: interpretacao.municipio,
@@ -273,45 +299,78 @@ export async function executarBuscaIA(prompt: string): Promise<ResultadoBuscaIA>
     data: interpretacao.data,
     hora_de: interpretacao.hora_de,
     hora_ate: interpretacao.hora_ate,
-    limite: 20,
   };
 
   const buscarRadio = interpretacao.fontes.includes("radio");
   const buscarYoutube = interpretacao.fontes.includes("youtube");
+  const fetchSize = Math.min(800, Math.max(porPagina, (pagina + 1) * porPagina * 2));
 
-  async function buscarRadioCompleto(f: typeof filtros) {
+  async function buscarRadioMesclado(data: string | null) {
+    const filtros = { ...filtrosBase, data, limite: fetchSize, offset: 0 };
     const [segmentos, deteccoes] = await Promise.all([
-      buscarTrechosRadio(f),
-      buscarDeteccoesRadio(f),
+      buscarTrechosRadio(filtros),
+      buscarDeteccoesRadio(filtros),
     ]);
-    return mesclarTrechosRadio(segmentos, deteccoes).slice(0, f.limite ?? 20);
+    return mesclarTrechosRadio(segmentos, deteccoes);
   }
 
-  let [radios, youtube] = await Promise.all([
-    buscarRadio ? buscarRadioCompleto(filtros) : Promise.resolve([]),
-    buscarYoutube ? buscarTrechosYoutube(filtros) : Promise.resolve([]),
-  ]);
+  let radios = buscarRadio ? await buscarRadioMesclado(filtrosBase.data) : [];
+  let youtube = buscarYoutube
+    ? await buscarTrechosYoutube({ ...filtrosBase, limite: fetchSize, offset: 0 })
+    : [];
 
-  if (buscarRadio && radios.length === 0 && filtros.data) {
-    radios = await buscarRadioCompleto({ ...filtros, data: null });
+  if (buscarRadio && radios.length === 0 && filtrosBase.data) {
+    radios = await buscarRadioMesclado(null);
     if (radios.length > 0) {
       interpretacao.data = null;
     }
   }
 
-  const fontes = montarFontes(radios, youtube);
-  const resposta = await gerarResposta(prompt, interpretacao, fontes);
+  const mesclado = mesclarPorMomento(radios, youtube);
+  const inicio = pagina * porPagina;
+  const fim = inicio + porPagina;
+  const itensPagina = mesclado.slice(inicio, fim);
+
+  const [countSegmentos, countDeteccoes, countYoutube] = await Promise.all([
+    buscarRadio ? contarTrechosRadio(filtrosBase) : Promise.resolve(0),
+    buscarRadio ? contarDeteccoesRadio(filtrosBase) : Promise.resolve(0),
+    buscarYoutube ? contarTrechosYoutube(filtrosBase) : Promise.resolve(0),
+  ]);
+
+  const totalRadio = countSegmentos + countDeteccoes;
+  const totalYoutube = countYoutube;
+  const totalEstimado = totalRadio + totalYoutube;
+  const total =
+    mesclado.length < fetchSize ? mesclado.length : Math.min(800, totalEstimado);
+  const totalPaginas = Math.max(1, Math.ceil(total / porPagina));
+
+  const fontes = montarFontesPagina(itensPagina);
+  const resposta =
+    pagina === 0 ? await gerarResposta(prompt, interpretacao, fontes) : "";
 
   let aviso: string | undefined;
-  if (buscarRadio && radios.length === 0) {
+  if (buscarRadio && totalRadio === 0) {
     aviso =
       "Nenhum trecho encontrado nas transcrições nem nos alertas de palavras-chave para os filtros usados.";
-  } else if (buscarRadio && radios.some((r) => r.termo_detectado)) {
+  } else if (buscarRadio && itensPagina.some((i) => i.tipo === "radio" && i.termo_detectado)) {
     aviso =
       "Parte dos resultados veio dos alertas de palavras-chave (transcrição completa pode não estar salva para essa data).";
+  } else if (mesclado.length >= fetchSize && totalEstimado > mesclado.length) {
+    aviso = `Mostrando até ${fetchSize} trechos mais recentes; o total pode ser maior (${totalEstimado} ocorrências brutas).`;
   }
 
-  return { interpretacao, resposta, fontes, aviso };
+  return {
+    interpretacao,
+    resposta,
+    fontes,
+    aviso,
+    pagina,
+    porPagina,
+    total,
+    totalPaginas,
+    totalRadio,
+    totalYoutube,
+  };
 }
 
-export { isAiConfigured };
+export { isAiConfigured, getLimitePorPaginaIA };

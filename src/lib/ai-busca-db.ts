@@ -10,6 +10,7 @@ export interface FiltrosBuscaTranscricao {
   hora_de?: string | null;
   hora_ate?: string | null;
   limite?: number;
+  offset?: number;
 }
 
 export interface TrechoRadioEncontrado {
@@ -112,6 +113,7 @@ export async function buscarTrechosRadio(
   if (!isDatabaseConfigured()) return [];
 
   const limite = Math.min(Math.max(filtros.limite ?? 25, 1), 80);
+  const offset = Math.max(filtros.offset ?? 0, 0);
   const termos = filtros.termos.map((t) => t.trim()).filter(Boolean);
   const termoSql = sqlTermos("s", termos, 1);
 
@@ -149,7 +151,7 @@ export async function buscarTrechosRadio(
     param++;
   }
 
-  values.push(limite);
+  values.push(limite, offset);
 
   const result = await getPool().query<{
     id: number;
@@ -176,7 +178,7 @@ export async function buscarTrechosRadio(
        AND ${termoSql.clause}
        ${extras.length ? `AND ${extras.join(" AND ")}` : ""}
      ORDER BY momento DESC
-     LIMIT $${param}`,
+     LIMIT $${param} OFFSET $${param + 1}`,
     values,
   );
 
@@ -193,12 +195,61 @@ export async function buscarTrechosRadio(
   }));
 }
 
+export async function contarTrechosRadio(filtros: FiltrosBuscaTranscricao): Promise<number> {
+  if (!isDatabaseConfigured()) return 0;
+
+  const termos = filtros.termos.map((t) => t.trim()).filter(Boolean);
+  const termoSql = sqlTermos("s", termos, 1);
+  const values: unknown[] = [...termoSql.values];
+  let param = termoSql.values.length + 1;
+  const extras: string[] = [];
+
+  if (filtros.radio_nome?.trim()) {
+    extras.push(`g.radio_nome ILIKE $${param}`);
+    values.push(`%${filtros.radio_nome.trim()}%`);
+    param++;
+  }
+  if (filtros.municipio?.trim()) {
+    extras.push(`g.municipio ILIKE $${param}`);
+    values.push(`%${filtros.municipio.trim()}%`);
+    param++;
+  }
+  if (filtros.data?.trim()) {
+    extras.push(`${dataLocalSql(momentoRadioSql())}::date = $${param}::date`);
+    values.push(filtros.data.trim());
+    param++;
+  }
+  if (filtros.hora_de?.trim()) {
+    extras.push(`${dataLocalSql(momentoRadioSql())}::time >= $${param}::time`);
+    values.push(filtros.hora_de.trim());
+    param++;
+  }
+  if (filtros.hora_ate?.trim()) {
+    extras.push(`${dataLocalSql(momentoRadioSql())}::time <= $${param}::time`);
+    values.push(filtros.hora_ate.trim());
+    param++;
+  }
+
+  const result = await getPool().query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total
+     FROM transcricao_segmentos s
+     JOIN gravacao_arquivos g ON g.id = s.gravacao_id
+     WHERE g.removido_em IS NULL
+       AND ${termoSql.clause}
+       ${extras.length ? `AND ${extras.join(" AND ")}` : ""}`,
+    values,
+  );
+
+  return Number(result.rows[0]?.total ?? 0);
+}
+
 export async function buscarDeteccoesRadio(
   filtros: FiltrosBuscaTranscricao,
 ): Promise<TrechoRadioEncontrado[]> {
   if (!isDatabaseConfigured()) return [];
 
   const limite = Math.min(Math.max(filtros.limite ?? 25, 1), 80);
+  const offset = Math.max(filtros.offset ?? 0, 0);
   const termos = filtros.termos.map((t) => t.trim()).filter(Boolean);
   const termoSql = sqlTermosDeteccao(termos, 1);
 
@@ -236,7 +287,7 @@ export async function buscarDeteccoesRadio(
     param++;
   }
 
-  values.push(limite);
+  values.push(limite, offset);
 
   const result = await getPool().query<{
     id: number;
@@ -265,7 +316,7 @@ export async function buscarDeteccoesRadio(
        AND ${termoSql.clause}
        ${extras.length ? `AND ${extras.join(" AND ")}` : ""}
      ORDER BY momento DESC
-     LIMIT $${param}`,
+     LIMIT $${param} OFFSET $${param + 1}`,
     values,
   );
 
@@ -283,12 +334,61 @@ export async function buscarDeteccoesRadio(
   }));
 }
 
+export async function contarDeteccoesRadio(filtros: FiltrosBuscaTranscricao): Promise<number> {
+  if (!isDatabaseConfigured()) return 0;
+
+  const termos = filtros.termos.map((t) => t.trim()).filter(Boolean);
+  const termoSql = sqlTermosDeteccao(termos, 1);
+  const values: unknown[] = [...termoSql.values];
+  let param = termoSql.values.length + 1;
+  const extras: string[] = [];
+
+  if (filtros.radio_nome?.trim()) {
+    extras.push(`g.radio_nome ILIKE $${param}`);
+    values.push(`%${filtros.radio_nome.trim()}%`);
+    param++;
+  }
+  if (filtros.municipio?.trim()) {
+    extras.push(`g.municipio ILIKE $${param}`);
+    values.push(`%${filtros.municipio.trim()}%`);
+    param++;
+  }
+  if (filtros.data?.trim()) {
+    extras.push(`${dataLocalSql(momentoDeteccaoSql())}::date = $${param}::date`);
+    values.push(filtros.data.trim());
+    param++;
+  }
+  if (filtros.hora_de?.trim()) {
+    extras.push(`${dataLocalSql(momentoDeteccaoSql())}::time >= $${param}::time`);
+    values.push(filtros.hora_de.trim());
+    param++;
+  }
+  if (filtros.hora_ate?.trim()) {
+    extras.push(`${dataLocalSql(momentoDeteccaoSql())}::time <= $${param}::time`);
+    values.push(filtros.hora_ate.trim());
+    param++;
+  }
+
+  const result = await getPool().query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total
+     FROM palavra_deteccoes d
+     JOIN gravacao_arquivos g ON g.id = d.gravacao_id
+     WHERE g.removido_em IS NULL
+       AND ${termoSql.clause}
+       ${extras.length ? `AND ${extras.join(" AND ")}` : ""}`,
+    values,
+  );
+
+  return Number(result.rows[0]?.total ?? 0);
+}
+
 export async function buscarTrechosYoutube(
   filtros: FiltrosBuscaTranscricao,
 ): Promise<TrechoYoutubeEncontrado[]> {
   if (!isDatabaseConfigured()) return [];
 
   const limite = Math.min(Math.max(filtros.limite ?? 25, 1), 80);
+  const offset = Math.max(filtros.offset ?? 0, 0);
   const termos = filtros.termos.map((t) => t.trim()).filter(Boolean);
   const termoSql = sqlTermos("s", termos, 1);
 
@@ -320,7 +420,7 @@ export async function buscarTrechosYoutube(
     param++;
   }
 
-  values.push(limite);
+  values.push(limite, offset);
 
   const result = await getPool().query<{
     id: number;
@@ -349,7 +449,7 @@ export async function buscarTrechosYoutube(
        AND ${termoSql.clause}
        ${extras.length ? `AND ${extras.join(" AND ")}` : ""}
      ORDER BY momento DESC NULLS LAST
-     LIMIT $${param}`,
+     LIMIT $${param} OFFSET $${param + 1}`,
     values,
   );
 
@@ -364,4 +464,49 @@ export async function buscarTrechosYoutube(
     video_titulo: row.video_titulo,
     canal_titulo: row.canal_titulo,
   }));
+}
+
+export async function contarTrechosYoutube(filtros: FiltrosBuscaTranscricao): Promise<number> {
+  if (!isDatabaseConfigured()) return 0;
+
+  const termos = filtros.termos.map((t) => t.trim()).filter(Boolean);
+  const termoSql = sqlTermos("s", termos, 1);
+  const values: unknown[] = [...termoSql.values];
+  let param = termoSql.values.length + 1;
+  const extras: string[] = [];
+
+  if (filtros.canal_youtube?.trim()) {
+    extras.push(`c.titulo ILIKE $${param}`);
+    values.push(`%${filtros.canal_youtube.trim()}%`);
+    param++;
+  }
+  if (filtros.data?.trim()) {
+    extras.push(`${momentoYoutubeSql()}::date = $${param}::date`);
+    values.push(filtros.data.trim());
+    param++;
+  }
+  if (filtros.hora_de?.trim()) {
+    extras.push(`${momentoYoutubeSql()}::time >= $${param}::time`);
+    values.push(filtros.hora_de.trim());
+    param++;
+  }
+  if (filtros.hora_ate?.trim()) {
+    extras.push(`${momentoYoutubeSql()}::time <= $${param}::time`);
+    values.push(filtros.hora_ate.trim());
+    param++;
+  }
+
+  const result = await getPool().query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total
+     FROM youtube_transcricao_segmentos s
+     JOIN youtube_videos v ON v.id = s.video_db_id
+     JOIN youtube_canais c ON c.id = v.canal_id
+     WHERE v.status = 'concluido'
+       AND v.publicado_em IS NOT NULL
+       AND ${termoSql.clause}
+       ${extras.length ? `AND ${extras.join(" AND ")}` : ""}`,
+    values,
+  );
+
+  return Number(result.rows[0]?.total ?? 0);
 }

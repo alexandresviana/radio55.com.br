@@ -25,4 +25,10 @@ export interface ResultadoBuscaIA {
   resposta: string;
   fontes: FonteCitada[];
   aviso?: string;
+  pagina: number;
+  porPagina: number;
+  total: number;
+  totalPaginas: number;
+  totalRadio: number;
+  totalYoutube: number;
 }

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { ConsultaInterpretada, FonteCitada } from "@/lib/ai-busca-types";
+import PaginacaoLista from "@/components/PaginacaoLista";
 
 const EXEMPLOS = [
   "O que falaram do governador João na rádio X no dia 02 de julho entre 6 e 10 da manhã?",
@@ -27,61 +28,112 @@ export default function AdminBuscaIATab() {
   const [erro, setErro] = useState("");
   const [disponivel, setDisponivel] = useState<boolean | null>(null);
   const [modelo, setModelo] = useState("");
+  const [porPagina, setPorPagina] = useState(20);
   const [resposta, setResposta] = useState("");
   const [interpretacao, setInterpretacao] = useState<ConsultaInterpretada | null>(null);
   const [fontes, setFontes] = useState<FonteCitada[]>([]);
   const [aviso, setAviso] = useState("");
+  const [pagina, setPagina] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(1);
+  const [totalRadio, setTotalRadio] = useState(0);
+  const [totalYoutube, setTotalYoutube] = useState(0);
 
   useEffect(() => {
     void fetch("/api/ai/busca")
       .then((res) => res.json())
-      .then((data: { disponivel?: boolean; modelo?: string }) => {
+      .then((data: { disponivel?: boolean; modelo?: string; porPagina?: number }) => {
         setDisponivel(Boolean(data.disponivel));
         setModelo(data.modelo ?? "");
+        if (typeof data.porPagina === "number" && data.porPagina > 0) {
+          setPorPagina(data.porPagina);
+        }
       })
       .catch(() => setDisponivel(false));
   }, []);
 
-  const buscar = useCallback(async () => {
-    const pergunta = prompt.trim();
-    if (pergunta.length < 5) {
-      setErro("Descreva sua pergunta com mais detalhes.");
-      return;
-    }
+  const buscar = useCallback(
+    async (opts?: { pagina?: number; novaBusca?: boolean }) => {
+      const pergunta = prompt.trim();
+      if (pergunta.length < 5) {
+        setErro("Descreva sua pergunta com mais detalhes.");
+        return;
+      }
 
-    setLoading(true);
-    setErro("");
-    setResposta("");
-    setInterpretacao(null);
-    setFontes([]);
-    setAviso("");
+      const paginaAtual = opts?.pagina ?? pagina;
+      const novaBusca = opts?.novaBusca ?? false;
 
-    const res = await fetch("/api/ai/busca", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: pergunta }),
-    });
+      setLoading(true);
+      setErro("");
 
-    const data = (await res.json()) as {
-      resposta?: string;
-      interpretacao?: ConsultaInterpretada;
-      fontes?: FonteCitada[];
-      aviso?: string;
-      error?: string;
-    };
+      if (novaBusca) {
+        setResposta("");
+        setInterpretacao(null);
+        setFontes([]);
+        setAviso("");
+        setTotal(0);
+        setTotalPaginas(1);
+        setTotalRadio(0);
+        setTotalYoutube(0);
+      }
 
-    setLoading(false);
+      const res = await fetch("/api/ai/busca", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: pergunta,
+          pagina: paginaAtual,
+          interpretacao: novaBusca ? undefined : interpretacao ?? undefined,
+        }),
+      });
 
-    if (!res.ok) {
-      setErro(data.error ?? "Erro na busca");
-      return;
-    }
+      const data = (await res.json()) as {
+        resposta?: string;
+        interpretacao?: ConsultaInterpretada;
+        fontes?: FonteCitada[];
+        aviso?: string;
+        pagina?: number;
+        porPagina?: number;
+        total?: number;
+        totalPaginas?: number;
+        totalRadio?: number;
+        totalYoutube?: number;
+        error?: string;
+      };
 
-    setResposta(data.resposta ?? "");
-    setInterpretacao(data.interpretacao ?? null);
-    setFontes(data.fontes ?? []);
-    setAviso(data.aviso ?? "");
-  }, [prompt]);
+      setLoading(false);
+
+      if (!res.ok) {
+        setErro(data.error ?? "Erro na busca");
+        return;
+      }
+
+      setPagina(data.pagina ?? paginaAtual);
+      if (typeof data.porPagina === "number") setPorPagina(data.porPagina);
+      setTotal(data.total ?? 0);
+      setTotalPaginas(data.totalPaginas ?? 1);
+      setTotalRadio(data.totalRadio ?? 0);
+      setTotalYoutube(data.totalYoutube ?? 0);
+      setInterpretacao(data.interpretacao ?? null);
+      setFontes(data.fontes ?? []);
+      setAviso(data.aviso ?? "");
+
+      if (paginaAtual === 0) {
+        setResposta(data.resposta ?? "");
+      }
+    },
+    [prompt, pagina, interpretacao],
+  );
+
+  function perguntar() {
+    setPagina(0);
+    void buscar({ pagina: 0, novaBusca: true });
+  }
+
+  function irParaPagina(novaPagina: number) {
+    setPagina(novaPagina);
+    void buscar({ pagina: novaPagina });
+  }
 
   return (
     <div className="space-y-6">
@@ -92,14 +144,16 @@ export default function AdminBuscaIATab() {
           {modelo && (
             <span className="ml-1 text-slate-400">Modelo: {modelo}</span>
           )}
+          <span className="ml-1 text-slate-400">· {porPagina} trechos/página</span>
         </p>
       </div>
 
       {disponivel === false && (
         <p className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">
           Configure <code className="text-xs">OPENAI_API_KEY</code> no servidor para ativar esta aba.
-          Opcional: <code className="text-xs">OPENAI_MODEL</code> e{" "}
-          <code className="text-xs">OPENAI_BASE_URL</code> (APIs compatíveis).
+          Opcional: <code className="text-xs">OPENAI_MODEL</code>,{" "}
+          <code className="text-xs">OPENAI_BASE_URL</code> e{" "}
+          <code className="text-xs">AI_BUSCA_LIMITE</code> (trechos por página, padrão 20).
         </p>
       )}
 
@@ -129,7 +183,7 @@ export default function AdminBuscaIATab() {
         <button
           type="button"
           disabled={loading || disponivel === false}
-          onClick={() => void buscar()}
+          onClick={perguntar}
           className="mt-4 rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-800 disabled:opacity-60"
         >
           {loading ? "Analisando transcrições..." : "Perguntar"}
@@ -156,7 +210,7 @@ export default function AdminBuscaIATab() {
         <p className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">{aviso}</p>
       )}
 
-      {resposta && (
+      {resposta && pagina === 0 && (
         <section className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
           <h3 className="text-sm font-semibold text-slate-900">Resposta</h3>
           <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
@@ -168,12 +222,19 @@ export default function AdminBuscaIATab() {
       {fontes.length > 0 && (
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h3 className="text-sm font-semibold text-slate-900">
-            Fontes ({fontes.length} trecho{fontes.length !== 1 ? "s" : ""})
+            Fontes ({total} trecho{total !== 1 ? "s" : ""}
+            {(totalRadio > 0 || totalYoutube > 0) && (
+              <span className="font-normal text-slate-500">
+                {" "}
+                · rádio {totalRadio} · YouTube {totalYoutube}
+              </span>
+            )}
+            )
           </h3>
           <div className="mt-3 space-y-3">
             {fontes.map((fonte) => (
               <article
-                key={fonte.ref}
+                key={`${pagina}-${fonte.ref}-${fonte.url}`}
                 className="rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-sm"
               >
                 <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -212,6 +273,15 @@ export default function AdminBuscaIATab() {
               </article>
             ))}
           </div>
+
+          <PaginacaoLista
+            pagina={pagina}
+            totalPaginas={totalPaginas}
+            total={total}
+            loading={loading}
+            onAnterior={() => irParaPagina(Math.max(0, pagina - 1))}
+            onProxima={() => irParaPagina(Math.min(totalPaginas - 1, pagina + 1))}
+          />
         </section>
       )}
     </div>
