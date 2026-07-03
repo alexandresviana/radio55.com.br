@@ -22,6 +22,7 @@ export interface TrechoRadioEncontrado {
   municipio: string;
   radio_nome: string;
   arquivo: string;
+  termo_detectado?: string;
 }
 
 export interface TrechoYoutubeEncontrado {
@@ -36,10 +37,11 @@ export interface TrechoYoutubeEncontrado {
   canal_titulo: string;
 }
 
-function sqlTermos(alias: string, termos: string[], paramOffset: number): {
-  clause: string;
-  values: string[];
-} {
+function sqlTermosColuna(
+  coluna: string,
+  termos: string[],
+  paramOffset: number,
+): { clause: string; values: string[] } {
   if (termos.length === 0) {
     return { clause: "TRUE", values: [] };
   }
@@ -52,7 +54,34 @@ function sqlTermos(alias: string, termos: string[], paramOffset: number): {
     const normalizado = `%${normalizeText(termo)}%`;
     const base = paramOffset + index * 2;
     parts.push(
-      `(${alias}.texto ILIKE $${base} OR translate(lower(${alias}.texto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $${base + 1})`,
+      `(${coluna} ILIKE $${base} OR translate(lower(${coluna}), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $${base + 1})`,
+    );
+    values.push(ilike, normalizado);
+  });
+
+  return { clause: `(${parts.join(" OR ")})`, values };
+}
+
+function sqlTermos(alias: string, termos: string[], paramOffset: number) {
+  return sqlTermosColuna(`${alias}.texto`, termos, paramOffset);
+}
+
+function sqlTermosDeteccao(termos: string[], paramOffset: number) {
+  if (termos.length === 0) {
+    return { clause: "TRUE", values: [] };
+  }
+
+  const parts: string[] = [];
+  const values: string[] = [];
+
+  termos.forEach((termo, index) => {
+    const ilike = `%${termo.trim()}%`;
+    const normalizado = `%${normalizeText(termo)}%`;
+    const base = paramOffset + index * 2;
+    parts.push(
+      `(d.termo ILIKE $${base} OR d.contexto ILIKE $${base}
+        OR translate(lower(d.termo), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $${base + 1}
+        OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $${base + 1})`,
     );
     values.push(ilike, normalizado);
   });
@@ -62,6 +91,15 @@ function sqlTermos(alias: string, termos: string[], paramOffset: number): {
 
 function momentoRadioSql(): string {
   return `(g.gravado_em + (s.inicio_segundos * INTERVAL '1 second'))`;
+}
+
+function momentoDeteccaoSql(): string {
+  return `(g.gravado_em + (d.inicio_segundos * INTERVAL '1 second'))`;
+}
+
+/** Data/hora no fuso de Sergipe — evita perder ocorrências por UTC. */
+function dataLocalSql(momentoExpr: string): string {
+  return `(${momentoExpr} AT TIME ZONE 'America/Sao_Paulo')`;
 }
 
 function momentoYoutubeSql(): string {
@@ -94,19 +132,19 @@ export async function buscarTrechosRadio(
   }
 
   if (filtros.data?.trim()) {
-    extras.push(`${momentoRadioSql()}::date = $${param}::date`);
+    extras.push(`${dataLocalSql(momentoRadioSql())}::date = $${param}::date`);
     values.push(filtros.data.trim());
     param++;
   }
 
   if (filtros.hora_de?.trim()) {
-    extras.push(`${momentoRadioSql()}::time >= $${param}::time`);
+    extras.push(`${dataLocalSql(momentoRadioSql())}::time >= $${param}::time`);
     values.push(filtros.hora_de.trim());
     param++;
   }
 
   if (filtros.hora_ate?.trim()) {
-    extras.push(`${momentoRadioSql()}::time <= $${param}::time`);
+    extras.push(`${dataLocalSql(momentoRadioSql())}::time <= $${param}::time`);
     values.push(filtros.hora_ate.trim());
     param++;
   }
@@ -152,6 +190,96 @@ export async function buscarTrechosRadio(
     municipio: row.municipio,
     radio_nome: row.radio_nome,
     arquivo: row.arquivo,
+  }));
+}
+
+export async function buscarDeteccoesRadio(
+  filtros: FiltrosBuscaTranscricao,
+): Promise<TrechoRadioEncontrado[]> {
+  if (!isDatabaseConfigured()) return [];
+
+  const limite = Math.min(Math.max(filtros.limite ?? 25, 1), 80);
+  const termos = filtros.termos.map((t) => t.trim()).filter(Boolean);
+  const termoSql = sqlTermosDeteccao(termos, 1);
+
+  const values: unknown[] = [...termoSql.values];
+  let param = termoSql.values.length + 1;
+  const extras: string[] = [];
+
+  if (filtros.radio_nome?.trim()) {
+    extras.push(`g.radio_nome ILIKE $${param}`);
+    values.push(`%${filtros.radio_nome.trim()}%`);
+    param++;
+  }
+
+  if (filtros.municipio?.trim()) {
+    extras.push(`g.municipio ILIKE $${param}`);
+    values.push(`%${filtros.municipio.trim()}%`);
+    param++;
+  }
+
+  if (filtros.data?.trim()) {
+    extras.push(`${dataLocalSql(momentoDeteccaoSql())}::date = $${param}::date`);
+    values.push(filtros.data.trim());
+    param++;
+  }
+
+  if (filtros.hora_de?.trim()) {
+    extras.push(`${dataLocalSql(momentoDeteccaoSql())}::time >= $${param}::time`);
+    values.push(filtros.hora_de.trim());
+    param++;
+  }
+
+  if (filtros.hora_ate?.trim()) {
+    extras.push(`${dataLocalSql(momentoDeteccaoSql())}::time <= $${param}::time`);
+    values.push(filtros.hora_ate.trim());
+    param++;
+  }
+
+  values.push(limite);
+
+  const result = await getPool().query<{
+    id: number;
+    gravacao_id: number;
+    contexto: string;
+    termo: string;
+    inicio_segundos: string;
+    momento: Date;
+    municipio: string;
+    radio_nome: string;
+    arquivo: string;
+  }>(
+    `SELECT
+       d.id,
+       d.gravacao_id,
+       d.contexto,
+       d.termo,
+       d.inicio_segundos,
+       ${momentoDeteccaoSql()} AS momento,
+       g.municipio,
+       g.radio_nome,
+       g.arquivo
+     FROM palavra_deteccoes d
+     JOIN gravacao_arquivos g ON g.id = d.gravacao_id
+     WHERE g.removido_em IS NULL
+       AND ${termoSql.clause}
+       ${extras.length ? `AND ${extras.join(" AND ")}` : ""}
+     ORDER BY momento DESC
+     LIMIT $${param}`,
+    values,
+  );
+
+  return result.rows.map((row) => ({
+    tipo: "radio" as const,
+    id: row.id,
+    gravacao_id: row.gravacao_id,
+    texto: row.contexto,
+    inicio_segundos: Number(row.inicio_segundos),
+    momento_iso: new Date(row.momento).toISOString(),
+    municipio: row.municipio,
+    radio_nome: row.radio_nome,
+    arquivo: row.arquivo,
+    termo_detectado: row.termo,
   }));
 }
 

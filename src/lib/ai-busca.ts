@@ -1,5 +1,6 @@
 import { chatCompletion, isAiConfigured } from "@/lib/ai-client";
 import {
+  buscarDeteccoesRadio,
   buscarTrechosRadio,
   buscarTrechosYoutube,
   type TrechoRadioEncontrado,
@@ -10,6 +11,7 @@ import type {
   FonteCitada,
   ResultadoBuscaIA,
 } from "@/lib/ai-busca-types";
+import { normalizeText } from "@/lib/text-normalize";
 import { readEmissoras } from "@/lib/emissoras";
 import { listarYoutubeCanais } from "@/lib/youtube-db";
 
@@ -17,6 +19,55 @@ export type { ConsultaInterpretada, FonteCitada, ResultadoBuscaIA } from "@/lib/
 
 function hojeIso(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+/** Extrai datas no formato DD/MM ou DD/MM/AAAA do prompt. */
+function extrairDataDoPrompt(prompt: string): string | null {
+  const match = prompt.match(/\b(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?\b/);
+  if (!match) return null;
+
+  const dia = Number(match[1]);
+  const mes = Number(match[2]);
+  let ano = match[3] ? Number(match[3]) : new Date().getFullYear();
+  if (ano < 100) ano += 2000;
+
+  if (dia < 1 || dia > 31 || mes < 1 || mes > 12) return null;
+
+  return `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+}
+
+/** Extrai nome/tema após "de/sobre" antes de "no dia/em". */
+function extrairTermosDoPrompt(prompt: string): string[] {
+  const termos: string[] = [];
+
+  const nomeMatch = prompt.match(
+    /(?:de|sobre)\s+(.+?)(?:\s+no\s+dia|\s+em\s+\d|\s+na\s+r[aá]dio|\?|$)/i,
+  );
+  if (nomeMatch?.[1]) {
+    const nome = nomeMatch[1].trim().replace(/[?.!,]+$/, "");
+    if (nome.length > 2) termos.push(nome);
+  }
+
+  return termos;
+}
+
+function mesclarTrechosRadio(
+  segmentos: TrechoRadioEncontrado[],
+  deteccoes: TrechoRadioEncontrado[],
+): TrechoRadioEncontrado[] {
+  const vistos = new Set<string>();
+  const resultado: TrechoRadioEncontrado[] = [];
+
+  for (const item of [...segmentos, ...deteccoes]) {
+    const chave = `${item.gravacao_id}:${Math.floor(item.inicio_segundos / 3)}:${normalizeText(item.texto).slice(0, 80)}`;
+    if (vistos.has(chave)) continue;
+    vistos.add(chave);
+    resultado.push(item);
+  }
+
+  return resultado.sort(
+    (a, b) => new Date(b.momento_iso).getTime() - new Date(a.momento_iso).getTime(),
+  );
 }
 
 async function listarRadiosCadastradas(): Promise<{ municipio: string; nome: string }[]> {
@@ -78,13 +129,35 @@ Use null quando o filtro não for mencionado. Inferir data relativa ("hoje", "on
     : [];
 
   if (termos.length === 0) {
+    termos.push(...extrairTermosDoPrompt(prompt));
+  }
+
+  if (termos.length === 0) {
     const palavras = prompt
       .toLowerCase()
       .replace(/[^\p{L}\p{N}\s]/gu, " ")
       .split(/\s+/)
-      .filter((p) => p.length > 3 && !["qual", "quais", "como", "onde", "quando", "sobre", "falaram", "disse", "radio", "youtube"].includes(p));
-    if (palavras.length > 0) termos.push(palavras.slice(0, 3).join(" "));
+      .filter(
+        (p) =>
+          p.length > 3 &&
+          ![
+            "qual",
+            "quais",
+            "como",
+            "onde",
+            "quando",
+            "sobre",
+            "falaram",
+            "disse",
+            "radio",
+            "youtube",
+            "dia",
+          ].includes(p),
+      );
+    if (palavras.length > 0) termos.push(palavras.slice(0, 4).join(" "));
   }
+
+  const dataPrompt = extrairDataDoPrompt(prompt);
 
   return {
     fontes: fontes.length ? fontes : ["radio", "youtube"],
@@ -92,7 +165,7 @@ Use null quando o filtro não for mencionado. Inferir data relativa ("hoje", "on
     radio_nome: parsed.radio_nome ?? null,
     municipio: parsed.municipio ?? null,
     canal_youtube: parsed.canal_youtube ?? null,
-    data: parsed.data ?? null,
+    data: dataPrompt ?? parsed.data ?? null,
     hora_de: parsed.hora_de ?? null,
     hora_ate: parsed.hora_ate ?? null,
     intencao: parsed.intencao ?? prompt,
@@ -121,7 +194,9 @@ function montarFontes(
       ref: `R${index + 1}`,
       tipo: "radio",
       titulo: `${item.radio_nome} · ${item.municipio}`,
-      subtitulo: item.arquivo,
+      subtitulo: item.termo_detectado
+        ? `Alerta: ${item.termo_detectado} · ${item.arquivo}`
+        : item.arquivo,
       momento: formatMomento(item.momento_iso),
       texto: item.texto,
       url: `/api/gravacoes/${item.gravacao_id}/arquivo?t=${Math.floor(item.inicio_segundos)}`,
@@ -204,10 +279,25 @@ export async function executarBuscaIA(prompt: string): Promise<ResultadoBuscaIA>
   const buscarRadio = interpretacao.fontes.includes("radio");
   const buscarYoutube = interpretacao.fontes.includes("youtube");
 
-  const [radios, youtube] = await Promise.all([
-    buscarRadio ? buscarTrechosRadio(filtros) : Promise.resolve([]),
+  async function buscarRadioCompleto(f: typeof filtros) {
+    const [segmentos, deteccoes] = await Promise.all([
+      buscarTrechosRadio(f),
+      buscarDeteccoesRadio(f),
+    ]);
+    return mesclarTrechosRadio(segmentos, deteccoes).slice(0, f.limite ?? 20);
+  }
+
+  let [radios, youtube] = await Promise.all([
+    buscarRadio ? buscarRadioCompleto(filtros) : Promise.resolve([]),
     buscarYoutube ? buscarTrechosYoutube(filtros) : Promise.resolve([]),
   ]);
+
+  if (buscarRadio && radios.length === 0 && filtros.data) {
+    radios = await buscarRadioCompleto({ ...filtros, data: null });
+    if (radios.length > 0) {
+      interpretacao.data = null;
+    }
+  }
 
   const fontes = montarFontes(radios, youtube);
   const resposta = await gerarResposta(prompt, interpretacao, fontes);
@@ -215,7 +305,10 @@ export async function executarBuscaIA(prompt: string): Promise<ResultadoBuscaIA>
   let aviso: string | undefined;
   if (buscarRadio && radios.length === 0) {
     aviso =
-      "Nenhum trecho de rádio encontrado. Só existem transcrições para gravações com Whisper ativo e após o deploy que passou a guardar todo o histórico.";
+      "Nenhum trecho encontrado nas transcrições nem nos alertas de palavras-chave para os filtros usados.";
+  } else if (buscarRadio && radios.some((r) => r.termo_detectado)) {
+    aviso =
+      "Parte dos resultados veio dos alertas de palavras-chave (transcrição completa pode não estar salva para essa data).";
   }
 
   return { interpretacao, resposta, fontes, aviso };
