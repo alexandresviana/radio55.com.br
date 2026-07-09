@@ -1,10 +1,12 @@
 FROM node:20-bookworm-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+# Coolify e outros hosts definem NODE_ENV=production no build; devDeps são necessárias para compilar.
+RUN npm ci --include=dev
 
 FROM node:20-bookworm-slim AS builder
 WORKDIR /app
+ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
