@@ -1,11 +1,11 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Logo from "@/components/Logo";
+import { safeRedirectPath } from "@/lib/auth";
 
 export default function LoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
@@ -21,18 +21,18 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ user, pass }),
       });
 
       if (!res.ok) {
-        const data = await res.json();
+        const data = (await res.json()) as { error?: string };
         setError(data.error ?? "Erro ao entrar");
         return;
       }
 
-      const from = searchParams.get("from") || "/";
-      router.push(from);
-      router.refresh();
+      const destino = safeRedirectPath(searchParams.get("from"));
+      window.location.assign(destino);
     } catch {
       setError("Erro de conexão. Tente novamente.");
     } finally {

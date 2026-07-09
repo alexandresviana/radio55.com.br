@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   createSessionToken,
   getSessionCookieName,
+  getSessionCookieOptions,
   validateCredentials,
 } from "@/lib/auth";
 
@@ -27,10 +28,7 @@ export async function POST(request: NextRequest) {
   const response = NextResponse.json({ ok: true });
   const token = await createSessionToken(secret);
   response.cookies.set(getSessionCookieName(), token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
+    ...getSessionCookieOptions(request),
     maxAge: 60 * 60 * 24 * 7,
   });
 

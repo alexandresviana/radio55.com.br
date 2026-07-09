@@ -5,6 +5,35 @@ export function getSessionCookieName() {
   return SESSION_COOKIE;
 }
 
+type CookieRequest = { headers: { get(name: string): string | null } };
+
+/** Evita cookie Secure em HTTP (comum atrás de proxy sem TLS ou acesso direto por IP). */
+export function shouldUseSecureCookies(request?: CookieRequest): boolean {
+  if (process.env.COOKIE_SECURE === "true") return true;
+  if (process.env.COOKIE_SECURE === "false") return false;
+
+  const proto = request?.headers.get("x-forwarded-proto");
+  if (proto) {
+    return proto.split(",")[0]?.trim().toLowerCase() === "https";
+  }
+
+  return process.env.NODE_ENV === "production";
+}
+
+export function getSessionCookieOptions(request?: CookieRequest) {
+  return {
+    httpOnly: true,
+    secure: shouldUseSecureCookies(request),
+    sameSite: "lax" as const,
+    path: "/",
+  };
+}
+
+export function safeRedirectPath(from: string | null | undefined): string {
+  if (!from || !from.startsWith("/") || from.startsWith("//")) return "/";
+  return from;
+}
+
 async function hmacSha256(secret: string, message: string): Promise<string> {
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
