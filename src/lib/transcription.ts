@@ -8,7 +8,7 @@ import {
   registrarDeteccao,
   salvarProgressoTranscricao,
 } from "@/lib/deteccoes-db";
-import { isDatabaseConfigured } from "@/lib/db";
+import { isDatabaseConfigured, isPgUniqueViolation } from "@/lib/db";
 import { extractMp3Clip, extractWavSegment } from "@/lib/ffmpeg-audio";
 import { obterGravacaoPorCaminho } from "@/lib/gravacoes-db";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
@@ -141,6 +141,15 @@ class TranscriptionService {
         ultimoSegundo: nextSecond,
       });
     } catch (error) {
+      if (isPgUniqueViolation(error)) {
+        const nextSecond = Math.max(startSecond + duration - OVERLAP_SECONDS, 0);
+        await salvarProgressoTranscricao({
+          caminho: filePath,
+          gravacaoId: gravacao.id,
+          ultimoSegundo: nextSecond,
+        }).catch(() => {});
+        return;
+      }
       this.lastError = error instanceof Error ? error.message : "Erro na transcrição";
       console.error("[transcription]", this.lastError);
     } finally {

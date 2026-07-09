@@ -1,4 +1,4 @@
-import { getPool, isDatabaseConfigured } from "@/lib/db";
+import { getPool, isDatabaseConfigured, isPgUniqueViolation } from "@/lib/db";
 import { formatHorarioGravacao, normalizeText } from "@/lib/text-normalize";
 
 const PREVIEW_JANELA_SEGUNDOS = 30 * 60;
@@ -31,11 +31,16 @@ export async function salvarSegmentosTranscricao(
     const texto = segmento.texto.trim();
     if (!texto) continue;
 
-    await getPool().query(
-      `INSERT INTO transcricao_segmentos (gravacao_id, inicio_segundos, fim_segundos, texto)
-       VALUES ($1, $2, $3, $4)`,
-      [gravacaoId, segmento.inicioSegundos, segmento.fimSegundos, texto],
-    );
+    try {
+      await getPool().query(
+        `INSERT INTO transcricao_segmentos (gravacao_id, inicio_segundos, fim_segundos, texto)
+         VALUES ($1, $2, $3, $4)`,
+        [gravacaoId, segmento.inicioSegundos, segmento.fimSegundos, texto],
+      );
+    } catch (error) {
+      if (isPgUniqueViolation(error)) continue;
+      throw error;
+    }
   }
 }
 

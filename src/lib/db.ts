@@ -33,6 +33,45 @@ export async function withClient<T>(fn: (client: PoolClient) => Promise<T>): Pro
   }
 }
 
+export function isPgUniqueViolation(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    String((error as { code?: string }).code) === "23505"
+  );
+}
+
+/** Corrige SERIAL dessincronizado após restore/migração (evita duplicate pkey). */
+async function sincronizarSequences(client: PoolClient): Promise<void> {
+  const tabelas = [
+    "gravacao_arquivos",
+    "palavras_chave",
+    "palavra_deteccoes",
+    "transcricao_segmentos",
+    "youtube_canais",
+    "youtube_videos",
+    "youtube_transcricao_segmentos",
+    "youtube_palavra_deteccoes",
+  ];
+
+  for (const tabela of tabelas) {
+    await client.query(
+      `DO $$
+       DECLARE seq text;
+       BEGIN
+         seq := pg_get_serial_sequence('${tabela}', 'id');
+         IF seq IS NOT NULL THEN
+           EXECUTE format(
+             'SELECT setval(%L, COALESCE((SELECT MAX(id) FROM ${tabela}), 0))',
+             seq
+           );
+         END IF;
+       END $$`,
+    );
+  }
+}
+
 export async function initDatabase(): Promise<void> {
   if (!isDatabaseConfigured()) {
     console.warn("[db] DATABASE_URL ausente — índice de gravações desativado");
@@ -204,5 +243,7 @@ export async function initDatabase(): Promise<void> {
         WHERE removido_em IS NULL AND bunny_uploaded_em IS NULL;
 
     `);
+
+    await sincronizarSequences(client);
   });
 }
