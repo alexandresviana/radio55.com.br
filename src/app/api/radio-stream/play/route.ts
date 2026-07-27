@@ -9,12 +9,13 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   const municipio = request.nextUrl.searchParams.get("municipio");
   const nome = request.nextUrl.searchParams.get("nome");
+  const estado = request.nextUrl.searchParams.get("estado") ?? "SE";
 
   if (!municipio || !nome) {
     return new NextResponse("Parâmetros inválidos", { status: 400 });
   }
 
-  const info = await getRadioStream(municipio, nome);
+  const info = await getRadioStream(municipio, nome, estado);
   if (!info?.streamUrl) {
     return new NextResponse("Stream não disponível", { status: 404 });
   }

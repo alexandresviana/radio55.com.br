@@ -1,19 +1,77 @@
-import { readFile } from "fs/promises";
+import { access, readFile } from "fs/promises";
 import path from "path";
+import { getDataDir } from "@/lib/data-dir";
 import { readEmissoras } from "@/lib/emissoras";
 import type { RadioStreamInfo } from "@/types";
 
 type StreamsData = Record<string, RadioStreamInfo>;
 
-const DATA_FILE = path.join(process.cwd(), "data/radios-streams.json");
+const BUNDLED_STREAM_PATHS = [
+  "/app/data-seed/radios-streams.json",
+  path.join(process.cwd(), "data/radios-streams.json"),
+];
+
+const RUNTIME_STREAM_PATH = path.join(getDataDir(), "radios-streams.json");
 
 export function makeStreamKey(municipio: string, nome: string, estado = "SE"): string {
   return `${estado}|${municipio}|${nome}`;
 }
 
-export async function readRadioStreams(): Promise<StreamsData> {
-  const raw = await readFile(DATA_FILE, "utf-8");
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    await access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function readStreamsFromPath(filePath: string): Promise<StreamsData | null> {
+  if (!(await fileExists(filePath))) return null;
+  const raw = await readFile(filePath, "utf-8");
   return JSON.parse(raw) as StreamsData;
+}
+
+function mergeStreams(base: StreamsData, overlay: StreamsData): StreamsData {
+  return { ...base, ...overlay };
+}
+
+export async function readRadioStreams(): Promise<StreamsData> {
+  let merged: StreamsData = {};
+
+  for (const seedPath of BUNDLED_STREAM_PATHS) {
+    const data = await readStreamsFromPath(seedPath);
+    if (data) {
+      merged = mergeStreams(merged, data);
+      break;
+    }
+  }
+
+  const runtime = await readStreamsFromPath(RUNTIME_STREAM_PATH);
+  if (runtime) {
+    merged = mergeStreams(merged, runtime);
+  }
+
+  if (Object.keys(merged).length === 0) {
+    throw new Error("Nenhum arquivo radios-streams.json encontrado");
+  }
+
+  return merged;
+}
+
+function lookupStream(
+  data: StreamsData,
+  municipio: string,
+  nome: string,
+  estado: string,
+): RadioStreamInfo | null {
+  return (
+    data[makeStreamKey(municipio, nome, estado)] ??
+    data[makeStreamKey(municipio, nome, "SE")] ??
+    data[makeStreamKey(municipio, nome, "BA")] ??
+    data[`${municipio}|${nome}`] ??
+    null
+  );
 }
 
 export async function getRadioStream(
@@ -40,10 +98,7 @@ export async function getRadioStream(
   }
 
   const data = await readRadioStreams();
-  const entry =
-    data[makeStreamKey(municipio, nome, uf)] ??
-    data[makeStreamKey(municipio, nome)] ??
-    data[`${municipio}|${nome}`];
+  const entry = lookupStream(data, municipio, nome, uf);
   if (!entry) return null;
 
   return {
@@ -79,7 +134,7 @@ export function buildPlayUrl(
 
   if (normalized.startsWith("http://")) {
     const params = new URLSearchParams({ municipio, nome });
-    return `/api/radio-stream/play?${params}`;
+    return `/api/radio-stream/play?${params.toString()}`;
   }
 
   return normalized;

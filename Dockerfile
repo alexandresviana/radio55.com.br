@@ -47,6 +47,7 @@ ENV HF_HUB_OFFLINE=1
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/data ./data
 COPY --from=builder /app/data/emissoras.json /app/data-seed/emissoras.json
+COPY --from=builder /app/data/radios-streams.json /app/data-seed/radios-streams.json
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 

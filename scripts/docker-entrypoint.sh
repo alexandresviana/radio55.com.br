@@ -29,6 +29,29 @@ PY
   fi
 fi
 
+if [ ! -f "${DATA_DIR}/radios-streams.json" ] && [ -f /app/data-seed/radios-streams.json ]; then
+  echo "[entrypoint] Seed inicial de radios-streams.json em ${DATA_DIR}..."
+  cp /app/data-seed/radios-streams.json "${DATA_DIR}/radios-streams.json"
+elif [ -f /app/data-seed/radios-streams.json ] && [ -f "${DATA_DIR}/radios-streams.json" ]; then
+  SEED_STREAMS=$(python3 -c "import json; print(len(json.load(open('/app/data-seed/radios-streams.json'))))")
+  DATA_STREAMS=$(python3 -c "import json; print(len(json.load(open('${DATA_DIR}/radios-streams.json'))))")
+  if [ "${SEED_STREAMS}" -gt "${DATA_STREAMS}" ]; then
+    echo "[entrypoint] radios-streams.json desatualizado (${DATA_STREAMS} -> ${SEED_STREAMS}); mesclando no boot..."
+    python3 <<PY
+import json, sys
+data_dir = "${DATA_DIR}"
+atual = json.load(open(f"{data_dir}/radios-streams.json"))
+seed = json.load(open("/app/data-seed/radios-streams.json"))
+merged = dict(atual)
+merged.update(seed)
+out = f"{data_dir}/radios-streams.json"
+json.dump(merged, open(out, "w"), ensure_ascii=False, indent=2)
+open(out, "a").write("\n")
+print(f"[entrypoint] radios-streams.json atualizado: {len(atual)} -> {len(merged)} streams", file=sys.stderr)
+PY
+  fi
+fi
+
 DEFAULT_MODEL_DIR="/app/data/whisper-cache"
 BUILTIN_MODEL_DIR="/app/whisper-cache-builtin"
 MODEL_DIR="${WHISPER_CACHE_DIR:-$DEFAULT_MODEL_DIR}"
