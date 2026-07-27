@@ -8,12 +8,13 @@ import type { EmissorasData, MunicipioData, Radio } from "@/types";
 const DATA_FILE = path.join(getDataDir(), "emissoras.json");
 const GEO_FILE = path.join(process.cwd(), "public/data/sergipe-mun.json");
 
-const SEED_PATHS = [
-  path.join(getDataDir(), "emissoras.json"),
+const BUNDLED_SEED_PATHS = [
   "/app/data-seed/emissoras.json",
   path.join(process.cwd(), "data/emissoras.json"),
   path.join(process.cwd(), "src/data/emissoras.json"),
 ];
+
+const SEED_PATHS = [...BUNDLED_SEED_PATHS, path.join(getDataDir(), "emissoras.json")];
 
 async function fileExists(filePath: string): Promise<boolean> {
   try {
@@ -22,6 +23,16 @@ async function fileExists(filePath: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+async function readBundledSeedEmissoras(): Promise<EmissorasData> {
+  for (const seedPath of BUNDLED_SEED_PATHS) {
+    if (!(await fileExists(seedPath))) continue;
+    const raw = await readFile(seedPath, "utf-8");
+    return JSON.parse(raw) as EmissorasData;
+  }
+
+  throw new Error("Nenhum arquivo seed embutido de emissoras encontrado");
 }
 
 async function readSeedEmissoras(): Promise<EmissorasData> {
@@ -48,7 +59,31 @@ function mergeEmissorasComSeed(
   let alterado = false;
 
   for (const [nome, dados] of Object.entries(seed)) {
-    if (!merged[nome]) {
+    const existente = merged[nome];
+    const seedUf = dados.estado ?? "SE";
+    const atualUf = existente?.estado ?? "SE";
+
+    if (!existente) {
+      merged[nome] = dados;
+      alterado = true;
+      continue;
+    }
+
+    if (seedUf !== atualUf) {
+      merged[nome] = dados;
+      alterado = true;
+      continue;
+    }
+
+    if (!existente.estado && dados.estado) {
+      merged[nome] = dados;
+      alterado = true;
+      continue;
+    }
+
+    const seedRadios = dados.radios.length;
+    const atualRadios = existente.radios.length;
+    if (seedRadios > atualRadios) {
       merged[nome] = dados;
       alterado = true;
     }
@@ -59,7 +94,7 @@ function mergeEmissorasComSeed(
 
 async function sincronizarEmissorasComSeed(atual: EmissorasData): Promise<EmissorasData> {
   try {
-    const seed = await readSeedEmissoras();
+    const seed = await readBundledSeedEmissoras();
     const { dados, alterado } = mergeEmissorasComSeed(atual, seed);
     if (!alterado) return atual;
 

@@ -7,6 +7,26 @@ mkdir -p "${DATA_DIR}/gravacoes" "${DATA_DIR}/trechos" "${DATA_DIR}/whisper-cach
 if [ ! -f "${DATA_DIR}/emissoras.json" ] && [ -f /app/data-seed/emissoras.json ]; then
   echo "[entrypoint] Seed inicial de emissoras.json em ${DATA_DIR}..."
   cp /app/data-seed/emissoras.json "${DATA_DIR}/emissoras.json"
+elif [ -f /app/data-seed/emissoras.json ] && [ -f "${DATA_DIR}/emissoras.json" ]; then
+  SEED_COUNT=$(python3 -c "import json; print(len(json.load(open('/app/data-seed/emissoras.json'))))")
+  DATA_COUNT=$(python3 -c "import json; print(len(json.load(open('${DATA_DIR}/emissoras.json'))))")
+  if [ "${SEED_COUNT}" -gt "${DATA_COUNT}" ]; then
+    echo "[entrypoint] emissoras.json desatualizado (${DATA_COUNT} -> ${SEED_COUNT} municípios); mesclando no boot..."
+    python3 <<PY
+import json, sys
+data_dir = "${DATA_DIR}"
+paths = [f"{data_dir}/emissoras.json", "/app/data-seed/emissoras.json"]
+atual, seed = (json.load(open(p)) for p in paths)
+merged = dict(atual)
+for nome, dados in seed.items():
+    if nome not in merged:
+        merged[nome] = dados
+out = f"{data_dir}/emissoras.json"
+json.dump(merged, open(out, "w"), ensure_ascii=False, indent=2)
+open(out, "a").write("\n")
+print(f"[entrypoint] emissoras.json atualizado: {len(atual)} -> {len(merged)} municípios", file=sys.stderr)
+PY
+  fi
 fi
 
 DEFAULT_MODEL_DIR="/app/data/whisper-cache"
