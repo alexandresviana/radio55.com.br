@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Rádio 55 — Mapa de Emissoras de Sergipe",
+  title: "Rádio 55 — Mapa de Emissoras",
   description:
-    "Mapa interativo dos municípios de Sergipe com emissoras de rádio e programas jornalísticos.",
+    "Mapa interativo de emissoras de rádio e programas jornalísticos na Bahia e em Sergipe.",
   icons: { icon: "/icon.svg" },
 };
 

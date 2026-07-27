@@ -3,14 +3,22 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import FiltroRegiao from "@/components/FiltroRegiao";
 import Header from "@/components/Header";
-import MapaSergipe from "@/components/MapaSergipe";
+import MapaEstado from "@/components/MapaEstado";
 import PainelRadios from "@/components/PainelRadios";
 import { getRegioesFromData } from "@/lib/regioes";
 import type { EmissorasData } from "@/types";
 
+const ESTADOS = [
+  { uf: "SE", label: "Sergipe", geo: "/data/sergipe-mun.json" },
+  { uf: "BA", label: "Bahia", geo: "/data/bahia-mun.json" },
+] as const;
+
+type Uf = (typeof ESTADOS)[number]["uf"];
+
 export default function Home() {
   const [emissoras, setEmissoras] = useState<EmissorasData>({});
   const [loading, setLoading] = useState(true);
+  const [estado, setEstado] = useState<Uf>("SE");
   const [municipioSelecionado, setMunicipioSelecionado] = useState<string | null>(null);
   const [regiaoFiltro, setRegiaoFiltro] = useState<string | null>(null);
 
@@ -21,16 +29,33 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    carregar();
+    void carregar();
   }, [carregar]);
 
-  const regioes = useMemo(() => getRegioesFromData(emissoras), [emissoras]);
-  const totalRadios = Object.values(emissoras).reduce((sum, m) => sum + m.radios.length, 0);
+  const emissorasEstado = useMemo(() => {
+    const filtrado: EmissorasData = {};
+    for (const [nome, dados] of Object.entries(emissoras)) {
+      const uf = dados.estado ?? "SE";
+      if (uf === estado) filtrado[nome] = dados;
+    }
+    return filtrado;
+  }, [emissoras, estado]);
+
+  const regioes = useMemo(() => getRegioesFromData(emissorasEstado), [emissorasEstado]);
+  const totalRadios = Object.values(emissorasEstado).reduce((sum, m) => sum + m.radios.length, 0);
+  const geoUrl = ESTADOS.find((item) => item.uf === estado)?.geo ?? "/data/sergipe-mun.json";
+  const estadoLabel = ESTADOS.find((item) => item.uf === estado)?.label ?? estado;
+
+  function handleEstadoChange(novoEstado: Uf) {
+    setEstado(novoEstado);
+    setMunicipioSelecionado(null);
+    setRegiaoFiltro(null);
+  }
 
   function handleRegiaoChange(regiao: string | null) {
     setRegiaoFiltro(regiao);
     if (municipioSelecionado && regiao) {
-      const dados = emissoras[municipioSelecionado];
+      const dados = emissorasEstado[municipioSelecionado];
       if (dados && dados.regiao !== regiao) setMunicipioSelecionado(null);
     }
   }
@@ -47,35 +72,50 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Header
-        subtitle={`${Object.keys(emissoras).length} municípios · ${totalRadios} rádios cadastradas`}
+        subtitle={`${estadoLabel} · ${Object.keys(emissorasEstado).length} municípios · ${totalRadios} rádios`}
       />
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-        <div className="mb-4">
-          <FiltroRegiao
-            regioes={regioes}
-            regiaoAtiva={regiaoFiltro}
-            onChange={handleRegiaoChange}
-          />
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+            {ESTADOS.map((item) => (
+              <button
+                key={item.uf}
+                type="button"
+                onClick={() => handleEstadoChange(item.uf)}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                  estado === item.uf
+                    ? "bg-emerald-700 text-white"
+                    : "text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          <FiltroRegiao regioes={regioes} regiaoAtiva={regiaoFiltro} onChange={handleRegiaoChange} />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <section>
-            <MapaSergipe
+            <MapaEstado
               emissoras={emissoras}
+              estado={estado}
+              geoUrl={geoUrl}
               municipioSelecionado={municipioSelecionado}
               regiaoFiltro={regiaoFiltro}
               onSelectMunicipio={setMunicipioSelecionado}
             />
             <p className="mt-3 text-center text-xs text-slate-400">
-              PJ = Programas Jornalísticos · Fonte: levantamento Rádio 55
+              PJ = Programas Jornalísticos · Fonte: radios.com.br (Bahia) e levantamento Rádio 55 (Sergipe)
             </p>
           </section>
 
           <section className="lg:sticky lg:top-6 lg:self-start">
             <PainelRadios
               municipio={municipioSelecionado}
-              emissoras={emissoras}
+              emissoras={emissorasEstado}
               regiaoFiltro={regiaoFiltro}
               onClose={() => setMunicipioSelecionado(null)}
             />

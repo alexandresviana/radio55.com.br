@@ -9,6 +9,7 @@ export interface Radio {
 }
 
 export interface RadioStreamInfo {
+  estado?: string;
   municipio: string;
   nome: string;
   radiosId: number;
@@ -18,6 +19,7 @@ export interface RadioStreamInfo {
 }
 
 export interface MunicipioData {
+  estado?: string;
   regiao: string;
   radios: Radio[];
 }

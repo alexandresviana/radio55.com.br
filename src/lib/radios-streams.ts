@@ -1,22 +1,14 @@
 import { readFile } from "fs/promises";
 import path from "path";
 import { readEmissoras } from "@/lib/emissoras";
-
-export interface RadioStreamInfo {
-  municipio: string;
-  nome: string;
-  radiosId: number;
-  radiosUrl: string;
-  title: string;
-  streamUrl: string | null;
-}
+import type { RadioStreamInfo } from "@/types";
 
 type StreamsData = Record<string, RadioStreamInfo>;
 
 const DATA_FILE = path.join(process.cwd(), "data/radios-streams.json");
 
-export function makeStreamKey(municipio: string, nome: string): string {
-  return `${municipio}|${nome}`;
+export function makeStreamKey(municipio: string, nome: string, estado = "SE"): string {
+  return `${estado}|${municipio}|${nome}`;
 }
 
 export async function readRadioStreams(): Promise<StreamsData> {
@@ -27,13 +19,17 @@ export async function readRadioStreams(): Promise<StreamsData> {
 export async function getRadioStream(
   municipio: string,
   nome: string,
+  estado = "SE",
 ): Promise<RadioStreamInfo | null> {
   const emissoras = await readEmissoras();
-  const radio = emissoras[municipio]?.radios.find((item) => item.nome === nome);
+  const municipioData = emissoras[municipio];
+  const uf = municipioData?.estado ?? estado;
+  const radio = municipioData?.radios.find((item) => item.nome === nome);
   const customUrl = radio?.streamUrl?.trim();
 
   if (customUrl) {
     return {
+      estado: uf,
       municipio,
       nome,
       radiosId: 0,
@@ -44,7 +40,10 @@ export async function getRadioStream(
   }
 
   const data = await readRadioStreams();
-  const entry = data[makeStreamKey(municipio, nome)];
+  const entry =
+    data[makeStreamKey(municipio, nome, uf)] ??
+    data[makeStreamKey(municipio, nome)] ??
+    data[`${municipio}|${nome}`];
   if (!entry) return null;
 
   return {

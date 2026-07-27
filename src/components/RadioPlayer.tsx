@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 interface RadioPlayerProps {
   municipio: string;
   nome: string;
+  estado?: string;
   regiaoCor?: string;
   onClose?: () => void;
 }
@@ -16,7 +17,13 @@ interface StreamInfo {
   proxied?: boolean;
 }
 
-export default function RadioPlayer({ municipio, nome, regiaoCor = "#047857", onClose }: RadioPlayerProps) {
+export default function RadioPlayer({
+  municipio,
+  nome,
+  estado = "SE",
+  regiaoCor = "#047857",
+  onClose,
+}: RadioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [info, setInfo] = useState<StreamInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,7 +38,7 @@ export default function RadioPlayer({ municipio, nome, regiaoCor = "#047857", on
     setPlaying(false);
     setInfo(null);
 
-    const params = new URLSearchParams({ municipio, nome });
+    const params = new URLSearchParams({ municipio, nome, estado });
     fetch(`/api/radio-stream?${params}`)
       .then(async (res) => {
         if (!res.ok) {
@@ -54,7 +61,7 @@ export default function RadioPlayer({ municipio, nome, regiaoCor = "#047857", on
       cancelled = true;
       audioRef.current?.pause();
     };
-  }, [municipio, nome]);
+  }, [municipio, nome, estado]);
 
   useEffect(() => {
     if (!info?.playUrl || !audioRef.current) return;

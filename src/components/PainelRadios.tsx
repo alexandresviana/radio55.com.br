@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import RadioPlayer from "@/components/RadioPlayer";
-import { REGIAO_CORES } from "@/lib/regioes";
+import { getRegiaoCor } from "@/lib/regioes";
 import type { EmissorasData } from "@/types";
 
 interface PainelRadiosProps {
@@ -52,9 +52,7 @@ export default function PainelRadios({
   }
 
   const dados = emissoras[municipio];
-  const regiaoCor = dados
-    ? (REGIAO_CORES[dados.regiao as keyof typeof REGIAO_CORES] ?? "#059669")
-    : "#64748b";
+  const regiaoCor = dados ? getRegiaoCor(dados.regiao) : "#64748b";
 
   return (
     <aside className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -92,6 +90,7 @@ export default function PainelRadios({
           <RadioPlayer
             municipio={municipio}
             nome={radioSelecionada}
+            estado={dados?.estado ?? "SE"}
             regiaoCor={regiaoCor}
             onClose={() => setRadioSelecionada(null)}
           />

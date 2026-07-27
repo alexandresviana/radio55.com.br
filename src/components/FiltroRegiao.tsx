@@ -1,6 +1,6 @@
 "use client";
 
-import { REGIAO_CORES } from "@/lib/regioes";
+import { getRegiaoCor } from "@/lib/regioes";
 
 interface FiltroRegiaoProps {
   regioes: string[];
@@ -24,7 +24,7 @@ export default function FiltroRegiao({ regioes, regiaoAtiva, onChange }: FiltroR
         Todas
       </button>
       {regioes.map((regiao) => {
-        const cor = REGIAO_CORES[regiao as keyof typeof REGIAO_CORES] ?? "#64748b";
+        const cor = getRegiaoCor(regiao);
         const ativa = regiaoAtiva === regiao;
         return (
           <button
