@@ -14,6 +14,17 @@ interface MapaEstadoProps {
   onSelectMunicipio: (nome: string) => void;
 }
 
+interface PathItem {
+  name: string;
+  d: string;
+  hasRadios: boolean;
+  regiao: string | null;
+  radiosCount: number;
+  cx: number;
+  cy: number;
+  isCapital: boolean;
+}
+
 export default function MapaEstado({
   emissoras,
   estado,
@@ -40,42 +51,62 @@ export default function MapaEstado({
       .then((data: GeoCollection) => setGeo(data));
   }, [geoUrl]);
 
-  const { paths, width, height } = useMemo(() => {
-    if (!geo) return { paths: [], width: 800, height: 600 };
+  const { paths, labels, width, height } = useMemo(() => {
+    if (!geo) return { paths: [] as PathItem[], labels: [] as PathItem[], width: 800, height: 600 };
 
     const projection = geoMercator().fitSize([800, 600], geo as GeoPermissibleObjects);
     const pathGenerator = geoPath(projection);
 
-    const generated = geo.features.map((feature) => {
+    const generated: PathItem[] = geo.features.map((feature) => {
       const name = feature.properties.name;
       const dados = emissorasEstado[name];
+      const centroid = pathGenerator.centroid(feature as GeoPermissibleObjects);
+      const regiao = dados?.regiao ?? null;
       return {
         name,
         d: pathGenerator(feature as GeoPermissibleObjects) ?? "",
         hasRadios: Boolean(dados),
-        regiao: dados?.regiao ?? null,
+        regiao,
+        radiosCount: dados?.radios.length ?? 0,
+        cx: centroid[0] ?? 0,
+        cy: centroid[1] ?? 0,
+        isCapital: Boolean(regiao?.toLowerCase().includes("capital")),
       };
     });
 
-    return { paths: generated, width: 800, height: 600 };
-  }, [geo, emissorasEstado]);
+    // Municípios sem rádio por baixo; com rádio por cima (evita sumir na costa).
+    generated.sort((a, b) => Number(a.hasRadios) - Number(b.hasRadios));
+
+    const capital = generated.filter((p) => p.isCapital && p.hasRadios);
+    const topPorRadios = [...generated]
+      .filter((p) => p.hasRadios && !p.isCapital)
+      .sort((a, b) => b.radiosCount - a.radiosCount)
+      .slice(0, estado === "BA" ? 6 : 3);
+
+    const labelNames = new Set([
+      ...capital.map((p) => p.name),
+      ...topPorRadios.map((p) => p.name),
+    ]);
+    if (municipioSelecionado) labelNames.add(municipioSelecionado);
+
+    const labels = generated.filter((p) => labelNames.has(p.name) && p.hasRadios);
+
+    return { paths: generated, labels, width: 800, height: 600 };
+  }, [geo, emissorasEstado, estado, municipioSelecionado]);
 
   function getFill(
     hasRadios: boolean,
     regiao: string | null,
-    isSelected: boolean,
-    isHovered: boolean,
   ): string {
     const inFilter = !regiaoFiltro || (hasRadios && regiao === regiaoFiltro);
 
     if (!inFilter) return "#f1f5f9";
 
     if (!hasRadios) {
-      return isSelected || isHovered ? "#cbd5e1" : "#e2e8f0";
+      return "#e2e8f0";
     }
 
-    const base = getRegiaoCor(regiao ?? estado);
-    return base;
+    return getRegiaoCor(regiao ?? estado);
   }
 
   if (!geo) {
@@ -94,7 +125,7 @@ export default function MapaEstado({
         role="img"
         aria-label={`Mapa interativo dos municípios — ${estado}`}
       >
-        {paths.map(({ name, d, hasRadios, regiao }) => {
+        {paths.map(({ name, d, hasRadios, regiao, isCapital }) => {
           const isSelected = municipioSelecionado === name;
           const isHovered = hovered === name;
           const inFilter = !regiaoFiltro || (hasRadios && regiao === regiaoFiltro);
@@ -103,9 +134,9 @@ export default function MapaEstado({
             <path
               key={name}
               d={d}
-              fill={getFill(hasRadios, regiao, isSelected, isHovered)}
-              stroke="#ffffff"
-              strokeWidth={isSelected ? 2.5 : 1}
+              fill={getFill(hasRadios, regiao)}
+              stroke={isSelected || isCapital ? "#0f172a" : "#ffffff"}
+              strokeWidth={isSelected ? 2.5 : isCapital ? 1.8 : 1}
               opacity={inFilter ? 1 : 0.35}
               className="cursor-pointer transition-all duration-150"
               onClick={() => onSelectMunicipio(name)}
@@ -114,6 +145,45 @@ export default function MapaEstado({
             >
               <title>{name}</title>
             </path>
+          );
+        })}
+
+        {labels.map(({ name, cx, cy, isCapital, radiosCount }) => {
+          if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
+          const isSelected = municipioSelecionado === name;
+          return (
+            <g
+              key={`label-${name}`}
+              className="pointer-events-none"
+              opacity={regiaoFiltro && !isSelected ? 0.85 : 1}
+            >
+              {(isCapital || isSelected) && (
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={isCapital ? 5 : 3.5}
+                  fill="#0f172a"
+                  stroke="#ffffff"
+                  strokeWidth={1.5}
+                />
+              )}
+              <text
+                x={cx}
+                y={cy + (isCapital || isSelected ? 16 : 0)}
+                textAnchor="middle"
+                className="fill-slate-900"
+                style={{
+                  fontSize: isCapital ? 13 : 11,
+                  fontWeight: isCapital || isSelected ? 700 : 600,
+                  paintOrder: "stroke",
+                  stroke: "rgba(255,255,255,0.9)",
+                  strokeWidth: 3,
+                }}
+              >
+                {name}
+                {isCapital ? ` · ${radiosCount}` : ""}
+              </text>
+            </g>
           );
         })}
       </svg>

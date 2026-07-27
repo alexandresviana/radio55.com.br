@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import BuscaMunicipio from "@/components/BuscaMunicipio";
 import FiltroRegiao from "@/components/FiltroRegiao";
 import Header from "@/components/Header";
 import MapaEstado from "@/components/MapaEstado";
@@ -93,6 +94,13 @@ export default function Home() {
               </button>
             ))}
           </div>
+
+          <BuscaMunicipio
+            emissoras={emissorasEstado}
+            regiaoFiltro={regiaoFiltro}
+            value={municipioSelecionado}
+            onChange={setMunicipioSelecionado}
+          />
 
           <FiltroRegiao regioes={regioes} regiaoAtiva={regiaoFiltro} onChange={handleRegiaoChange} />
         </div>
