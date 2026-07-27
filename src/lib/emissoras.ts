@@ -40,11 +40,44 @@ async function readEmissorasFromFile(): Promise<EmissorasData | null> {
   return JSON.parse(raw) as EmissorasData;
 }
 
+function mergeEmissorasComSeed(
+  atual: EmissorasData,
+  seed: EmissorasData,
+): { dados: EmissorasData; alterado: boolean } {
+  const merged: EmissorasData = { ...atual };
+  let alterado = false;
+
+  for (const [nome, dados] of Object.entries(seed)) {
+    if (!merged[nome]) {
+      merged[nome] = dados;
+      alterado = true;
+    }
+  }
+
+  return { dados: merged, alterado };
+}
+
+async function sincronizarEmissorasComSeed(atual: EmissorasData): Promise<EmissorasData> {
+  try {
+    const seed = await readSeedEmissoras();
+    const { dados, alterado } = mergeEmissorasComSeed(atual, seed);
+    if (!alterado) return atual;
+
+    await writeEmissoras(dados);
+    console.info(
+      `[emissoras] ${Object.keys(dados).length - Object.keys(atual).length} municípios adicionados do seed`,
+    );
+    return dados;
+  } catch {
+    return atual;
+  }
+}
+
 export async function readEmissoras(): Promise<EmissorasData> {
   if (isDatabaseConfigured()) {
     const fromDb = await readEmissorasFromDb();
     if (fromDb) {
-      return fromDb;
+      return sincronizarEmissorasComSeed(fromDb);
     }
 
     const fromFile = await readEmissorasFromFile();

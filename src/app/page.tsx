@@ -9,8 +9,8 @@ import { getRegioesFromData } from "@/lib/regioes";
 import type { EmissorasData } from "@/types";
 
 const ESTADOS = [
-  { uf: "SE", label: "Sergipe", geo: "/data/sergipe-mun.json" },
   { uf: "BA", label: "Bahia", geo: "/data/bahia-mun.json" },
+  { uf: "SE", label: "Sergipe", geo: "/data/sergipe-mun.json" },
 ] as const;
 
 type Uf = (typeof ESTADOS)[number]["uf"];
@@ -18,7 +18,7 @@ type Uf = (typeof ESTADOS)[number]["uf"];
 export default function Home() {
   const [emissoras, setEmissoras] = useState<EmissorasData>({});
   const [loading, setLoading] = useState(true);
-  const [estado, setEstado] = useState<Uf>("SE");
+  const [estado, setEstado] = useState<Uf>("BA");
   const [municipioSelecionado, setMunicipioSelecionado] = useState<string | null>(null);
   const [regiaoFiltro, setRegiaoFiltro] = useState<string | null>(null);
 

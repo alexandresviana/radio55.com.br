@@ -75,10 +75,7 @@ export default function MapaEstado({
     }
 
     const base = getRegiaoCor(regiao ?? estado);
-
-    if (isSelected) return base;
-    if (isHovered) return base;
-    return `${base}99`;
+    return base;
   }
 
   if (!geo) {
