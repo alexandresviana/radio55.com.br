@@ -248,7 +248,13 @@ export async function initDatabase(): Promise<void> {
   });
 }
 
-/** Apaga todos os dados operacionais. Auth continua só via AUTH_* (não há tabela de usuários). */
+/**
+ * Limpa só o monitoramento operacional:
+ * - gravações/transcrições/detecções de rádio
+ * - canais YouTube monitorados (+ vídeos/transcrições/detecções)
+ *
+ * Mantém: emissoras_config, palavras_chave e login (AUTH_*).
+ */
 export async function limparBaseDados(): Promise<Record<string, number>> {
   if (!isDatabaseConfigured()) {
     throw new Error("DATABASE_URL não configurado");
@@ -263,9 +269,7 @@ export async function limparBaseDados(): Promise<Record<string, number>> {
       "palavra_deteccoes",
       "transcricao_segmentos",
       "transcricao_progresso",
-      "palavras_chave",
       "gravacao_arquivos",
-      "emissoras_config",
     ];
 
     const contagens: Record<string, number> = {};
@@ -283,7 +287,7 @@ export async function limparBaseDados(): Promise<Record<string, number>> {
     }
 
     await sincronizarSequences(client);
-    console.warn("[db] Base limpa — tabelas truncadas:", contagens);
+    console.warn("[db] Monitoramento limpo — tabelas truncadas:", contagens);
     return contagens;
   });
 }

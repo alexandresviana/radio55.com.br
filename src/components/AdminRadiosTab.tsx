@@ -93,10 +93,10 @@ export default function AdminRadiosTab() {
 
   async function limparBase() {
     const ok = confirm(
-      "Isso apaga TODA a base (gravações, transcrições, YouTube, palavras-chave e emissoras) e recarrega só o seed atual.\n\nO login (usuário/senha da dash) NÃO é afetado.\n\nContinuar?",
+      "Isso apaga só o monitoramento atual:\n• gravações e transcrições de rádio\n• canais YouTube monitorados (e vídeos/transcrições)\n\nMantém: cadastro de emissoras, palavras-chave e login.\n\nContinuar?",
     );
     if (!ok) return;
-    const confirmacao = window.prompt('Digite LIMPAR para confirmar:');
+    const confirmacao = window.prompt("Digite LIMPAR para confirmar:");
     if (confirmacao !== "LIMPAR") {
       setMessage({ type: "error", text: "Limpeza cancelada." });
       return;
@@ -113,14 +113,13 @@ export default function AdminRadiosTab() {
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setMessage({ type: "error", text: data.error ?? "Falha ao limpar a base." });
+      setMessage({ type: "error", text: data.error ?? "Falha ao limpar monitoramento." });
       return;
     }
 
-    const data = await res.json();
     setMessage({
       type: "ok",
-      text: `Base limpa. ${data.emissorasRecarregadas} municípios recarregados do seed.`,
+      text: "Monitoramento limpo: gravações, transcrições e YouTube removidos.",
     });
     await carregar();
   }
@@ -153,7 +152,7 @@ export default function AdminRadiosTab() {
             onClick={() => void limparBase()}
             className="rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-60"
           >
-            {resetting ? "Limpando..." : "Limpar base"}
+            {resetting ? "Limpando..." : "Limpar monitoramento"}
           </button>
           <button
             type="button"

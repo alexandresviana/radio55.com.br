@@ -6,15 +6,14 @@ export async function register() {
     const { startTranscriptionService } = await import("@/lib/transcription");
     const { startYoutubeMonitorService } = await import("@/lib/youtube-monitor");
     const { startBunnyStorageUploader } = await import("@/lib/bunny-storage-uploader");
-    const { readEmissoras, reseedEmissorasFromBundled } = await import("@/lib/emissoras");
+    const { readEmissoras } = await import("@/lib/emissoras");
 
     await initDatabase();
 
     if (process.env.RESET_DATABASE === "true" && isDatabaseConfigured()) {
-      console.warn("[boot] RESET_DATABASE=true — limpando base e recarregando seed...");
+      console.warn("[boot] RESET_DATABASE=true — limpando gravações/transcrições e YouTube...");
       await limparBaseDados();
-      await reseedEmissorasFromBundled();
-      console.warn("[boot] Base limpa. Remova RESET_DATABASE do ambiente após o deploy.");
+      console.warn("[boot] Monitoramento limpo. Remova RESET_DATABASE do ambiente após o deploy.");
     }
 
     await readEmissoras();
