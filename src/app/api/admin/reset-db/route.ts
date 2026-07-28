@@ -3,8 +3,8 @@ import { isDatabaseConfigured, limparBaseDados } from "@/lib/db";
 
 /**
  * POST { "confirm": "LIMPAR" }
- * Apaga gravações/transcrições de rádio e canais YouTube monitorados.
- * Mantém emissoras, palavras-chave e login (AUTH_*).
+ * Apaga arquivos gravados (disco/Bunny), gravações/transcrições de rádio
+ * e canais YouTube monitorados. Mantém emissoras, palavras-chave e login.
  */
 export async function POST(request: NextRequest) {
   if (!isDatabaseConfigured()) {

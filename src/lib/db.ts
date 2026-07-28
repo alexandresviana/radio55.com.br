@@ -250,7 +250,9 @@ export async function initDatabase(): Promise<void> {
 
 /**
  * Limpa só o monitoramento operacional:
- * - gravações/transcrições/detecções de rádio
+ * - arquivos locais em gravacoes/ e trechos/
+ * - uploads no Bunny Storage (quando houver bunny_path)
+ * - gravações/transcrições/detecções de rádio no Postgres
  * - canais YouTube monitorados (+ vídeos/transcrições/detecções)
  *
  * Mantém: emissoras_config, palavras_chave e login (AUTH_*).
@@ -259,6 +261,9 @@ export async function limparBaseDados(): Promise<Record<string, number>> {
   if (!isDatabaseConfigured()) {
     throw new Error("DATABASE_URL não configurado");
   }
+
+  const { limparArquivosMonitoramento } = await import("@/lib/limpar-arquivos-monitoramento");
+  const arquivos = await limparArquivosMonitoramento();
 
   return withClient(async (client) => {
     const tabelas = [
@@ -272,7 +277,13 @@ export async function limparBaseDados(): Promise<Record<string, number>> {
       "gravacao_arquivos",
     ];
 
-    const contagens: Record<string, number> = {};
+    const contagens: Record<string, number> = {
+      arquivos_gravacoes_locais: arquivos.gravacoesLocais,
+      arquivos_trechos_locais: arquivos.trechosLocais,
+      arquivos_bunny_remotos: arquivos.bunnyRemotos,
+      arquivos_bunny_falhas: arquivos.bunnyFalhas,
+    };
+
     await client.query("BEGIN");
     try {
       for (const tabela of tabelas) {

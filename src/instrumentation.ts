@@ -11,7 +11,7 @@ export async function register() {
     await initDatabase();
 
     if (process.env.RESET_DATABASE === "true" && isDatabaseConfigured()) {
-      console.warn("[boot] RESET_DATABASE=true — limpando gravações/transcrições e YouTube...");
+      console.warn("[boot] RESET_DATABASE=true — limpando arquivos gravados, transcrições e YouTube...");
       await limparBaseDados();
       console.warn("[boot] Monitoramento limpo. Remova RESET_DATABASE do ambiente após o deploy.");
     }
