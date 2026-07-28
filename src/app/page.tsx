@@ -6,20 +6,14 @@ import FiltroRegiao from "@/components/FiltroRegiao";
 import Header from "@/components/Header";
 import MapaEstado from "@/components/MapaEstado";
 import PainelRadios from "@/components/PainelRadios";
+import { ESTADOS, UF_PADRAO, type Uf } from "@/lib/estados";
 import { getRegioesFromData } from "@/lib/regioes";
 import type { EmissorasData } from "@/types";
-
-const ESTADOS = [
-  { uf: "BA", label: "Bahia", geo: "/data/bahia-mun.json" },
-  { uf: "SE", label: "Sergipe", geo: "/data/sergipe-mun.json" },
-] as const;
-
-type Uf = (typeof ESTADOS)[number]["uf"];
 
 export default function Home() {
   const [emissoras, setEmissoras] = useState<EmissorasData>({});
   const [loading, setLoading] = useState(true);
-  const [estado, setEstado] = useState<Uf>("BA");
+  const [estado, setEstado] = useState<Uf>(UF_PADRAO);
   const [municipioSelecionado, setMunicipioSelecionado] = useState<string | null>(null);
   const [regiaoFiltro, setRegiaoFiltro] = useState<string | null>(null);
 
@@ -44,7 +38,7 @@ export default function Home() {
 
   const regioes = useMemo(() => getRegioesFromData(emissorasEstado), [emissorasEstado]);
   const totalRadios = Object.values(emissorasEstado).reduce((sum, m) => sum + m.radios.length, 0);
-  const geoUrl = ESTADOS.find((item) => item.uf === estado)?.geo ?? "/data/sergipe-mun.json";
+  const geoUrl = ESTADOS.find((item) => item.uf === estado)?.geo ?? "/data/bahia-mun.json";
   const estadoLabel = ESTADOS.find((item) => item.uf === estado)?.label ?? estado;
 
   function handleEstadoChange(novoEstado: Uf) {
@@ -116,7 +110,7 @@ export default function Home() {
               onSelectMunicipio={setMunicipioSelecionado}
             />
             <p className="mt-3 text-center text-xs text-slate-400">
-              PJ = Programas Jornalísticos · Fonte: radios.com.br (Bahia) e levantamento Rádio 55 (Sergipe)
+              PJ = Programas Jornalísticos · Fonte: radios.com.br
             </p>
           </section>
 

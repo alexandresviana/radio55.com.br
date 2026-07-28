@@ -1,6 +1,7 @@
 import type { EmissorasData } from "@/types";
 
-export const REGIOES = [
+/** Regiões iniciais sugeridas no admin (editáveis / livres). */
+export const REGIOES_SUGERIDAS = [
   "Capital",
   "Agreste Sergipano",
   "Alto Sertão Sergipano",
@@ -9,13 +10,24 @@ export const REGIOES = [
   "Leste Sergipano",
   "Centro Sul",
   "Sul Sergipano",
+  "Capital Salvador",
+  "Centro Norte Baiano",
+  "Centro Sul Baiano",
+  "Extremo Oeste Baiano",
+  "Metropolitana de Salvador e Recôncavo Baiano",
+  "Nordeste Baiano",
+  "Sul Baiano",
+  "Vale São-Franciscano da Bahia",
 ] as const;
-
-export type Regiao = (typeof REGIOES)[number];
 
 export function getRegioesFromData(data: EmissorasData): string[] {
   const set = new Set<string>();
   for (const m of Object.values(data)) set.add(m.regiao);
+  return Array.from(set).sort((a, b) => a.localeCompare(b, "pt-BR"));
+}
+
+export function getRegioesParaSelect(data: EmissorasData): string[] {
+  const set = new Set<string>([...REGIOES_SUGERIDAS, ...getRegioesFromData(data)]);
   return Array.from(set).sort((a, b) => a.localeCompare(b, "pt-BR"));
 }
 

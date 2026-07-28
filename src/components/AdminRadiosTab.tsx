@@ -5,7 +5,8 @@ import BuscaTranscricoes from "@/components/BuscaTranscricoes";
 import GravacoesArquivos from "@/components/GravacoesArquivos";
 import GravacoesAtivas from "@/components/GravacoesAtivas";
 import PainelDeteccoes from "@/components/PainelDeteccoes";
-import { REGIOES } from "@/lib/regioes";
+import { ESTADOS, UF_PADRAO, type Uf } from "@/lib/estados";
+import { getRegioesParaSelect, REGIOES_SUGERIDAS } from "@/lib/regioes";
 import type { EmissorasData, Radio } from "@/types";
 
 const emptyRadio = (): Radio => ({ nome: "", pj: 1, tipo: "comunitaria", gravar: false });
@@ -13,22 +14,24 @@ const emptyRadio = (): Radio => ({ nome: "", pj: 1, tipo: "comunitaria", gravar:
 export default function AdminRadiosTab() {
   const [emissoras, setEmissoras] = useState<EmissorasData>({});
   const [municipios, setMunicipios] = useState<string[]>([]);
+  const [estadoAdmin, setEstadoAdmin] = useState<Uf>(UF_PADRAO);
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const [novoMunicipio, setNovoMunicipio] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
 
   const carregar = useCallback(async () => {
     setLoading(true);
     const [emRes, munRes] = await Promise.all([
       fetch("/api/emissoras"),
-      fetch("/api/municipios"),
+      fetch(`/api/municipios?estado=${estadoAdmin}`),
     ]);
     setEmissoras(await emRes.json());
     setMunicipios(await munRes.json());
     setLoading(false);
-  }, []);
+  }, [estadoAdmin]);
 
   useEffect(() => {
     void carregar();
@@ -40,9 +43,14 @@ export default function AdminRadiosTab() {
   );
 
   const lista = useMemo(
-    () => Object.keys(emissoras).sort((a, b) => a.localeCompare(b, "pt-BR")),
-    [emissoras],
+    () =>
+      Object.keys(emissoras)
+        .filter((nome) => (emissoras[nome].estado ?? UF_PADRAO) === estadoAdmin)
+        .sort((a, b) => a.localeCompare(b, "pt-BR")),
+    [emissoras, estadoAdmin],
   );
+
+  const regioesSelect = useMemo(() => getRegioesParaSelect(emissoras), [emissoras]);
 
   async function salvar(data: EmissorasData) {
     setSaving(true);
@@ -73,10 +81,48 @@ export default function AdminRadiosTab() {
     if (!novoMunicipio) return;
     setEmissoras((prev) => ({
       ...prev,
-      [novoMunicipio]: { regiao: REGIOES[0], radios: [] },
+      [novoMunicipio]: {
+        estado: estadoAdmin,
+        regiao: REGIOES_SUGERIDAS[0],
+        radios: [],
+      },
     }));
     setSelecionado(novoMunicipio);
     setNovoMunicipio("");
+  }
+
+  async function limparBase() {
+    const ok = confirm(
+      "Isso apaga TODA a base (gravações, transcrições, YouTube, palavras-chave e emissoras) e recarrega só o seed atual.\n\nO login (usuário/senha da dash) NÃO é afetado.\n\nContinuar?",
+    );
+    if (!ok) return;
+    const confirmacao = window.prompt('Digite LIMPAR para confirmar:');
+    if (confirmacao !== "LIMPAR") {
+      setMessage({ type: "error", text: "Limpeza cancelada." });
+      return;
+    }
+
+    setResetting(true);
+    setMessage(null);
+    const res = await fetch("/api/admin/reset-db", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ confirm: "LIMPAR" }),
+    });
+    setResetting(false);
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setMessage({ type: "error", text: data.error ?? "Falha ao limpar a base." });
+      return;
+    }
+
+    const data = await res.json();
+    setMessage({
+      type: "ok",
+      text: `Base limpa. ${data.emissorasRecarregadas} municípios recarregados do seed.`,
+    });
+    await carregar();
   }
 
   function removerMunicipio(nome: string) {
@@ -97,17 +143,27 @@ export default function AdminRadiosTab() {
     <>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Rádios de Sergipe</h2>
+          <h2 className="text-xl font-bold text-slate-900">Rádios</h2>
           <p className="text-sm text-slate-500">{lista.length} municípios cadastrados</p>
         </div>
-        <button
-          type="button"
-          disabled={saving}
-          onClick={() => salvar(emissoras)}
-          className="rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-800 disabled:opacity-60"
-        >
-          {saving ? "Salvando..." : "Salvar alterações"}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            disabled={resetting || saving}
+            onClick={() => void limparBase()}
+            className="rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-60"
+          >
+            {resetting ? "Limpando..." : "Limpar base"}
+          </button>
+          <button
+            type="button"
+            disabled={saving || resetting}
+            onClick={() => salvar(emissoras)}
+            className="rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-800 disabled:opacity-60"
+          >
+            {saving ? "Salvando..." : "Salvar alterações"}
+          </button>
+        </div>
       </div>
 
       {message && (
@@ -154,6 +210,22 @@ export default function AdminRadiosTab() {
           </ul>
 
           <div className="mt-4 border-t border-slate-100 pt-4">
+            <label className="mb-1 block text-xs font-medium text-slate-500">Estado</label>
+            <select
+              value={estadoAdmin}
+              onChange={(e) => {
+                setEstadoAdmin(e.target.value as Uf);
+                setSelecionado(null);
+                setNovoMunicipio("");
+              }}
+              className="mb-3 w-full rounded-lg border border-slate-200 px-2 py-2 text-sm"
+            >
+              {ESTADOS.map((item) => (
+                <option key={item.uf} value={item.uf}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
             <label className="mb-1 block text-xs font-medium text-slate-500">
               Adicionar município
             </label>
@@ -196,19 +268,37 @@ export default function AdminRadiosTab() {
                 </button>
               </div>
 
-              <div className="mb-6">
-                <label className="mb-1 block text-sm font-medium text-slate-700">Região</label>
-                <select
-                  value={atual.regiao}
-                  onChange={(e) => atualizarMunicipio(selecionado, { regiao: e.target.value })}
-                  className="w-full max-w-md rounded-lg border border-slate-200 px-3 py-2"
-                >
-                  {REGIOES.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
-                </select>
+              <div className="mb-6 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Estado</label>
+                  <select
+                    value={atual.estado ?? estadoAdmin}
+                    onChange={(e) =>
+                      atualizarMunicipio(selecionado, { estado: e.target.value })
+                    }
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2"
+                  >
+                    {ESTADOS.map((item) => (
+                      <option key={item.uf} value={item.uf}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Região</label>
+                  <input
+                    list="regioes-admin"
+                    value={atual.regiao}
+                    onChange={(e) => atualizarMunicipio(selecionado, { regiao: e.target.value })}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2"
+                  />
+                  <datalist id="regioes-admin">
+                    {regioesSelect.map((r) => (
+                      <option key={r} value={r} />
+                    ))}
+                  </datalist>
+                </div>
               </div>
 
               <div className="mb-3 flex items-center justify-between">

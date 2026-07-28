@@ -51,7 +51,7 @@ export default function LoginPage() {
         <div className="mb-8 flex flex-col items-center text-center">
           <Logo size="lg" />
           <h1 className="mt-4 text-xl font-bold text-slate-900">Mapa de Emissoras</h1>
-          <p className="mt-2 text-sm text-slate-500">Acesso restrito · Sergipe</p>
+          <p className="mt-2 text-sm text-slate-500">Acesso restrito</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

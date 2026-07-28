@@ -1,6 +1,7 @@
 import { access, readFile } from "fs/promises";
 import path from "path";
 import { getDataDir } from "@/lib/data-dir";
+import { UF_PADRAO } from "@/lib/estados";
 import { readEmissoras } from "@/lib/emissoras";
 import type { RadioStreamInfo } from "@/types";
 
@@ -13,7 +14,7 @@ const BUNDLED_STREAM_PATHS = [
 
 const RUNTIME_STREAM_PATH = path.join(getDataDir(), "radios-streams.json");
 
-export function makeStreamKey(municipio: string, nome: string, estado = "SE"): string {
+export function makeStreamKey(municipio: string, nome: string, estado: string = UF_PADRAO): string {
   return `${estado}|${municipio}|${nome}`;
 }
 
@@ -67,8 +68,8 @@ function lookupStream(
 ): RadioStreamInfo | null {
   return (
     data[makeStreamKey(municipio, nome, estado)] ??
-    data[makeStreamKey(municipio, nome, "SE")] ??
     data[makeStreamKey(municipio, nome, "BA")] ??
+    data[makeStreamKey(municipio, nome, "SE")] ??
     data[`${municipio}|${nome}`] ??
     null
   );
@@ -77,7 +78,7 @@ function lookupStream(
 export async function getRadioStream(
   municipio: string,
   nome: string,
-  estado = "SE",
+  estado: string = UF_PADRAO,
 ): Promise<RadioStreamInfo | null> {
   const emissoras = await readEmissoras();
   const municipioData = emissoras[municipio];

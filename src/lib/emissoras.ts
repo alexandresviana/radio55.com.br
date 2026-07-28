@@ -1,12 +1,12 @@
 import { access, readFile, writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { getDataDir } from "@/lib/data-dir";
+import { UF_PADRAO, geoPathForUf } from "@/lib/estados";
 import { readEmissorasFromDb, writeEmissorasToDb } from "@/lib/emissoras-db";
 import { isDatabaseConfigured } from "@/lib/db";
 import type { EmissorasData, MunicipioData, Radio } from "@/types";
 
 const DATA_FILE = path.join(getDataDir(), "emissoras.json");
-const GEO_FILE = path.join(process.cwd(), "public/data/sergipe-mun.json");
 
 const BUNDLED_SEED_PATHS = [
   "/app/data-seed/emissoras.json",
@@ -100,12 +100,19 @@ async function sincronizarEmissorasComSeed(atual: EmissorasData): Promise<Emisso
 
     await writeEmissoras(dados);
     console.info(
-      `[emissoras] ${Object.keys(dados).length - Object.keys(atual).length} municípios adicionados do seed`,
+      `[emissoras] sync seed: ${Object.keys(atual).length} -> ${Object.keys(dados).length} municípios`,
     );
     return dados;
   } catch {
     return atual;
   }
+}
+
+/** Recarrega o seed embutido e sobrescreve arquivo + banco. */
+export async function reseedEmissorasFromBundled(): Promise<EmissorasData> {
+  const seed = await readBundledSeedEmissoras();
+  await writeEmissoras(seed);
+  return seed;
 }
 
 export async function readEmissoras(): Promise<EmissorasData> {
@@ -117,13 +124,14 @@ export async function readEmissoras(): Promise<EmissorasData> {
 
     const fromFile = await readEmissorasFromFile();
     if (fromFile) {
-      await writeEmissorasToDb(fromFile);
       console.info("[emissoras] Configuração migrada do arquivo para o PostgreSQL");
-      return fromFile;
+      const synced = await sincronizarEmissorasComSeed(fromFile);
+      const stillEmpty = !(await readEmissorasFromDb());
+      if (stillEmpty) await writeEmissoras(synced);
+      return synced;
     }
 
-    const seed = await readSeedEmissoras();
-    await writeEmissorasToDb(seed);
+    const seed = await readBundledSeedEmissoras();
     await writeEmissoras(seed);
     console.warn(
       "[emissoras] Nenhuma configuração persistida encontrada — usando seed padrão (gravar=false em todas)",
@@ -133,10 +141,10 @@ export async function readEmissoras(): Promise<EmissorasData> {
 
   try {
     const fromFile = await readEmissorasFromFile();
-    if (fromFile) return fromFile;
-    return await readSeedEmissoras();
+    if (fromFile) return sincronizarEmissorasComSeed(fromFile);
+    return await readBundledSeedEmissoras();
   } catch {
-    return await readSeedEmissoras();
+    return await readBundledSeedEmissoras();
   }
 }
 
@@ -149,8 +157,10 @@ export async function writeEmissoras(data: EmissorasData): Promise<void> {
   }
 }
 
-export async function readMunicipios(): Promise<string[]> {
-  const raw = await readFile(GEO_FILE, "utf-8");
+export async function readMunicipios(uf: string = UF_PADRAO): Promise<string[]> {
+  const geoRel = geoPathForUf(uf).replace(/^\//, "");
+  const geoFile = path.join(process.cwd(), "public", geoRel);
+  const raw = await readFile(geoFile, "utf-8");
   const geo = JSON.parse(raw) as { features: { properties: { name: string } }[] };
   return geo.features.map((f) => f.properties.name).sort((a, b) => a.localeCompare(b, "pt-BR"));
 }

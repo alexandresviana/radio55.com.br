@@ -247,3 +247,43 @@ export async function initDatabase(): Promise<void> {
     await sincronizarSequences(client);
   });
 }
+
+/** Apaga todos os dados operacionais. Auth continua só via AUTH_* (não há tabela de usuários). */
+export async function limparBaseDados(): Promise<Record<string, number>> {
+  if (!isDatabaseConfigured()) {
+    throw new Error("DATABASE_URL não configurado");
+  }
+
+  return withClient(async (client) => {
+    const tabelas = [
+      "youtube_palavra_deteccoes",
+      "youtube_transcricao_segmentos",
+      "youtube_videos",
+      "youtube_canais",
+      "palavra_deteccoes",
+      "transcricao_segmentos",
+      "transcricao_progresso",
+      "palavras_chave",
+      "gravacao_arquivos",
+      "emissoras_config",
+    ];
+
+    const contagens: Record<string, number> = {};
+    await client.query("BEGIN");
+    try {
+      for (const tabela of tabelas) {
+        const before = await client.query<{ n: string }>(`SELECT COUNT(*)::text AS n FROM ${tabela}`);
+        contagens[tabela] = Number(before.rows[0]?.n ?? 0);
+        await client.query(`TRUNCATE TABLE ${tabela} RESTART IDENTITY CASCADE`);
+      }
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    }
+
+    await sincronizarSequences(client);
+    console.warn("[db] Base limpa — tabelas truncadas:", contagens);
+    return contagens;
+  });
+}

@@ -98,7 +98,7 @@ function momentoDeteccaoSql(): string {
   return `(g.gravado_em + (d.inicio_segundos * INTERVAL '1 second'))`;
 }
 
-/** Data/hora no fuso de Sergipe — evita perder ocorrências por UTC. */
+/** Data/hora no fuso America/Sao_Paulo — evita perder ocorrências por UTC. */
 function dataLocalSql(momentoExpr: string): string {
   return `(${momentoExpr} AT TIME ZONE 'America/Sao_Paulo')`;
 }

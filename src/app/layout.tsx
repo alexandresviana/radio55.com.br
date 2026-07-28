@@ -14,8 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Rádio 55 — Mapa de Emissoras",
-  description:
-    "Mapa interativo de emissoras de rádio e programas jornalísticos na Bahia e em Sergipe.",
+  description: "Mapa interativo de emissoras de rádio e programas jornalísticos.",
   icons: { icon: "/icon.svg" },
 };
 
