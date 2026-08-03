@@ -11,8 +11,9 @@ export default function AdminInstagramTab() {
       <div className="mb-6">
         <h2 className="text-xl font-bold text-slate-900">Monitoramento do Instagram</h2>
         <p className="text-sm text-slate-500">
-          Varre publicações públicas por termo (hashtag) em todo o Instagram e, opcionalmente,
-          acompanha perfis específicos. As legendas passam pelas mesmas palavras-chave das rádios.
+          Acompanhe perfis e veja o status da coleta por termo. Os assuntos (o que detectar em
+          todas as mídias) ficam na aba Assuntos — marque “Coletar IG” para puxar posts por
+          hashtag.
         </p>
       </div>
 

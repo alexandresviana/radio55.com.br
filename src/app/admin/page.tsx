@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import AdminBuscaIATab from "@/components/AdminBuscaIATab";
 import AdminInstagramTab from "@/components/AdminInstagramTab";
 import AdminRadiosTab from "@/components/AdminRadiosTab";
@@ -9,9 +10,10 @@ import AdminYoutubeTab from "@/components/AdminYoutubeTab";
 import Header from "@/components/Header";
 import PalavrasChave from "@/components/PalavrasChave";
 
-type AdminTab = "radios" | "youtube" | "instagram" | "x" | "ia";
+type AdminTab = "assuntos" | "radios" | "youtube" | "instagram" | "x" | "ia";
 
 const TABS: { id: AdminTab; label: string }[] = [
+  { id: "assuntos", label: "Assuntos" },
   { id: "radios", label: "Rádios" },
   { id: "youtube", label: "YouTube" },
   { id: "instagram", label: "Instagram" },
@@ -19,8 +21,28 @@ const TABS: { id: AdminTab; label: string }[] = [
   { id: "ia", label: "Busca IA" },
 ];
 
-export default function AdminPage() {
-  const [aba, setAba] = useState<AdminTab>("radios");
+const ABAS = new Set<AdminTab>(TABS.map((t) => t.id));
+
+function abaValida(valor: string | null): AdminTab {
+  if (valor && ABAS.has(valor as AdminTab)) return valor as AdminTab;
+  return "assuntos";
+}
+
+function AdminPageInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [aba, setAba] = useState<AdminTab>(() => abaValida(searchParams.get("aba")));
+
+  useEffect(() => {
+    setAba(abaValida(searchParams.get("aba")));
+  }, [searchParams]);
+
+  function mudarAba(proxima: AdminTab) {
+    setAba(proxima);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("aba", proxima);
+    router.replace(`/admin?${params.toString()}`, { scroll: false });
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -30,8 +52,8 @@ export default function AdminPage() {
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-slate-900">Admin</h1>
           <p className="text-sm text-slate-500">
-            Cadastre palavras-chave, rádios para gravar, canais e perfis. O feed fica na página
-            inicial.
+            Cadastre assuntos uma vez e configure as fontes (rádios, canais, perfis). O feed fica na
+            página inicial.
           </p>
         </div>
 
@@ -40,7 +62,7 @@ export default function AdminPage() {
             <button
               key={tab.id}
               type="button"
-              onClick={() => setAba(tab.id)}
+              onClick={() => mudarAba(tab.id)}
               className={`rounded-t-lg px-4 py-2.5 text-sm font-medium transition ${
                 aba === tab.id
                   ? "border-b-2 border-emerald-700 bg-white text-emerald-800"
@@ -52,8 +74,7 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {aba !== "ia" && <PalavrasChave />}
-
+        {aba === "assuntos" && <PalavrasChave />}
         {aba === "radios" && <AdminRadiosTab />}
         {aba === "youtube" && <AdminYoutubeTab />}
         {aba === "instagram" && <AdminInstagramTab />}
@@ -61,5 +82,20 @@ export default function AdminPage() {
         {aba === "ia" && <AdminBuscaIATab />}
       </main>
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50">
+          <Header subtitle="Configuração das fontes" />
+          <p className="py-20 text-center text-sm text-slate-500">Carregando admin...</p>
+        </div>
+      }
+    >
+      <AdminPageInner />
+    </Suspense>
   );
 }

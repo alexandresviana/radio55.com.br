@@ -4,13 +4,18 @@ import {
   criarPalavraChave,
   listarPalavrasChave,
 } from "@/lib/palavras-chave-db";
+import { syncInstagramPerfisAgora } from "@/lib/instagram-monitor";
+import { syncXBuscasAgora } from "@/lib/x-monitor";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   if (!isDatabaseConfigured()) {
-    return NextResponse.json({ error: "Banco de dados não configurado no servidor", palavras: [] }, { status: 503 });
+    return NextResponse.json(
+      { error: "Banco de dados não configurado no servidor", palavras: [] },
+      { status: 503 },
+    );
   }
 
   const palavras = await listarPalavrasChave();
@@ -19,18 +24,38 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   if (!isDatabaseConfigured()) {
-    return NextResponse.json({ error: "Banco de dados não configurado no servidor" }, { status: 503 });
+    return NextResponse.json(
+      { error: "Banco de dados não configurado no servidor" },
+      { status: 503 },
+    );
   }
 
-  const body = (await request.json()) as { termo?: string };
-  const termo = body.termo?.trim();
+  let body: { termo?: string; coletarInstagram?: boolean; coletarX?: boolean };
+  try {
+    body = (await request.json()) as {
+      termo?: string;
+      coletarInstagram?: boolean;
+      coletarX?: boolean;
+    };
+  } catch {
+    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+  }
 
+  const termo = body.termo?.trim();
   if (!termo) {
     return NextResponse.json({ error: "Informe o termo" }, { status: 400 });
   }
 
   try {
-    const palavra = await criarPalavraChave(termo);
+    const palavra = await criarPalavraChave({
+      termo,
+      coletarInstagram: body.coletarInstagram,
+      coletarX: body.coletarX,
+    });
+
+    if (palavra.coletar_instagram) void syncInstagramPerfisAgora();
+    if (palavra.coletar_x) void syncXBuscasAgora();
+
     return NextResponse.json({ palavra });
   } catch (error) {
     return NextResponse.json(

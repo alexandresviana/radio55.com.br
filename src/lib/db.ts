@@ -122,6 +122,12 @@ export async function initDatabase(): Promise<void> {
         criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
+      ALTER TABLE palavras_chave
+        ADD COLUMN IF NOT EXISTS coletar_instagram BOOLEAN NOT NULL DEFAULT FALSE;
+
+      ALTER TABLE palavras_chave
+        ADD COLUMN IF NOT EXISTS coletar_x BOOLEAN NOT NULL DEFAULT FALSE;
+
       CREATE TABLE IF NOT EXISTS transcricao_progresso (
         caminho TEXT PRIMARY KEY,
         gravacao_id INTEGER REFERENCES gravacao_arquivos(id) ON DELETE CASCADE,
