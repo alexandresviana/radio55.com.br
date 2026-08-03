@@ -58,6 +58,9 @@ async function sincronizarSequences(client: PoolClient): Promise<void> {
     "instagram_posts",
     "instagram_comentarios",
     "instagram_palavra_deteccoes",
+    "x_buscas",
+    "x_posts",
+    "x_palavra_deteccoes",
   ];
 
   for (const tabela of tabelas) {
@@ -317,6 +320,51 @@ export async function initDatabase(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_instagram_deteccoes_detectado_em
         ON instagram_palavra_deteccoes (detectado_em DESC);
 
+      CREATE TABLE IF NOT EXISTS x_buscas (
+        id SERIAL PRIMARY KEY,
+        termo TEXT NOT NULL UNIQUE,
+        ativo BOOLEAN NOT NULL DEFAULT TRUE,
+        ultima_verificacao_em TIMESTAMPTZ,
+        ultimo_erro TEXT,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_x_buscas_ativo
+        ON x_buscas (ativo)
+        WHERE ativo = TRUE;
+
+      CREATE TABLE IF NOT EXISTS x_posts (
+        id SERIAL PRIMARY KEY,
+        busca_id INTEGER REFERENCES x_buscas(id) ON DELETE CASCADE,
+        autor_username TEXT NOT NULL DEFAULT '',
+        autor_nome TEXT NOT NULL DEFAULT '',
+        tweet_id TEXT NOT NULL UNIQUE,
+        url TEXT NOT NULL DEFAULT '',
+        texto TEXT NOT NULL DEFAULT '',
+        publicado_em TIMESTAMPTZ,
+        imagem_url TEXT,
+        curtidas INTEGER,
+        retweets INTEGER,
+        respostas INTEGER,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_x_posts_busca
+        ON x_posts (busca_id, publicado_em DESC);
+
+      CREATE TABLE IF NOT EXISTS x_palavra_deteccoes (
+        id SERIAL PRIMARY KEY,
+        palavra_chave_id INTEGER REFERENCES palavras_chave(id) ON DELETE SET NULL,
+        post_db_id INTEGER NOT NULL REFERENCES x_posts(id) ON DELETE CASCADE,
+        termo TEXT NOT NULL,
+        contexto TEXT NOT NULL DEFAULT '',
+        detectado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_x_deteccoes_detectado_em
+        ON x_palavra_deteccoes (detectado_em DESC);
+
       CREATE TABLE IF NOT EXISTS emissoras_config (
         id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
         dados JSONB NOT NULL,
@@ -355,6 +403,7 @@ export async function initDatabase(): Promise<void> {
  * - gravações/transcrições/detecções de rádio no Postgres
  * - canais YouTube monitorados (+ vídeos/transcrições/detecções)
  * - perfis Instagram monitorados (+ publicações/detecções)
+ * - termos X monitorados (+ posts/detecções)
  *
  * Mantém: emissoras_config, palavras_chave e login (AUTH_*).
  */
@@ -377,6 +426,9 @@ export async function limparBaseDados(): Promise<Record<string, number>> {
       "instagram_posts",
       "instagram_buscas",
       "instagram_perfis",
+      "x_palavra_deteccoes",
+      "x_posts",
+      "x_buscas",
       "palavra_deteccoes",
       "transcricao_segmentos",
       "transcricao_progresso",

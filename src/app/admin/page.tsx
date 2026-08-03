@@ -4,16 +4,18 @@ import { useState } from "react";
 import AdminBuscaIATab from "@/components/AdminBuscaIATab";
 import AdminInstagramTab from "@/components/AdminInstagramTab";
 import AdminRadiosTab from "@/components/AdminRadiosTab";
+import AdminXTab from "@/components/AdminXTab";
 import AdminYoutubeTab from "@/components/AdminYoutubeTab";
 import Header from "@/components/Header";
 import PalavrasChave from "@/components/PalavrasChave";
 
-type AdminTab = "radios" | "youtube" | "instagram" | "ia";
+type AdminTab = "radios" | "youtube" | "instagram" | "x" | "ia";
 
 const TABS: { id: AdminTab; label: string }[] = [
   { id: "radios", label: "Rádios" },
   { id: "youtube", label: "YouTube" },
   { id: "instagram", label: "Instagram" },
+  { id: "x", label: "X" },
   { id: "ia", label: "Busca IA" },
 ];
 
@@ -55,6 +57,7 @@ export default function AdminPage() {
         {aba === "radios" && <AdminRadiosTab />}
         {aba === "youtube" && <AdminYoutubeTab />}
         {aba === "instagram" && <AdminInstagramTab />}
+        {aba === "x" && <AdminXTab />}
         {aba === "ia" && <AdminBuscaIATab />}
       </main>
     </div>

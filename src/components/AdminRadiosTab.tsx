@@ -9,7 +9,20 @@ import { ESTADOS, UF_PADRAO, type Uf } from "@/lib/estados";
 import { getRegioesParaSelect, REGIOES_SUGERIDAS } from "@/lib/regioes";
 import type { EmissorasData, Radio } from "@/types";
 
-const emptyRadio = (): Radio => ({ nome: "", pj: 1, tipo: "comunitaria", gravar: false });
+const emptyRadio = (): Radio => ({
+  nome: "",
+  pj: 1,
+  tipo: "comunitaria",
+  gravar: false,
+  gravarInicio: "",
+  gravarFim: "",
+});
+
+function radioEh24h(radio: Radio): boolean {
+  const inicio = radio.gravarInicio?.trim() ?? "";
+  const fim = radio.gravarFim?.trim() ?? "";
+  return !inicio || !fim || inicio === fim;
+}
 
 export default function AdminRadiosTab() {
   const [emissoras, setEmissoras] = useState<EmissorasData>({});
@@ -93,7 +106,7 @@ export default function AdminRadiosTab() {
 
   async function limparBase() {
     const ok = confirm(
-      "Isso apaga só o monitoramento atual:\n• arquivos gravados (local + armazenamento remoto, se houver)\n• gravações e transcrições de rádio\n• canais YouTube monitorados (e vídeos/transcrições)\n• perfis e termos do Instagram (e publicações/comentários)\n\nMantém: cadastro de emissoras, palavras-chave e login.\n\nContinuar?",
+      "Isso apaga só o monitoramento atual:\n• arquivos gravados (local + armazenamento remoto, se houver)\n• gravações e transcrições de rádio\n• canais YouTube monitorados (e vídeos/transcrições)\n• perfis e termos do Instagram (e publicações/comentários)\n• termos do X (e posts)\n\nMantém: cadastro de emissoras, palavras-chave e login.\n\nContinuar?",
     );
     if (!ok) return;
     const confirmacao = window.prompt("Digite LIMPAR para confirmar:");
@@ -321,7 +334,7 @@ export default function AdminRadiosTab() {
                     key={idx}
                     className="space-y-3 rounded-xl border border-slate-100 bg-slate-50 p-4"
                   >
-                    <div className="grid gap-3 sm:grid-cols-[1fr_80px_140px_120px_auto]">
+                    <div className="grid gap-3 sm:grid-cols-[1fr_80px_140px_auto]">
                       <div>
                         <label className="mb-1 block text-xs text-slate-500">Nome</label>
                         <input
@@ -368,21 +381,6 @@ export default function AdminRadiosTab() {
                         </select>
                       </div>
                       <div className="flex items-end">
-                        <label className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
-                          <input
-                            type="checkbox"
-                            checked={Boolean(radio.gravar)}
-                            onChange={(e) => {
-                              const radios = [...atual.radios];
-                              radios[idx] = { ...radio, gravar: e.target.checked };
-                              atualizarMunicipio(selecionado, { radios });
-                            }}
-                            className="h-4 w-4 rounded border-slate-300 text-emerald-700"
-                          />
-                          <span className="text-slate-700">Gravar</span>
-                        </label>
-                      </div>
-                      <div className="flex items-end">
                         <button
                           type="button"
                           onClick={() => {
@@ -394,6 +392,110 @@ export default function AdminRadiosTab() {
                           Remover
                         </button>
                       </div>
+                    </div>
+
+                    <div className="rounded-lg border border-slate-200 bg-white p-3">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <label className="flex cursor-pointer items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(radio.gravar)}
+                            onChange={(e) => {
+                              const radios = [...atual.radios];
+                              const gravar = e.target.checked;
+                              radios[idx] = gravar
+                                ? {
+                                    ...radio,
+                                    gravar: true,
+                                    gravarInicio: radio.gravarInicio ?? "",
+                                    gravarFim: radio.gravarFim ?? "",
+                                  }
+                                : { ...radio, gravar: false };
+                              atualizarMunicipio(selecionado, { radios });
+                            }}
+                            className="h-4 w-4 rounded border-slate-300 text-emerald-700"
+                          />
+                          <span className="font-medium text-slate-800">Gravar</span>
+                        </label>
+
+                        {radio.gravar && (
+                          <>
+                            <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+                              <input
+                                type="radio"
+                                name={`faixa-${selecionado}-${idx}`}
+                                checked={radioEh24h(radio)}
+                                onChange={() => {
+                                  const radios = [...atual.radios];
+                                  radios[idx] = {
+                                    ...radio,
+                                    gravarInicio: "",
+                                    gravarFim: "",
+                                  };
+                                  atualizarMunicipio(selecionado, { radios });
+                                }}
+                                className="h-4 w-4 border-slate-300 text-emerald-700"
+                              />
+                              24 horas
+                            </label>
+                            <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+                              <input
+                                type="radio"
+                                name={`faixa-${selecionado}-${idx}`}
+                                checked={!radioEh24h(radio)}
+                                onChange={() => {
+                                  const radios = [...atual.radios];
+                                  radios[idx] = {
+                                    ...radio,
+                                    gravarInicio: radio.gravarInicio?.trim() || "06:00",
+                                    gravarFim: radio.gravarFim?.trim() || "22:00",
+                                  };
+                                  atualizarMunicipio(selecionado, { radios });
+                                }}
+                                className="h-4 w-4 border-slate-300 text-emerald-700"
+                              />
+                              Faixa de horário
+                            </label>
+                          </>
+                        )}
+                      </div>
+
+                      {radio.gravar && !radioEh24h(radio) && (
+                        <div className="mt-3 flex flex-wrap items-end gap-3">
+                          <div>
+                            <label className="mb-1 block text-xs text-slate-500">
+                              Início
+                            </label>
+                            <input
+                              type="time"
+                              value={radio.gravarInicio ?? "06:00"}
+                              onChange={(e) => {
+                                const radios = [...atual.radios];
+                                radios[idx] = { ...radio, gravarInicio: e.target.value };
+                                atualizarMunicipio(selecionado, { radios });
+                              }}
+                              className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-xs text-slate-500">Fim</label>
+                            <input
+                              type="time"
+                              value={radio.gravarFim ?? "22:00"}
+                              onChange={(e) => {
+                                const radios = [...atual.radios];
+                                radios[idx] = { ...radio, gravarFim: e.target.value };
+                                atualizarMunicipio(selecionado, { radios });
+                              }}
+                              className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                            />
+                          </div>
+                          <p className="pb-2 text-xs text-slate-400">
+                            Horário de Brasília. Se o fim for menor que o início, atravessa a
+                            meia-noite.
+                          </p>
+                        </div>
+                      )}
                     </div>
 
                     <div>

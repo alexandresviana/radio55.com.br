@@ -3,17 +3,20 @@ import { mkdir, readdir, stat, unlink } from "node:fs/promises";
 import path from "node:path";
 import { getGravacoesDir } from "@/lib/data-dir";
 import { readEmissoras } from "@/lib/emissoras";
+import { radioDeveGravarAgora, rotuloFaixaGravacao } from "@/lib/gravacao-horario";
 import { finalizarGravacao, marcarGravacaoRemovida } from "@/lib/gravacoes-db";
 import { tentarUploadGravacaoPorCaminho } from "@/lib/bunny-storage-uploader";
 import { isBenignFfmpegMessage } from "@/lib/ffmpeg-audio";
 import { formatRecordingFilename, radioOutputDir } from "@/lib/gravacoes-path";
 import { getRadioStream, makeStreamKey, readRadioStreams } from "@/lib/radios-streams";
 import { buildFfmpegStreamInputArgs, probeStreamUrl } from "@/lib/stream-input";
+import type { Radio } from "@/types";
 
 const RECORDINGS_DIR = getGravacoesDir();
 const RETENTION_MS = 24 * 60 * 60 * 1000;
 const CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
-const SYNC_INTERVAL_MS = 5 * 60 * 1000;
+/** Sync frequente o bastante para abrir/fechar faixas de horário perto do minuto certo. */
+const SYNC_INTERVAL_MS = 60 * 1000;
 const RESTART_DELAY_MS = 15_000;
 const ROTATE_MS = Number(process.env.RECORDING_ROTATE_MS ?? 60 * 60 * 1000);
 const GRACEFUL_STOP_TIMEOUT_MS = 12_000;
@@ -35,6 +38,8 @@ export interface RecordingStatus {
   municipio: string;
   nome: string;
   ativo: boolean;
+  faixa: string | null;
+  dentroDaFaixa: boolean;
   streamUrl: string | null;
   diretorio: string;
   arquivos: number;
@@ -143,6 +148,11 @@ class RecorderService {
     }
   }
 
+  private async findRadio(municipio: string, nome: string): Promise<Radio | null> {
+    const emissoras = await readEmissoras();
+    return emissoras[municipio]?.radios.find((radio) => radio.nome === nome) ?? null;
+  }
+
   async sync(): Promise<void> {
     if (this.shuttingDown) return;
 
@@ -151,7 +161,7 @@ class RecorderService {
 
     for (const [municipio, data] of Object.entries(emissoras)) {
       for (const radio of data.radios) {
-        if (!radio.gravar) continue;
+        if (!radioDeveGravarAgora(radio)) continue;
 
         const key = makeStreamKey(municipio, radio.nome);
         desired.add(key);
@@ -202,6 +212,9 @@ class RecorderService {
     const key = makeStreamKey(municipio, nome);
     if (this.recordings.has(key)) return;
 
+    const radio = await this.findRadio(municipio, nome);
+    if (!radio || !radioDeveGravarAgora(radio)) return;
+
     const info = await getRadioStream(municipio, nome);
 
     if (!info?.streamUrl) {
@@ -223,7 +236,7 @@ class RecorderService {
       );
       setTimeout(() => {
         if (!this.shuttingDown) {
-          void this.startOne(municipio, nome);
+          void this.sync();
         }
       }, RESTART_DELAY_MS);
       return;
@@ -321,7 +334,7 @@ class RecorderService {
       }
 
       if (stopReason === "rotate" || stopReason === "restart") {
-        await this.startOne(municipioAtual, nomeAtual);
+        await this.sync();
         return;
       }
 
@@ -338,7 +351,7 @@ class RecorderService {
 
       setTimeout(() => {
         if (!this.shuttingDown) {
-          void this.startOne(municipioAtual, nomeAtual);
+          void this.sync();
         }
       }, RESTART_DELAY_MS);
     });
@@ -408,6 +421,7 @@ class RecorderService {
         if (!radio.gravar) continue;
 
         const key = makeStreamKey(municipio, radio.nome);
+        const dentroDaFaixa = radioDeveGravarAgora(radio);
         let info: Awaited<ReturnType<typeof getRadioStream>> = null;
 
         try {
@@ -421,19 +435,24 @@ class RecorderService {
         const recording = this.recordings.get(key);
         const arquivoAtual = recording ? path.basename(recording.filePath) : null;
         const tamanhoAtualBytes = this.activeFileSizes.get(key) ?? null;
+        const erroAtivo = this.errors.get(key) ?? null;
 
         statuses.push({
           key,
           municipio,
           nome: radio.nome,
           ativo: this.recordings.has(key),
+          faixa: rotuloFaixaGravacao(radio),
+          dentroDaFaixa,
           streamUrl: info?.streamUrl ?? streams?.[key]?.streamUrl ?? null,
           diretorio: outputDir,
           arquivos: files.length,
           ultimoArquivo: arquivoAtual ?? files.at(-1) ?? null,
           arquivoAtual,
           tamanhoAtualBytes,
-          erro: this.errors.get(key) ?? null,
+          erro: dentroDaFaixa
+            ? erroAtivo
+            : erroAtivo ?? `Fora da faixa (${rotuloFaixaGravacao(radio) ?? "—"})`,
         });
       }
     }

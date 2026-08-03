@@ -12,7 +12,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const JANELAS = new Set<JanelaPanorama>(["24h", "7d", "30d"]);
-const FONTES = new Set<FontePanorama | "todas">(["todas", "radio", "youtube", "instagram"]);
+const FONTES = new Set<FontePanorama | "todas">([
+  "todas",
+  "radio",
+  "youtube",
+  "instagram",
+  "x",
+]);
 
 export async function GET(request: NextRequest) {
   if (!isDatabaseConfigured()) {

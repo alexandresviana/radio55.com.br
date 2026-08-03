@@ -6,6 +6,7 @@ export async function register() {
     const { startTranscriptionService } = await import("@/lib/transcription");
     const { startYoutubeMonitorService } = await import("@/lib/youtube-monitor");
     const { startInstagramMonitorService } = await import("@/lib/instagram-monitor");
+    const { startXMonitorService } = await import("@/lib/x-monitor");
     const { startBunnyStorageUploader } = await import("@/lib/bunny-storage-uploader");
     const { readEmissoras } = await import("@/lib/emissoras");
 
@@ -27,6 +28,7 @@ export async function register() {
     void startTranscriptionService();
     void startYoutubeMonitorService();
     void startInstagramMonitorService();
+    void startXMonitorService();
     void startBunnyStorageUploader();
   }
 }

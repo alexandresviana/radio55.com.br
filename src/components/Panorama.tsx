@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-type Fonte = "todas" | "radio" | "youtube" | "instagram";
+type Fonte = "todas" | "radio" | "youtube" | "instagram" | "x";
 type Janela = "24h" | "7d" | "30d";
 
 interface ItemPanorama {
   chave: string;
-  fonte: "radio" | "youtube" | "instagram";
+  fonte: "radio" | "youtube" | "instagram" | "x";
   termo: string;
   contexto: string;
   detectado_em: string;
@@ -23,6 +23,7 @@ interface Contagens {
   radio: number;
   youtube: number;
   instagram: number;
+  x: number;
 }
 
 const JANELAS: { id: Janela; label: string }[] = [
@@ -36,18 +37,21 @@ const FONTES: { id: Fonte; label: string }[] = [
   { id: "radio", label: "Rádio" },
   { id: "youtube", label: "YouTube" },
   { id: "instagram", label: "Instagram" },
+  { id: "x", label: "X" },
 ];
 
 function rotuloFonte(fonte: ItemPanorama["fonte"]): string {
   if (fonte === "radio") return "Rádio";
   if (fonte === "youtube") return "YouTube";
-  return "Instagram";
+  if (fonte === "instagram") return "Instagram";
+  return "X";
 }
 
 function corFonte(fonte: ItemPanorama["fonte"]): string {
   if (fonte === "radio") return "bg-emerald-50 text-emerald-800";
   if (fonte === "youtube") return "bg-red-50 text-red-700";
-  return "bg-fuchsia-50 text-fuchsia-800";
+  if (fonte === "instagram") return "bg-fuchsia-50 text-fuchsia-800";
+  return "bg-sky-50 text-sky-800";
 }
 
 function formatQuando(iso: string): string {
@@ -125,8 +129,8 @@ export default function Panorama() {
       <div>
         <h2 className="text-xl font-bold text-slate-900">O que está rolando?</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Menções recentes ao candidato ou assunto nas rádios, YouTube e Instagram — para bater o
-          olho e saber o que está sendo dito.
+          Menções recentes ao candidato ou assunto nas rádios, YouTube, Instagram e X — para bater
+          o olho e saber o que está sendo dito.
         </p>
       </div>
 
@@ -215,13 +219,14 @@ export default function Panorama() {
       </section>
 
       {contagens && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {(
             [
               { id: "todas" as const, label: "Menções", valor: contagens.total },
               { id: "radio" as const, label: "Rádio", valor: contagens.radio },
               { id: "youtube" as const, label: "YouTube", valor: contagens.youtube },
               { id: "instagram" as const, label: "Instagram", valor: contagens.instagram },
+              { id: "x" as const, label: "X", valor: contagens.x ?? 0 },
             ] as const
           ).map((card) => (
             <button

@@ -9,6 +9,8 @@ interface RecordingStatusItem {
   municipio: string;
   nome: string;
   ativo: boolean;
+  faixa?: string | null;
+  dentroDaFaixa?: boolean;
   arquivos: number;
   arquivoAtual: string | null;
   tamanhoAtualBytes: number | null;
@@ -219,16 +221,25 @@ export default function GravacoesAtivas() {
             >
               <span className="font-medium text-slate-800">
                 {item.nome} · {item.municipio}
+                {item.faixa && (
+                  <span className="ml-2 font-normal text-slate-500">({item.faixa})</span>
+                )}
               </span>
               <span className="flex items-center gap-2 text-xs">
                 <span
                   className={`rounded-full px-2 py-0.5 font-medium ${
                     item.ativo
                       ? "bg-emerald-100 text-emerald-800"
-                      : "bg-red-100 text-red-700"
+                      : item.dentroDaFaixa === false
+                        ? "bg-slate-100 text-slate-600"
+                        : "bg-red-100 text-red-700"
                   }`}
                 >
-                  {item.ativo ? "Gravando" : "Parado"}
+                  {item.ativo
+                    ? "Gravando"
+                    : item.dentroDaFaixa === false
+                      ? "Fora da faixa"
+                      : "Parado"}
                 </span>
                 <span className="text-slate-500">{item.arquivos} arquivo(s)</span>
                 {item.tamanhoAtualBytes != null && (

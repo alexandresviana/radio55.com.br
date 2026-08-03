@@ -174,11 +174,18 @@ function isValidStreamUrl(url: string): boolean {
   }
 }
 
+function isHorarioOpcionalOk(valor: unknown): boolean {
+  if (valor === undefined || valor === "") return true;
+  return typeof valor === "string" && /^([01]\d|2[0-3]):([0-5]\d)$/.test(valor.trim());
+}
+
 function isValidRadio(radio: Radio): boolean {
   const streamOk =
     radio.streamUrl === undefined ||
     (typeof radio.streamUrl === "string" &&
       (radio.streamUrl.trim() === "" || isValidStreamUrl(radio.streamUrl)));
+
+  const faixaOk = isHorarioOpcionalOk(radio.gravarInicio) && isHorarioOpcionalOk(radio.gravarFim);
 
   return (
     typeof radio.nome === "string" &&
@@ -187,6 +194,7 @@ function isValidRadio(radio: Radio): boolean {
     radio.pj >= 0 &&
     (radio.tipo === "comercial" || radio.tipo === "comunitaria") &&
     (radio.gravar === undefined || typeof radio.gravar === "boolean") &&
+    faixaOk &&
     streamOk
   );
 }
