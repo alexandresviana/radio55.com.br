@@ -37,7 +37,8 @@ ENV WHISPER_MODEL=base
 RUN mkdir -p /app/whisper-cache-builtin \
   && HF_HUB_OFFLINE=0 WHISPER_CACHE_DIR=/app/whisper-cache-builtin \
     /opt/whisper/bin/python /app/scripts/download-whisper-model.py \
-  && touch /app/whisper-cache-builtin/.model-ready
+  && touch /app/whisper-cache-builtin/.model-ready \
+  && chmod -R a+rX /app/whisper-cache-builtin /opt/whisper
 
 ENV WHISPER_PYTHON=/opt/whisper/bin/python
 ENV WHISPER_SCRIPT=/app/scripts/transcribe.py
@@ -45,14 +46,18 @@ ENV WHISPER_CACHE_DIR=/app/data/whisper-cache
 ENV HF_HUB_OFFLINE=1
 
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/data ./data
+# Só seeds JSON — evita copiar gravacoes/trechos locais e caches de import
+COPY --from=builder /app/data/emissoras.json /app/data/emissoras.json
+COPY --from=builder /app/data/radios-streams.json /app/data/radios-streams.json
 COPY --from=builder /app/data/emissoras.json /app/data-seed/emissoras.json
 COPY --from=builder /app/data/radios-streams.json /app/data-seed/radios-streams.json
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Não fazer chown -R em /opt/whisper nem no cache do modelo: gera camada enorme
+# e costuma estourar disco/tempo no Coolify. Leitura já é world-readable acima.
 RUN mkdir -p /app/data/gravacoes /app/data/trechos /app/data/whisper-cache /app/data-seed \
-  && chown -R nextjs:nodejs /app/data /app/data-seed /app/whisper-cache-builtin /opt/whisper
+  && chown -R nextjs:nodejs /app/data /app/data-seed
 
 USER nextjs
 EXPOSE 3000

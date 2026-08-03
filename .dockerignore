@@ -6,3 +6,13 @@ node_modules
 *.md
 .DS_Store
 npm-debug.log*
+data/gravacoes
+data/trechos
+data/whisper-cache
+data/.import-cache*
+scripts/__pycache__
+**/__pycache__
+*.pyc
+docs
+.cursor
+agent-transcripts
