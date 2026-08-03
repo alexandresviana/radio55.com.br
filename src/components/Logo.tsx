@@ -61,7 +61,9 @@ export default function Logo({ size = "md", variant = "dark" }: LogoProps) {
       </svg>
       <div className="leading-tight">
         <p className={`font-bold tracking-tight ${s.text} ${textColor}`}>Rádio 55</p>
-        <p className={`text-xs font-medium uppercase tracking-wider ${subColor}`}>Emissoras</p>
+        <p className={`text-xs font-medium uppercase tracking-wider ${subColor}`}>
+          Monitoramento
+        </p>
       </div>
     </div>
   );

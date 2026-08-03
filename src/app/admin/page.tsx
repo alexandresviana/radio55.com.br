@@ -3,16 +3,14 @@
 import { useState } from "react";
 import AdminBuscaIATab from "@/components/AdminBuscaIATab";
 import AdminInstagramTab from "@/components/AdminInstagramTab";
-import AdminPanoramaTab from "@/components/AdminPanoramaTab";
 import AdminRadiosTab from "@/components/AdminRadiosTab";
 import AdminYoutubeTab from "@/components/AdminYoutubeTab";
 import Header from "@/components/Header";
 import PalavrasChave from "@/components/PalavrasChave";
 
-type AdminTab = "panorama" | "radios" | "youtube" | "instagram" | "ia";
+type AdminTab = "radios" | "youtube" | "instagram" | "ia";
 
 const TABS: { id: AdminTab; label: string }[] = [
-  { id: "panorama", label: "O que está rolando?" },
   { id: "radios", label: "Rádios" },
   { id: "youtube", label: "YouTube" },
   { id: "instagram", label: "Instagram" },
@@ -20,18 +18,18 @@ const TABS: { id: AdminTab; label: string }[] = [
 ];
 
 export default function AdminPage() {
-  const [aba, setAba] = useState<AdminTab>("panorama");
+  const [aba, setAba] = useState<AdminTab>("radios");
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Header subtitle="Painel administrativo" />
+      <Header subtitle="Configuração das fontes" />
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-900">Administração</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Admin</h1>
           <p className="text-sm text-slate-500">
-            Veja o que está sendo dito agora e configure as fontes nas abas de rádio, YouTube e
-            Instagram.
+            Cadastre palavras-chave, rádios para gravar, canais e perfis. O feed fica na página
+            inicial.
           </p>
         </div>
 
@@ -52,9 +50,8 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {aba !== "ia" && aba !== "panorama" && <PalavrasChave />}
+        {aba !== "ia" && <PalavrasChave />}
 
-        {aba === "panorama" && <AdminPanoramaTab />}
         {aba === "radios" && <AdminRadiosTab />}
         {aba === "youtube" && <AdminYoutubeTab />}
         {aba === "instagram" && <AdminInstagramTab />}

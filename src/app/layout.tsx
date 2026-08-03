@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Rádio 55 — Mapa de Emissoras",
-  description: "Mapa interativo de emissoras de rádio e programas jornalísticos.",
+  title: "Rádio 55 — O que está rolando?",
+  description:
+    "Monitoramento de menções em rádios, YouTube e Instagram na mídia regional.",
   icons: { icon: "/icon.svg" },
 };
 

@@ -67,7 +67,7 @@ function formatQuando(iso: string): string {
   });
 }
 
-export default function AdminPanoramaTab() {
+export default function Panorama() {
   const [assunto, setAssunto] = useState("");
   const [assuntoAplicado, setAssuntoAplicado] = useState("");
   const [assuntos, setAssuntos] = useState<string[]>([]);
@@ -280,7 +280,7 @@ export default function AdminPanoramaTab() {
             <p className="mt-1 text-sm text-slate-500">
               {assuntoAplicado
                 ? `Sem menções a “${assuntoAplicado}” no período. Amplie o período ou cadastre mais fontes.`
-                : "Cadastre palavras-chave e fontes nas outras abas; as menções aparecem aqui."}
+                : "Cadastre palavras-chave e fontes no Admin; as menções aparecem aqui."}
             </p>
           </div>
         ) : (

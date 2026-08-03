@@ -19,32 +19,41 @@ export default function Header({ subtitle }: HeaderProps) {
   }
 
   const links = [
-    { href: "/", label: "Mapa" },
+    { href: "/", label: "O que está rolando?" },
+    { href: "/mapa", label: "Mapa" },
     { href: "/admin", label: "Admin" },
   ];
 
+  function linkAtivo(href: string): boolean {
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
+
   return (
     <header className="border-b border-emerald-900/20 bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
         <div className="min-w-0">
-          <Logo variant="light" />
+          <Link href="/" className="inline-block">
+            <Logo variant="light" />
+          </Link>
           {subtitle && (
             <p className="mt-1 truncate text-sm text-emerald-200/70">{subtitle}</p>
           )}
         </div>
 
-        <nav className="flex items-center gap-2 sm:gap-3">
+        <nav className="flex flex-wrap items-center gap-2 sm:gap-3">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
-                pathname === link.href
+                linkAtivo(link.href)
                   ? "bg-emerald-700/50 text-white"
                   : "text-emerald-100/80 hover:bg-white/10 hover:text-white"
               }`}
             >
-              {link.label}
+              <span className="sm:hidden">{link.href === "/" ? "Rolando" : link.label}</span>
+              <span className="hidden sm:inline">{link.label}</span>
             </Link>
           ))}
           <button
