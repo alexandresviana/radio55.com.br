@@ -53,6 +53,11 @@ async function sincronizarSequences(client: PoolClient): Promise<void> {
     "youtube_videos",
     "youtube_transcricao_segmentos",
     "youtube_palavra_deteccoes",
+    "instagram_perfis",
+    "instagram_buscas",
+    "instagram_posts",
+    "instagram_comentarios",
+    "instagram_palavra_deteccoes",
   ];
 
   for (const tabela of tabelas) {
@@ -62,8 +67,9 @@ async function sincronizarSequences(client: PoolClient): Promise<void> {
        BEGIN
          seq := pg_get_serial_sequence('${tabela}', 'id');
          IF seq IS NOT NULL THEN
+           -- Tabela vazia: setval(seq, 1, false) faz o próximo id ser 1 (setval 0 é inválido).
            EXECUTE format(
-             'SELECT setval(%L, COALESCE((SELECT MAX(id) FROM ${tabela}), 0))',
+             'SELECT setval(%L, COALESCE((SELECT MAX(id) FROM ${tabela}), 1), (SELECT MAX(id) IS NOT NULL FROM ${tabela}))',
              seq
            );
          END IF;
@@ -217,6 +223,100 @@ export async function initDatabase(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_youtube_deteccoes_detectado_em
         ON youtube_palavra_deteccoes (detectado_em DESC);
 
+      CREATE TABLE IF NOT EXISTS instagram_perfis (
+        id SERIAL PRIMARY KEY,
+        username TEXT NOT NULL UNIQUE,
+        titulo TEXT NOT NULL DEFAULT '',
+        url_entrada TEXT NOT NULL DEFAULT '',
+        ativo BOOLEAN NOT NULL DEFAULT TRUE,
+        ultima_verificacao_em TIMESTAMPTZ,
+        ultimo_erro TEXT,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_instagram_perfis_ativo
+        ON instagram_perfis (ativo)
+        WHERE ativo = TRUE;
+
+      CREATE TABLE IF NOT EXISTS instagram_buscas (
+        id SERIAL PRIMARY KEY,
+        termo TEXT NOT NULL UNIQUE,
+        ativo BOOLEAN NOT NULL DEFAULT TRUE,
+        ultima_verificacao_em TIMESTAMPTZ,
+        ultimo_erro TEXT,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_instagram_buscas_ativo
+        ON instagram_buscas (ativo)
+        WHERE ativo = TRUE;
+
+      CREATE TABLE IF NOT EXISTS instagram_posts (
+        id SERIAL PRIMARY KEY,
+        perfil_id INTEGER REFERENCES instagram_perfis(id) ON DELETE CASCADE,
+        busca_id INTEGER REFERENCES instagram_buscas(id) ON DELETE CASCADE,
+        owner_username TEXT NOT NULL DEFAULT '',
+        post_id TEXT NOT NULL UNIQUE,
+        short_code TEXT NOT NULL DEFAULT '',
+        url TEXT NOT NULL DEFAULT '',
+        tipo TEXT NOT NULL DEFAULT '',
+        legenda TEXT NOT NULL DEFAULT '',
+        publicado_em TIMESTAMPTZ,
+        video_url TEXT,
+        imagem_url TEXT,
+        curtidas INTEGER,
+        comentarios INTEGER,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      ALTER TABLE instagram_posts
+        ALTER COLUMN perfil_id DROP NOT NULL;
+
+      ALTER TABLE instagram_posts
+        ADD COLUMN IF NOT EXISTS busca_id INTEGER REFERENCES instagram_buscas(id) ON DELETE CASCADE;
+
+      ALTER TABLE instagram_posts
+        ADD COLUMN IF NOT EXISTS owner_username TEXT NOT NULL DEFAULT '';
+
+      ALTER TABLE instagram_posts
+        ADD COLUMN IF NOT EXISTS comentarios_coletados_em TIMESTAMPTZ;
+
+      CREATE INDEX IF NOT EXISTS idx_instagram_posts_perfil
+        ON instagram_posts (perfil_id, publicado_em DESC);
+
+      CREATE INDEX IF NOT EXISTS idx_instagram_posts_busca
+        ON instagram_posts (busca_id, publicado_em DESC);
+
+      CREATE TABLE IF NOT EXISTS instagram_comentarios (
+        id SERIAL PRIMARY KEY,
+        post_db_id INTEGER NOT NULL REFERENCES instagram_posts(id) ON DELETE CASCADE,
+        comentario_id TEXT NOT NULL UNIQUE,
+        autor_username TEXT NOT NULL DEFAULT '',
+        texto TEXT NOT NULL DEFAULT '',
+        publicado_em TIMESTAMPTZ,
+        curtidas INTEGER,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_instagram_comentarios_post
+        ON instagram_comentarios (post_db_id, publicado_em DESC);
+
+      CREATE TABLE IF NOT EXISTS instagram_palavra_deteccoes (
+        id SERIAL PRIMARY KEY,
+        palavra_chave_id INTEGER REFERENCES palavras_chave(id) ON DELETE SET NULL,
+        post_db_id INTEGER NOT NULL REFERENCES instagram_posts(id) ON DELETE CASCADE,
+        termo TEXT NOT NULL,
+        contexto TEXT NOT NULL DEFAULT '',
+        detectado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      ALTER TABLE instagram_palavra_deteccoes
+        ADD COLUMN IF NOT EXISTS comentario_db_id INTEGER REFERENCES instagram_comentarios(id) ON DELETE CASCADE;
+
+      CREATE INDEX IF NOT EXISTS idx_instagram_deteccoes_detectado_em
+        ON instagram_palavra_deteccoes (detectado_em DESC);
+
       CREATE TABLE IF NOT EXISTS emissoras_config (
         id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
         dados JSONB NOT NULL,
@@ -254,6 +354,7 @@ export async function initDatabase(): Promise<void> {
  * - uploads no Bunny Storage (quando houver bunny_path)
  * - gravações/transcrições/detecções de rádio no Postgres
  * - canais YouTube monitorados (+ vídeos/transcrições/detecções)
+ * - perfis Instagram monitorados (+ publicações/detecções)
  *
  * Mantém: emissoras_config, palavras_chave e login (AUTH_*).
  */
@@ -271,6 +372,11 @@ export async function limparBaseDados(): Promise<Record<string, number>> {
       "youtube_transcricao_segmentos",
       "youtube_videos",
       "youtube_canais",
+      "instagram_palavra_deteccoes",
+      "instagram_comentarios",
+      "instagram_posts",
+      "instagram_buscas",
+      "instagram_perfis",
       "palavra_deteccoes",
       "transcricao_segmentos",
       "transcricao_progresso",

@@ -275,7 +275,7 @@ export default function GravacoesArquivos() {
                     ) : (
                       <span
                         className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600"
-                        title="Aguardando envio ao Bunny Storage"
+                        title="Aguardando envio ao armazenamento remoto"
                       >
                         Enviando...
                       </span>

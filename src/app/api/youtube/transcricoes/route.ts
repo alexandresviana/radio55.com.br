@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   if (!isDatabaseConfigured()) {
-    return NextResponse.json({ error: "DATABASE_URL não configurado", segmentos: [] }, { status: 503 });
+    return NextResponse.json({ error: "Banco de dados não configurado no servidor", segmentos: [] }, { status: 503 });
   }
 
   const videoDbId = Number(request.nextUrl.searchParams.get("video_db_id"));

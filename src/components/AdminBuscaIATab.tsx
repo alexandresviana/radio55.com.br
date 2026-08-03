@@ -27,7 +27,6 @@ export default function AdminBuscaIATab() {
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
   const [disponivel, setDisponivel] = useState<boolean | null>(null);
-  const [modelo, setModelo] = useState("");
   const [porPagina, setPorPagina] = useState(20);
   const [resposta, setResposta] = useState("");
   const [interpretacao, setInterpretacao] = useState<ConsultaInterpretada | null>(null);
@@ -42,9 +41,8 @@ export default function AdminBuscaIATab() {
   useEffect(() => {
     void fetch("/api/ai/busca")
       .then((res) => res.json())
-      .then((data: { disponivel?: boolean; modelo?: string; porPagina?: number }) => {
+      .then((data: { disponivel?: boolean; porPagina?: number }) => {
         setDisponivel(Boolean(data.disponivel));
-        setModelo(data.modelo ?? "");
         if (typeof data.porPagina === "number" && data.porPagina > 0) {
           setPorPagina(data.porPagina);
         }
@@ -141,19 +139,14 @@ export default function AdminBuscaIATab() {
         <h2 className="text-xl font-bold text-slate-900">Busca com IA</h2>
         <p className="mt-1 text-sm text-slate-500">
           Faça perguntas em linguagem natural sobre transcrições das rádios e legendas do YouTube.
-          {modelo && (
-            <span className="ml-1 text-slate-400">Modelo: {modelo}</span>
-          )}
           <span className="ml-1 text-slate-400">· {porPagina} trechos/página</span>
         </p>
       </div>
 
       {disponivel === false && (
         <p className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Configure <code className="text-xs">OPENAI_API_KEY</code> no servidor para ativar esta aba.
-          Opcional: <code className="text-xs">OPENAI_MODEL</code>,{" "}
-          <code className="text-xs">OPENAI_BASE_URL</code> e{" "}
-          <code className="text-xs">AI_BUSCA_LIMITE</code> (trechos por página, padrão 20).
+          A busca inteligente não está ativa neste servidor. Fale com o administrador do sistema
+          para habilitá-la.
         </p>
       )}
 

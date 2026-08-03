@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isDatabaseConfigured } from "@/lib/db";
-import { atualizarYoutubeCanal, removerYoutubeCanal } from "@/lib/youtube-db";
+import { atualizarInstagramPerfil, removerInstagramPerfil } from "@/lib/instagram-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,12 +26,12 @@ export async function PATCH(
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  const canal = await atualizarYoutubeCanal(id, body);
-  if (!canal) {
-    return NextResponse.json({ error: "Canal não encontrado" }, { status: 404 });
+  const perfil = await atualizarInstagramPerfil(id, body);
+  if (!perfil) {
+    return NextResponse.json({ error: "Perfil não encontrado" }, { status: 404 });
   }
 
-  return NextResponse.json({ canal });
+  return NextResponse.json({ perfil });
 }
 
 export async function DELETE(
@@ -48,9 +48,9 @@ export async function DELETE(
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
   }
 
-  const removed = await removerYoutubeCanal(id);
+  const removed = await removerInstagramPerfil(id);
   if (!removed) {
-    return NextResponse.json({ error: "Canal não encontrado" }, { status: 404 });
+    return NextResponse.json({ error: "Perfil não encontrado" }, { status: 404 });
   }
 
   return NextResponse.json({ ok: true });

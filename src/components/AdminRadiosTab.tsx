@@ -93,7 +93,7 @@ export default function AdminRadiosTab() {
 
   async function limparBase() {
     const ok = confirm(
-      "Isso apaga só o monitoramento atual:\n• arquivos gravados (disco + Bunny, se houver)\n• gravações e transcrições de rádio\n• canais YouTube monitorados (e vídeos/transcrições)\n\nMantém: cadastro de emissoras, palavras-chave e login.\n\nContinuar?",
+      "Isso apaga só o monitoramento atual:\n• arquivos gravados (local + armazenamento remoto, se houver)\n• gravações e transcrições de rádio\n• canais YouTube monitorados (e vídeos/transcrições)\n• perfis e termos do Instagram (e publicações/comentários)\n\nMantém: cadastro de emissoras, palavras-chave e login.\n\nContinuar?",
     );
     if (!ok) return;
     const confirmacao = window.prompt("Digite LIMPAR para confirmar:");

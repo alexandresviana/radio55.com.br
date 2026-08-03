@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   if (!isDatabaseConfigured()) {
     return NextResponse.json(
-      { error: "DATABASE_URL não configurado", monitor: getYoutubeMonitorStatus(), previews: [] },
+      { error: "Banco de dados não configurado no servidor", monitor: getYoutubeMonitorStatus(), previews: [] },
       { status: 503 },
     );
   }

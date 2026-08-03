@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isDatabaseConfigured } from "@/lib/db";
-import { atualizarYoutubeCanal, removerYoutubeCanal } from "@/lib/youtube-db";
+import { atualizarInstagramBusca, removerInstagramBusca } from "@/lib/instagram-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,19 +19,19 @@ export async function PATCH(
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
   }
 
-  let body: { ativo?: boolean; titulo?: string };
+  let body: { ativo?: boolean };
   try {
-    body = (await request.json()) as { ativo?: boolean; titulo?: string };
+    body = (await request.json()) as { ativo?: boolean };
   } catch {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  const canal = await atualizarYoutubeCanal(id, body);
-  if (!canal) {
-    return NextResponse.json({ error: "Canal não encontrado" }, { status: 404 });
+  const busca = await atualizarInstagramBusca(id, body);
+  if (!busca) {
+    return NextResponse.json({ error: "Termo não encontrado" }, { status: 404 });
   }
 
-  return NextResponse.json({ canal });
+  return NextResponse.json({ busca });
 }
 
 export async function DELETE(
@@ -48,9 +48,9 @@ export async function DELETE(
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
   }
 
-  const removed = await removerYoutubeCanal(id);
+  const removed = await removerInstagramBusca(id);
   if (!removed) {
-    return NextResponse.json({ error: "Canal não encontrado" }, { status: 404 });
+    return NextResponse.json({ error: "Termo não encontrado" }, { status: 404 });
   }
 
   return NextResponse.json({ ok: true });

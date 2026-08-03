@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   if (!isDatabaseConfigured()) {
-    return NextResponse.json({ error: "DATABASE_URL não configurado", canais: [] }, { status: 503 });
+    return NextResponse.json({ error: "Banco de dados não configurado no servidor", canais: [] }, { status: 503 });
   }
 
   const canais = await listarYoutubeCanais();
@@ -18,7 +18,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   if (!isDatabaseConfigured()) {
-    return NextResponse.json({ error: "DATABASE_URL não configurado" }, { status: 503 });
+    return NextResponse.json({ error: "Banco de dados não configurado no servidor" }, { status: 503 });
   }
 
   let body: { url?: string };

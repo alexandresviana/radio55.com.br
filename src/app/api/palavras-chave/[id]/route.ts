@@ -13,7 +13,7 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> },
 ) {
   if (!isDatabaseConfigured()) {
-    return NextResponse.json({ error: "DATABASE_URL não configurado" }, { status: 503 });
+    return NextResponse.json({ error: "Banco de dados não configurado no servidor" }, { status: 503 });
   }
 
   const { id: idParam } = await context.params;
@@ -40,7 +40,7 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> },
 ) {
   if (!isDatabaseConfigured()) {
-    return NextResponse.json({ error: "DATABASE_URL não configurado" }, { status: 503 });
+    return NextResponse.json({ error: "Banco de dados não configurado no servidor" }, { status: 503 });
   }
 
   const { id: idParam } = await context.params;

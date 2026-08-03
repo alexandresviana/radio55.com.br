@@ -2,21 +2,25 @@
 
 import { useState } from "react";
 import AdminBuscaIATab from "@/components/AdminBuscaIATab";
+import AdminInstagramTab from "@/components/AdminInstagramTab";
+import AdminPanoramaTab from "@/components/AdminPanoramaTab";
 import AdminRadiosTab from "@/components/AdminRadiosTab";
 import AdminYoutubeTab from "@/components/AdminYoutubeTab";
 import Header from "@/components/Header";
 import PalavrasChave from "@/components/PalavrasChave";
 
-type AdminTab = "radios" | "youtube" | "ia";
+type AdminTab = "panorama" | "radios" | "youtube" | "instagram" | "ia";
 
 const TABS: { id: AdminTab; label: string }[] = [
+  { id: "panorama", label: "O que está rolando?" },
   { id: "radios", label: "Rádios" },
   { id: "youtube", label: "YouTube" },
+  { id: "instagram", label: "Instagram" },
   { id: "ia", label: "Busca IA" },
 ];
 
 export default function AdminPage() {
-  const [aba, setAba] = useState<AdminTab>("radios");
+  const [aba, setAba] = useState<AdminTab>("panorama");
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -26,7 +30,8 @@ export default function AdminPage() {
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-slate-900">Administração</h1>
           <p className="text-sm text-slate-500">
-            Monitore rádios ao vivo, canais do YouTube e pesquise transcrições com IA.
+            Veja o que está sendo dito agora e configure as fontes nas abas de rádio, YouTube e
+            Instagram.
           </p>
         </div>
 
@@ -47,10 +52,12 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {aba !== "ia" && <PalavrasChave />}
+        {aba !== "ia" && aba !== "panorama" && <PalavrasChave />}
 
+        {aba === "panorama" && <AdminPanoramaTab />}
         {aba === "radios" && <AdminRadiosTab />}
         {aba === "youtube" && <AdminYoutubeTab />}
+        {aba === "instagram" && <AdminInstagramTab />}
         {aba === "ia" && <AdminBuscaIATab />}
       </main>
     </div>

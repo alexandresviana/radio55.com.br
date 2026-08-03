@@ -9,12 +9,12 @@ export const maxDuration = 120;
 
 export async function POST(request: NextRequest) {
   if (!isDatabaseConfigured()) {
-    return NextResponse.json({ error: "DATABASE_URL não configurado" }, { status: 503 });
+    return NextResponse.json({ error: "Banco de dados não configurado no servidor" }, { status: 503 });
   }
 
   if (!isAiConfigured()) {
     return NextResponse.json(
-      { error: "Configure OPENAI_API_KEY para usar a busca com IA" },
+      { error: "A busca inteligente não está ativa neste servidor" },
       { status: 503 },
     );
   }
@@ -60,7 +60,6 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     disponivel: isAiConfigured() && isDatabaseConfigured(),
-    modelo: process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini",
     porPagina: getLimitePorPaginaIA(),
   });
 }
