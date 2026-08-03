@@ -48,30 +48,43 @@ export default function BuscaTranscricoes() {
 
       setLoading(true);
       setErro("");
+      setBuscou(true);
 
-      const params = new URLSearchParams();
-      params.set("termo", termoAtual);
-      params.set("limite", String(POR_PAGINA_ADMIN));
-      params.set("offset", String(paginaAtual * POR_PAGINA_ADMIN));
+      try {
+        const params = new URLSearchParams();
+        params.set("termo", termoAtual);
+        params.set("limite", String(POR_PAGINA_ADMIN));
+        params.set("offset", String(paginaAtual * POR_PAGINA_ADMIN));
 
-      const res = await fetch(`/api/transcricoes/busca?${params}`);
-      const data = (await res.json()) as {
-        resultados?: ResultadoItem[];
-        total?: number;
-        error?: string;
-      };
+        const res = await fetch(`/api/transcricoes/busca?${params}`, {
+          signal: AbortSignal.timeout(20_000),
+        });
+        const data = (await res.json().catch(() => ({}))) as {
+          resultados?: ResultadoItem[];
+          total?: number;
+          error?: string;
+        };
 
-      if (!res.ok) {
-        setErro(data.error ?? "Erro ao buscar nas transcrições");
+        if (!res.ok) {
+          setErro(data.error ?? "Erro ao buscar nas transcrições");
+          setResultados([]);
+          setTotal(0);
+        } else {
+          setResultados(data.resultados ?? []);
+          setTotal(data.total ?? 0);
+        }
+      } catch (error) {
+        const timeout = error instanceof DOMException && error.name === "TimeoutError";
+        setErro(
+          timeout
+            ? "A busca demorou demais. Tente novamente com um termo mais específico."
+            : "Erro de conexão ao buscar nas transcrições",
+        );
         setResultados([]);
         setTotal(0);
-      } else {
-        setResultados(data.resultados ?? []);
-        setTotal(data.total ?? 0);
-        setBuscou(true);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     },
     [pagina, termoBusca],
   );

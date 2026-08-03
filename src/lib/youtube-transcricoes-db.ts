@@ -126,12 +126,26 @@ export interface YoutubeTranscricaoBuscaResultado {
   publicado_em: string | null;
 }
 
-function termoBuscaSql(termo: string): { ilike: string; normalizado: string } {
+function termoBuscaSql(termo: string): {
+  ilike: string;
+  normalizado: string;
+  precisaAcento: boolean;
+} {
   const trimmed = termo.trim();
+  const normalizado = normalizeText(trimmed);
   return {
     ilike: `%${trimmed}%`,
-    normalizado: `%${normalizeText(trimmed)}%`,
+    normalizado: `%${normalizado}%`,
+    precisaAcento: normalizado !== trimmed.toLowerCase().replace(/\s+/g, " "),
   };
+}
+
+function filtroTextoYoutube(precisaAcento: boolean): string {
+  if (!precisaAcento) return "s.texto ILIKE $1";
+  return `(
+    s.texto ILIKE $1
+    OR translate(lower(s.texto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $2
+  )`;
 }
 
 export async function contarBuscaNasTranscricoesYoutube(termo: string): Promise<number> {
@@ -144,11 +158,8 @@ export async function contarBuscaNasTranscricoesYoutube(termo: string): Promise<
      FROM youtube_transcricao_segmentos s
      JOIN youtube_videos v ON v.id = s.video_db_id
      WHERE v.status = 'concluido'
-       AND (
-         s.texto ILIKE $1
-         OR translate(lower(s.texto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $2
-       )`,
-    [busca.ilike, busca.normalizado],
+       AND ${filtroTextoYoutube(busca.precisaAcento)}`,
+    busca.precisaAcento ? [busca.ilike, busca.normalizado] : [busca.ilike],
   );
 
   return Number(result.rows[0]?.total ?? 0);
@@ -180,13 +191,12 @@ export async function buscarNasTranscricoesYoutube(params: {
      JOIN youtube_videos v ON v.id = s.video_db_id
      JOIN youtube_canais c ON c.id = v.canal_id
      WHERE v.status = 'concluido'
-       AND (
-         s.texto ILIKE $1
-         OR translate(lower(s.texto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $2
-       )
+       AND ${filtroTextoYoutube(busca.precisaAcento)}
      ORDER BY v.publicado_em DESC NULLS LAST, s.inicio_segundos ASC
-     LIMIT $3 OFFSET $4`,
-    [busca.ilike, busca.normalizado, limite, offset],
+     LIMIT $${busca.precisaAcento ? 3 : 2} OFFSET $${busca.precisaAcento ? 4 : 3}`,
+    busca.precisaAcento
+      ? [busca.ilike, busca.normalizado, limite, offset]
+      : [busca.ilike, limite, offset],
   );
 
   return result.rows.map((row) => ({

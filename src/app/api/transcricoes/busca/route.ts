@@ -23,10 +23,32 @@ export async function GET(request: NextRequest) {
   const limite = params.get("limite") ? Number(params.get("limite")) : 30;
   const offset = params.get("offset") ? Number(params.get("offset")) : 0;
 
-  const [resultados, total] = await Promise.all([
-    buscarNasTranscricoes({ termo, limite, offset }),
-    contarBuscaNasTranscricoes(termo),
-  ]);
+  try {
+    const [resultados, total] = await Promise.all([
+      buscarNasTranscricoes({ termo, limite, offset }),
+      contarBuscaNasTranscricoes(termo),
+    ]);
 
-  return NextResponse.json({ resultados, total, limite, offset, termo });
+    return NextResponse.json({ resultados, total, limite, offset, termo });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Erro ao buscar";
+    const timeout =
+      /statement timeout|canceling statement/i.test(message) ||
+      (typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        String((error as { code?: string }).code) === "57014");
+
+    console.error("[transcricoes/busca]", message);
+    return NextResponse.json(
+      {
+        error: timeout
+          ? "A busca demorou demais. Tente um termo mais específico."
+          : "Erro ao buscar nas transcrições",
+        resultados: [],
+        total: 0,
+      },
+      { status: timeout ? 504 : 500 },
+    );
+  }
 }

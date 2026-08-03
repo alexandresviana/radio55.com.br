@@ -1,3 +1,4 @@
+import type { PoolClient } from "pg";
 import { getPool, isDatabaseConfigured, isPgUniqueViolation } from "@/lib/db";
 import { formatHorarioGravacao, normalizeText } from "@/lib/text-normalize";
 
@@ -148,19 +149,40 @@ export interface TranscricaoBuscaResultado {
   em_gravacao: boolean;
 }
 
-function termoBuscaSql(termo: string): { ilike: string; normalizado: string } {
+function termoBuscaSql(termo: string): {
+  ilike: string;
+  normalizado: string;
+  precisaAcento: boolean;
+} {
   const trimmed = termo.trim();
+  const normalizado = normalizeText(trimmed);
   return {
     ilike: `%${trimmed}%`,
-    normalizado: `%${normalizeText(trimmed)}%`,
+    normalizado: `%${normalizado}%`,
+    // Só aplica translate() (seq scan caro) quando o termo tem acento.
+    precisaAcento: normalizado !== trimmed.toLowerCase().replace(/\s+/g, " "),
   };
 }
 
-function filtroTextoSegmento(alias: string): string {
+function filtroTextoSegmento(alias: string, precisaAcento: boolean): string {
+  if (!precisaAcento) {
+    return `${alias}.texto ILIKE $1`;
+  }
   return `(
     ${alias}.texto ILIKE $1
     OR translate(lower(${alias}.texto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $2
   )`;
+}
+
+async function comTimeoutBusca<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
+  const client = await getPool().connect();
+  try {
+    // Evita a UI ficar em "Buscando..." para sempre em tabelas grandes.
+    await client.query("SET LOCAL statement_timeout = '12s'");
+    return await fn(client);
+  } finally {
+    client.release();
+  }
 }
 
 export async function contarBuscaNasTranscricoes(termo: string): Promise<number> {
@@ -168,16 +190,17 @@ export async function contarBuscaNasTranscricoes(termo: string): Promise<number>
 
   const busca = termoBuscaSql(termo);
 
-  const result = await getPool().query<{ total: string }>(
-    `SELECT COUNT(*)::text AS total
-     FROM transcricao_segmentos s
-     JOIN gravacao_arquivos g ON g.id = s.gravacao_id
-     WHERE g.removido_em IS NULL
-       AND ${filtroTextoSegmento("s")}`,
-    [busca.ilike, busca.normalizado],
-  );
-
-  return Number(result.rows[0]?.total ?? 0);
+  return comTimeoutBusca(async (client) => {
+    const result = await client.query<{ total: string }>(
+      `SELECT COUNT(*)::text AS total
+       FROM transcricao_segmentos s
+       JOIN gravacao_arquivos g ON g.id = s.gravacao_id
+       WHERE g.removido_em IS NULL
+         AND ${filtroTextoSegmento("s", busca.precisaAcento)}`,
+      busca.precisaAcento ? [busca.ilike, busca.normalizado] : [busca.ilike],
+    );
+    return Number(result.rows[0]?.total ?? 0);
+  });
 }
 
 export async function buscarNasTranscricoes(params: {
@@ -191,39 +214,43 @@ export async function buscarNasTranscricoes(params: {
   const offset = Math.max(params.offset ?? 0, 0);
   const busca = termoBuscaSql(params.termo);
 
-  const result = await getPool().query<
-    TranscricaoBuscaResultado & { gravado_em: Date; em_gravacao: boolean }
-  >(
-    `SELECT
-       s.id,
-       s.gravacao_id,
-       s.inicio_segundos,
-       s.fim_segundos,
-       s.texto,
-       g.municipio,
-       g.radio_nome,
-       g.arquivo,
-       g.gravado_em,
-       g.em_gravacao
-     FROM transcricao_segmentos s
-     JOIN gravacao_arquivos g ON g.id = s.gravacao_id
-     WHERE g.removido_em IS NULL
-       AND ${filtroTextoSegmento("s")}
-     ORDER BY g.gravado_em DESC, s.inicio_segundos ASC
-     LIMIT $3 OFFSET $4`,
-    [busca.ilike, busca.normalizado, limite, offset],
-  );
+  return comTimeoutBusca(async (client) => {
+    const result = await client.query<
+      TranscricaoBuscaResultado & { gravado_em: Date; em_gravacao: boolean }
+    >(
+      `SELECT
+         s.id,
+         s.gravacao_id,
+         s.inicio_segundos,
+         s.fim_segundos,
+         s.texto,
+         g.municipio,
+         g.radio_nome,
+         g.arquivo,
+         g.gravado_em,
+         g.em_gravacao
+       FROM transcricao_segmentos s
+       JOIN gravacao_arquivos g ON g.id = s.gravacao_id
+       WHERE g.removido_em IS NULL
+         AND ${filtroTextoSegmento("s", busca.precisaAcento)}
+       ORDER BY g.gravado_em DESC, s.inicio_segundos ASC
+       LIMIT $${busca.precisaAcento ? 3 : 2} OFFSET $${busca.precisaAcento ? 4 : 3}`,
+      busca.precisaAcento
+        ? [busca.ilike, busca.normalizado, limite, offset]
+        : [busca.ilike, limite, offset],
+    );
 
-  return result.rows.map((row) => ({
-    id: row.id,
-    gravacao_id: row.gravacao_id,
-    inicio_segundos: Number(row.inicio_segundos),
-    fim_segundos: Number(row.fim_segundos),
-    texto: row.texto,
-    municipio: row.municipio,
-    radio_nome: row.radio_nome,
-    arquivo: row.arquivo,
-    gravado_em: new Date(row.gravado_em).toISOString(),
-    em_gravacao: Boolean(row.em_gravacao),
-  }));
+    return result.rows.map((row) => ({
+      id: row.id,
+      gravacao_id: row.gravacao_id,
+      inicio_segundos: Number(row.inicio_segundos),
+      fim_segundos: Number(row.fim_segundos),
+      texto: row.texto,
+      municipio: row.municipio,
+      radio_nome: row.radio_nome,
+      arquivo: row.arquivo,
+      gravado_em: new Date(row.gravado_em).toISOString(),
+      em_gravacao: Boolean(row.em_gravacao),
+    }));
+  });
 }

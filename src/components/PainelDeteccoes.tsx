@@ -47,28 +47,41 @@ export default function PainelDeteccoes() {
       const paginaAtual = opts?.pagina ?? pagina;
       const termoAtual = opts?.termo ?? termoBusca;
 
-      const params = new URLSearchParams();
-      if (termoAtual.trim()) params.set("termo", termoAtual.trim());
-      params.set("limite", String(POR_PAGINA_ADMIN));
-      params.set("offset", String(paginaAtual * POR_PAGINA_ADMIN));
+      try {
+        const params = new URLSearchParams();
+        if (termoAtual.trim()) params.set("termo", termoAtual.trim());
+        params.set("limite", String(POR_PAGINA_ADMIN));
+        params.set("offset", String(paginaAtual * POR_PAGINA_ADMIN));
 
-      const res = await fetch(`/api/deteccoes?${params}`);
-      const data = (await res.json()) as {
-        deteccoes?: DeteccaoItem[];
-        total?: number;
-        error?: string;
-      };
+        const res = await fetch(`/api/deteccoes?${params}`, {
+          signal: AbortSignal.timeout(20_000),
+        });
+        const data = (await res.json().catch(() => ({}))) as {
+          deteccoes?: DeteccaoItem[];
+          total?: number;
+          error?: string;
+        };
 
-      if (!res.ok) {
-        setErro(data.error ?? "Erro ao buscar detecções");
+        if (!res.ok) {
+          setErro(data.error ?? "Erro ao buscar detecções");
+          setDeteccoes([]);
+          setTotal(0);
+        } else {
+          setDeteccoes(data.deteccoes ?? []);
+          setTotal(data.total ?? 0);
+        }
+      } catch (error) {
+        const timeout = error instanceof DOMException && error.name === "TimeoutError";
+        setErro(
+          timeout
+            ? "A busca demorou demais. Tente novamente."
+            : "Erro de conexão ao buscar detecções",
+        );
         setDeteccoes([]);
         setTotal(0);
-      } else {
-        setDeteccoes(data.deteccoes ?? []);
-        setTotal(data.total ?? 0);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     },
     [pagina, termoBusca],
   );
@@ -122,10 +135,11 @@ export default function PainelDeteccoes() {
         />
         <button
           type="button"
+          disabled={loading}
           onClick={aplicarBusca}
-          className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-900"
+          className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-900 disabled:opacity-60"
         >
-          Buscar
+          {loading ? "Buscando..." : "Buscar"}
         </button>
       </div>
 
@@ -137,7 +151,11 @@ export default function PainelDeteccoes() {
         <p className="text-sm text-slate-500">Carregando detecções...</p>
       ) : deteccoes.length === 0 ? (
         <p className="text-sm text-slate-500">
-          Nenhuma detecção encontrada. Clique em Buscar para carregar o histórico.
+          {!consultado
+            ? "Clique em Buscar para carregar o histórico de alertas."
+            : termoBusca.trim()
+              ? `Nenhum alerta de palavra-chave para “${termoBusca}”. Se a palavra só apareceu na transcrição (sem estar cadastrada como palavra-chave), use “Buscar nas transcrições” acima.`
+              : "Nenhuma detecção no histórico."}
         </p>
       ) : (
         <>
