@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isDatabaseConfigured } from "@/lib/db";
-import {
-  buscarNasTranscricoes,
-  contarBuscaNasTranscricoes,
-} from "@/lib/transcricoes-db";
+import { buscarNasTranscricoesComTotal } from "@/lib/transcricoes-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   if (!isDatabaseConfigured()) {
-    return NextResponse.json({ error: "Banco de dados não configurado no servidor", resultados: [] }, { status: 503 });
+    return NextResponse.json(
+      { error: "Banco de dados não configurado no servidor", resultados: [] },
+      { status: 503 },
+    );
   }
 
   const params = request.nextUrl.searchParams;
@@ -24,10 +24,11 @@ export async function GET(request: NextRequest) {
   const offset = params.get("offset") ? Number(params.get("offset")) : 0;
 
   try {
-    const [resultados, total] = await Promise.all([
-      buscarNasTranscricoes({ termo, limite, offset }),
-      contarBuscaNasTranscricoes(termo),
-    ]);
+    const { resultados, total } = await buscarNasTranscricoesComTotal({
+      termo,
+      limite,
+      offset,
+    });
 
     return NextResponse.json({ resultados, total, limite, offset, termo });
   } catch (error) {

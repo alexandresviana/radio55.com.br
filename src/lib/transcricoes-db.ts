@@ -29,7 +29,8 @@ export async function salvarSegmentosTranscricao(
   if (!isDatabaseConfigured() || segmentos.length === 0) return;
 
   for (const segmento of segmentos) {
-    const texto = segmento.texto.trim();
+    // NFC evita "música" com acento combinante (NFD) que a busca por ILIKE não acha.
+    const texto = segmento.texto.normalize("NFC").trim();
     if (!texto) continue;
 
     try {
@@ -149,58 +150,55 @@ export interface TranscricaoBuscaResultado {
   em_gravacao: boolean;
 }
 
+/**
+ * Variantes do termo para ILIKE:
+ * - original (ex.: "música") — bate no texto com acento
+ * - sem acento (ex.: "musica") — Whisper costuma gravar assim
+ * Evita translate() na coluna (lento e falha com unicode NFD).
+ */
 function termoBuscaSql(termo: string): {
-  ilike: string;
-  normalizado: string;
-  precisaAcento: boolean;
+  params: string[];
+  filtro: (alias: string) => string;
 } {
-  const trimmed = termo.trim();
+  const trimmed = termo.normalize("NFC").trim();
   const normalizado = normalizeText(trimmed);
-  return {
-    ilike: `%${trimmed}%`,
-    normalizado: `%${normalizado}%`,
-    // Só aplica translate() (seq scan caro) quando o termo tem acento.
-    precisaAcento: normalizado !== trimmed.toLowerCase().replace(/\s+/g, " "),
-  };
-}
+  const lower = trimmed.toLowerCase().replace(/\s+/g, " ");
 
-function filtroTextoSegmento(alias: string, precisaAcento: boolean): string {
-  if (!precisaAcento) {
-    return `${alias}.texto ILIKE $1`;
+  const vistos = new Set<string>();
+  const variantes: string[] = [];
+  for (const valor of [trimmed, lower, normalizado]) {
+    if (!valor || vistos.has(valor)) continue;
+    vistos.add(valor);
+    variantes.push(valor);
   }
-  return `(
-    ${alias}.texto ILIKE $1
-    OR translate(lower(${alias}.texto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $2
-  )`;
+
+  const params = variantes.map((v) => `%${v}%`);
+  const filtro = (alias: string) =>
+    `(${params.map((_, i) => `${alias}.texto ILIKE $${i + 1}`).join(" OR ")})`;
+
+  return { params, filtro };
 }
 
 async function comTimeoutBusca<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
   const client = await getPool().connect();
   try {
-    // Evita a UI ficar em "Buscando..." para sempre em tabelas grandes.
+    // SET LOCAL só vale dentro de transação.
+    await client.query("BEGIN");
     await client.query("SET LOCAL statement_timeout = '12s'");
-    return await fn(client);
+    const result = await fn(client);
+    await client.query("COMMIT");
+    return result;
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw error;
   } finally {
     client.release();
   }
 }
 
 export async function contarBuscaNasTranscricoes(termo: string): Promise<number> {
-  if (!isDatabaseConfigured() || !termo.trim()) return 0;
-
-  const busca = termoBuscaSql(termo);
-
-  return comTimeoutBusca(async (client) => {
-    const result = await client.query<{ total: string }>(
-      `SELECT COUNT(*)::text AS total
-       FROM transcricao_segmentos s
-       JOIN gravacao_arquivos g ON g.id = s.gravacao_id
-       WHERE g.removido_em IS NULL
-         AND ${filtroTextoSegmento("s", busca.precisaAcento)}`,
-      busca.precisaAcento ? [busca.ilike, busca.normalizado] : [busca.ilike],
-    );
-    return Number(result.rows[0]?.total ?? 0);
-  });
+  const { total } = await buscarNasTranscricoesComTotal({ termo, limite: 1, offset: 0 });
+  return total;
 }
 
 export async function buscarNasTranscricoes(params: {
@@ -208,15 +206,29 @@ export async function buscarNasTranscricoes(params: {
   limite?: number;
   offset?: number;
 }): Promise<TranscricaoBuscaResultado[]> {
-  if (!isDatabaseConfigured() || !params.termo.trim()) return [];
+  const { resultados } = await buscarNasTranscricoesComTotal(params);
+  return resultados;
+}
+
+/** Uma única query: resultados + total (evita COUNT separado em tabela grande). */
+export async function buscarNasTranscricoesComTotal(params: {
+  termo: string;
+  limite?: number;
+  offset?: number;
+}): Promise<{ resultados: TranscricaoBuscaResultado[]; total: number }> {
+  if (!isDatabaseConfigured() || !params.termo.trim()) {
+    return { resultados: [], total: 0 };
+  }
 
   const limite = Math.min(Math.max(params.limite ?? 30, 1), 200);
   const offset = Math.max(params.offset ?? 0, 0);
   const busca = termoBuscaSql(params.termo);
+  const limiteIdx = busca.params.length + 1;
+  const offsetIdx = busca.params.length + 2;
 
   return comTimeoutBusca(async (client) => {
     const result = await client.query<
-      TranscricaoBuscaResultado & { gravado_em: Date; em_gravacao: boolean }
+      TranscricaoBuscaResultado & { gravado_em: Date; em_gravacao: boolean; total: string }
     >(
       `SELECT
          s.id,
@@ -228,19 +240,19 @@ export async function buscarNasTranscricoes(params: {
          g.radio_nome,
          g.arquivo,
          g.gravado_em,
-         g.em_gravacao
+         g.em_gravacao,
+         COUNT(*) OVER()::text AS total
        FROM transcricao_segmentos s
        JOIN gravacao_arquivos g ON g.id = s.gravacao_id
        WHERE g.removido_em IS NULL
-         AND ${filtroTextoSegmento("s", busca.precisaAcento)}
+         AND ${busca.filtro("s")}
        ORDER BY g.gravado_em DESC, s.inicio_segundos ASC
-       LIMIT $${busca.precisaAcento ? 3 : 2} OFFSET $${busca.precisaAcento ? 4 : 3}`,
-      busca.precisaAcento
-        ? [busca.ilike, busca.normalizado, limite, offset]
-        : [busca.ilike, limite, offset],
+       LIMIT $${limiteIdx} OFFSET $${offsetIdx}`,
+      [...busca.params, limite, offset],
     );
 
-    return result.rows.map((row) => ({
+    const total = Number(result.rows[0]?.total ?? 0);
+    const resultados = result.rows.map((row) => ({
       id: row.id,
       gravacao_id: row.gravacao_id,
       inicio_segundos: Number(row.inicio_segundos),
@@ -252,5 +264,7 @@ export async function buscarNasTranscricoes(params: {
       gravado_em: new Date(row.gravado_em).toISOString(),
       em_gravacao: Boolean(row.em_gravacao),
     }));
+
+    return { resultados, total };
   });
 }

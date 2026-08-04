@@ -127,25 +127,24 @@ export interface YoutubeTranscricaoBuscaResultado {
 }
 
 function termoBuscaSql(termo: string): {
-  ilike: string;
-  normalizado: string;
-  precisaAcento: boolean;
+  params: string[];
+  filtro: string;
 } {
-  const trimmed = termo.trim();
+  const trimmed = termo.normalize("NFC").trim();
   const normalizado = normalizeText(trimmed);
-  return {
-    ilike: `%${trimmed}%`,
-    normalizado: `%${normalizado}%`,
-    precisaAcento: normalizado !== trimmed.toLowerCase().replace(/\s+/g, " "),
-  };
-}
+  const lower = trimmed.toLowerCase().replace(/\s+/g, " ");
 
-function filtroTextoYoutube(precisaAcento: boolean): string {
-  if (!precisaAcento) return "s.texto ILIKE $1";
-  return `(
-    s.texto ILIKE $1
-    OR translate(lower(s.texto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $2
-  )`;
+  const vistos = new Set<string>();
+  const variantes: string[] = [];
+  for (const valor of [trimmed, lower, normalizado]) {
+    if (!valor || vistos.has(valor)) continue;
+    vistos.add(valor);
+    variantes.push(valor);
+  }
+
+  const params = variantes.map((v) => `%${v}%`);
+  const filtro = `(${params.map((_, i) => `s.texto ILIKE $${i + 1}`).join(" OR ")})`;
+  return { params, filtro };
 }
 
 export async function contarBuscaNasTranscricoesYoutube(termo: string): Promise<number> {
@@ -158,8 +157,8 @@ export async function contarBuscaNasTranscricoesYoutube(termo: string): Promise<
      FROM youtube_transcricao_segmentos s
      JOIN youtube_videos v ON v.id = s.video_db_id
      WHERE v.status = 'concluido'
-       AND ${filtroTextoYoutube(busca.precisaAcento)}`,
-    busca.precisaAcento ? [busca.ilike, busca.normalizado] : [busca.ilike],
+       AND ${busca.filtro}`,
+    busca.params,
   );
 
   return Number(result.rows[0]?.total ?? 0);
@@ -175,6 +174,8 @@ export async function buscarNasTranscricoesYoutube(params: {
   const limite = Math.min(Math.max(params.limite ?? 30, 1), 200);
   const offset = Math.max(params.offset ?? 0, 0);
   const busca = termoBuscaSql(params.termo);
+  const limiteIdx = busca.params.length + 1;
+  const offsetIdx = busca.params.length + 2;
 
   const result = await getPool().query<YoutubeTranscricaoBuscaResultado & { publicado_em: Date | null }>(
     `SELECT
@@ -191,12 +192,10 @@ export async function buscarNasTranscricoesYoutube(params: {
      JOIN youtube_videos v ON v.id = s.video_db_id
      JOIN youtube_canais c ON c.id = v.canal_id
      WHERE v.status = 'concluido'
-       AND ${filtroTextoYoutube(busca.precisaAcento)}
+       AND ${busca.filtro}
      ORDER BY v.publicado_em DESC NULLS LAST, s.inicio_segundos ASC
-     LIMIT $${busca.precisaAcento ? 3 : 2} OFFSET $${busca.precisaAcento ? 4 : 3}`,
-    busca.precisaAcento
-      ? [busca.ilike, busca.normalizado, limite, offset]
-      : [busca.ilike, limite, offset],
+     LIMIT $${limiteIdx} OFFSET $${offsetIdx}`,
+    [...busca.params, limite, offset],
   );
 
   return result.rows.map((row) => ({
