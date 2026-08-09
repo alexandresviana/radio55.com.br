@@ -61,6 +61,10 @@ async function sincronizarSequences(client: PoolClient): Promise<void> {
     "x_buscas",
     "x_posts",
     "x_palavra_deteccoes",
+    "meta_ads_paginas",
+    "meta_ads_buscas",
+    "meta_ads",
+    "meta_ads_palavra_deteccoes",
   ];
 
   for (const tabela of tabelas) {
@@ -127,6 +131,9 @@ export async function initDatabase(): Promise<void> {
 
       ALTER TABLE palavras_chave
         ADD COLUMN IF NOT EXISTS coletar_x BOOLEAN NOT NULL DEFAULT FALSE;
+
+      ALTER TABLE palavras_chave
+        ADD COLUMN IF NOT EXISTS coletar_meta_ads BOOLEAN NOT NULL DEFAULT FALSE;
 
       CREATE TABLE IF NOT EXISTS transcricao_progresso (
         caminho TEXT PRIMARY KEY,
@@ -371,6 +378,72 @@ export async function initDatabase(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_x_deteccoes_detectado_em
         ON x_palavra_deteccoes (detectado_em DESC);
 
+      CREATE TABLE IF NOT EXISTS meta_ads_paginas (
+        id SERIAL PRIMARY KEY,
+        slug TEXT NOT NULL UNIQUE,
+        titulo TEXT NOT NULL DEFAULT '',
+        url_entrada TEXT NOT NULL DEFAULT '',
+        ativo BOOLEAN NOT NULL DEFAULT TRUE,
+        ultima_verificacao_em TIMESTAMPTZ,
+        ultimo_erro TEXT,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_meta_ads_paginas_ativo
+        ON meta_ads_paginas (ativo)
+        WHERE ativo = TRUE;
+
+      CREATE TABLE IF NOT EXISTS meta_ads_buscas (
+        id SERIAL PRIMARY KEY,
+        termo TEXT NOT NULL UNIQUE,
+        ativo BOOLEAN NOT NULL DEFAULT TRUE,
+        ultima_verificacao_em TIMESTAMPTZ,
+        ultimo_erro TEXT,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_meta_ads_buscas_ativo
+        ON meta_ads_buscas (ativo)
+        WHERE ativo = TRUE;
+
+      CREATE TABLE IF NOT EXISTS meta_ads (
+        id SERIAL PRIMARY KEY,
+        busca_id INTEGER REFERENCES meta_ads_buscas(id) ON DELETE SET NULL,
+        pagina_id INTEGER REFERENCES meta_ads_paginas(id) ON DELETE SET NULL,
+        ad_archive_id TEXT NOT NULL UNIQUE,
+        page_id TEXT NOT NULL DEFAULT '',
+        page_name TEXT NOT NULL DEFAULT '',
+        url TEXT NOT NULL DEFAULT '',
+        texto TEXT NOT NULL DEFAULT '',
+        titulo TEXT NOT NULL DEFAULT '',
+        cta_text TEXT NOT NULL DEFAULT '',
+        link_url TEXT,
+        imagem_url TEXT,
+        video_url TEXT,
+        inicio_em TIMESTAMPTZ,
+        fim_em TIMESTAMPTZ,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_meta_ads_busca
+        ON meta_ads (busca_id, inicio_em DESC);
+
+      CREATE INDEX IF NOT EXISTS idx_meta_ads_pagina
+        ON meta_ads (pagina_id, inicio_em DESC);
+
+      CREATE TABLE IF NOT EXISTS meta_ads_palavra_deteccoes (
+        id SERIAL PRIMARY KEY,
+        palavra_chave_id INTEGER REFERENCES palavras_chave(id) ON DELETE SET NULL,
+        ad_db_id INTEGER NOT NULL REFERENCES meta_ads(id) ON DELETE CASCADE,
+        termo TEXT NOT NULL,
+        contexto TEXT NOT NULL DEFAULT '',
+        detectado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_meta_ads_deteccoes_detectado_em
+        ON meta_ads_palavra_deteccoes (detectado_em DESC);
+
       CREATE TABLE IF NOT EXISTS emissoras_config (
         id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
         dados JSONB NOT NULL,
@@ -410,6 +483,7 @@ export async function initDatabase(): Promise<void> {
  * - canais YouTube monitorados (+ vídeos/transcrições/detecções)
  * - perfis Instagram monitorados (+ publicações/detecções)
  * - termos X monitorados (+ posts/detecções)
+ * - anúncios Meta (+ páginas/buscas/detecções)
  *
  * Mantém: emissoras_config, palavras_chave e login (AUTH_*).
  */
@@ -435,6 +509,10 @@ export async function limparBaseDados(): Promise<Record<string, number>> {
       "x_palavra_deteccoes",
       "x_posts",
       "x_buscas",
+      "meta_ads_palavra_deteccoes",
+      "meta_ads",
+      "meta_ads_buscas",
+      "meta_ads_paginas",
       "palavra_deteccoes",
       "transcricao_segmentos",
       "transcricao_progresso",

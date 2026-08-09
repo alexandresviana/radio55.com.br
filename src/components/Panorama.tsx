@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-type Fonte = "todas" | "radio" | "youtube" | "instagram" | "x";
+type Fonte = "todas" | "radio" | "youtube" | "instagram" | "x" | "meta_ads";
 type Janela = "24h" | "7d" | "30d";
 
 interface ItemPanorama {
   chave: string;
-  fonte: "radio" | "youtube" | "instagram" | "x";
+  fonte: "radio" | "youtube" | "instagram" | "x" | "meta_ads";
   termo: string;
   contexto: string;
   detectado_em: string;
@@ -24,6 +24,7 @@ interface Contagens {
   youtube: number;
   instagram: number;
   x: number;
+  meta_ads: number;
 }
 
 const JANELAS: { id: Janela; label: string }[] = [
@@ -38,12 +39,14 @@ const FONTES: { id: Fonte; label: string }[] = [
   { id: "youtube", label: "YouTube" },
   { id: "instagram", label: "Instagram" },
   { id: "x", label: "X" },
+  { id: "meta_ads", label: "Anúncios" },
 ];
 
 function rotuloFonte(fonte: ItemPanorama["fonte"]): string {
   if (fonte === "radio") return "Rádio";
   if (fonte === "youtube") return "YouTube";
   if (fonte === "instagram") return "Instagram";
+  if (fonte === "meta_ads") return "Anúncios";
   return "X";
 }
 
@@ -51,6 +54,7 @@ function corFonte(fonte: ItemPanorama["fonte"]): string {
   if (fonte === "radio") return "bg-emerald-50 text-emerald-800";
   if (fonte === "youtube") return "bg-red-50 text-red-700";
   if (fonte === "instagram") return "bg-fuchsia-50 text-fuchsia-800";
+  if (fonte === "meta_ads") return "bg-indigo-50 text-indigo-800";
   return "bg-sky-50 text-sky-800";
 }
 
@@ -227,6 +231,7 @@ export default function Panorama() {
               { id: "youtube" as const, label: "YouTube", valor: contagens.youtube },
               { id: "instagram" as const, label: "Instagram", valor: contagens.instagram },
               { id: "x" as const, label: "X", valor: contagens.x ?? 0 },
+              { id: "meta_ads" as const, label: "Anúncios", valor: contagens.meta_ads ?? 0 },
             ] as const
           ).map((card) => (
             <button

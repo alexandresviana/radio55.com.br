@@ -4,13 +4,14 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import AdminBuscaIATab from "@/components/AdminBuscaIATab";
 import AdminInstagramTab from "@/components/AdminInstagramTab";
+import AdminMetaAdsTab from "@/components/AdminMetaAdsTab";
 import AdminRadiosTab from "@/components/AdminRadiosTab";
 import AdminXTab from "@/components/AdminXTab";
 import AdminYoutubeTab from "@/components/AdminYoutubeTab";
 import Header from "@/components/Header";
 import PalavrasChave from "@/components/PalavrasChave";
 
-type AdminTab = "assuntos" | "radios" | "youtube" | "instagram" | "x" | "ia";
+type AdminTab = "assuntos" | "radios" | "youtube" | "instagram" | "x" | "meta" | "ia";
 
 const TABS: { id: AdminTab; label: string }[] = [
   { id: "assuntos", label: "Assuntos" },
@@ -18,6 +19,7 @@ const TABS: { id: AdminTab; label: string }[] = [
   { id: "youtube", label: "YouTube" },
   { id: "instagram", label: "Instagram" },
   { id: "x", label: "X" },
+  { id: "meta", label: "Anúncios" },
   { id: "ia", label: "Busca IA" },
 ];
 
@@ -79,6 +81,7 @@ function AdminPageInner() {
         {aba === "youtube" && <AdminYoutubeTab />}
         {aba === "instagram" && <AdminInstagramTab />}
         {aba === "x" && <AdminXTab />}
+        {aba === "meta" && <AdminMetaAdsTab />}
         {aba === "ia" && <AdminBuscaIATab />}
       </main>
     </div>

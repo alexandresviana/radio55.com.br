@@ -6,6 +6,7 @@ export interface PalavraChave {
   ativo: boolean;
   coletar_instagram: boolean;
   coletar_x: boolean;
+  coletar_meta_ads: boolean;
   criado_em: string;
 }
 
@@ -13,6 +14,7 @@ export interface PalavraChaveInput {
   termo: string;
   coletarInstagram?: boolean;
   coletarX?: boolean;
+  coletarMetaAds?: boolean;
 }
 
 function mapPalavra(row: {
@@ -21,6 +23,7 @@ function mapPalavra(row: {
   ativo: boolean;
   coletar_instagram?: boolean;
   coletar_x?: boolean;
+  coletar_meta_ads?: boolean;
   criado_em: string | Date;
 }): PalavraChave {
   return {
@@ -29,15 +32,15 @@ function mapPalavra(row: {
     ativo: Boolean(row.ativo),
     coletar_instagram: Boolean(row.coletar_instagram),
     coletar_x: Boolean(row.coletar_x),
+    coletar_meta_ads: Boolean(row.coletar_meta_ads),
     criado_em: new Date(row.criado_em).toISOString(),
   };
 }
 
-/** Importa termos já cadastrados nas buscas IG/X para a lista central (uma vez / sob demanda). */
+/** Importa termos já cadastrados nas buscas IG/X/Meta para a lista central. */
 export async function importarBuscasComoPalavras(): Promise<void> {
   if (!isDatabaseConfigured()) return;
 
-  // Normaliza termos antigos para minúsculas (evita duplicar "Mamadeira" / "mamadeira").
   await getPool().query(
     `UPDATE palavras_chave p
      SET termo = lower(trim(p.termo))
@@ -65,9 +68,18 @@ export async function importarBuscasComoPalavras(): Promise<void> {
        coletar_x = TRUE,
        ativo = palavras_chave.ativo OR EXCLUDED.ativo`,
   );
+
+  await getPool().query(
+    `INSERT INTO palavras_chave (termo, ativo, coletar_meta_ads)
+     SELECT lower(b.termo), b.ativo, TRUE
+     FROM meta_ads_buscas b
+     ON CONFLICT (termo) DO UPDATE SET
+       coletar_meta_ads = TRUE,
+       ativo = palavras_chave.ativo OR EXCLUDED.ativo`,
+  );
 }
 
-/** Espelha flags de coleta da palavra nas tabelas de busca IG/X. */
+/** Espelha flags de coleta da palavra nas tabelas de busca IG/X/Meta. */
 export async function sincronizarColetaPalavra(palavra: PalavraChave): Promise<void> {
   if (!isDatabaseConfigured()) return;
 
@@ -101,6 +113,20 @@ export async function sincronizarColetaPalavra(palavra: PalavraChave): Promise<v
       [termo],
     );
   }
+
+  if (palavra.ativo && palavra.coletar_meta_ads) {
+    await getPool().query(
+      `INSERT INTO meta_ads_buscas (termo, ativo)
+       VALUES ($1, TRUE)
+       ON CONFLICT (termo) DO UPDATE SET ativo = TRUE`,
+      [termo],
+    );
+  } else {
+    await getPool().query(
+      `UPDATE meta_ads_buscas SET ativo = FALSE WHERE lower(termo) = $1`,
+      [termo],
+    );
+  }
 }
 
 async function pausarColetasDoTermo(termo: string): Promise<void> {
@@ -113,6 +139,10 @@ async function pausarColetasDoTermo(termo: string): Promise<void> {
   );
   await getPool().query(
     `UPDATE x_buscas SET ativo = FALSE WHERE lower(termo) = $1`,
+    [normalizado],
+  );
+  await getPool().query(
+    `UPDATE meta_ads_buscas SET ativo = FALSE WHERE lower(termo) = $1`,
     [normalizado],
   );
 }
@@ -128,9 +158,10 @@ export async function listarPalavrasChave(): Promise<PalavraChave[]> {
     ativo: boolean;
     coletar_instagram: boolean;
     coletar_x: boolean;
+    coletar_meta_ads: boolean;
     criado_em: Date;
   }>(
-    `SELECT id, termo, ativo, coletar_instagram, coletar_x, criado_em
+    `SELECT id, termo, ativo, coletar_instagram, coletar_x, coletar_meta_ads, criado_em
      FROM palavras_chave
      ORDER BY termo ASC`,
   );
@@ -147,9 +178,10 @@ export async function listarPalavrasChaveAtivas(): Promise<PalavraChave[]> {
     ativo: boolean;
     coletar_instagram: boolean;
     coletar_x: boolean;
+    coletar_meta_ads: boolean;
     criado_em: Date;
   }>(
-    `SELECT id, termo, ativo, coletar_instagram, coletar_x, criado_em
+    `SELECT id, termo, ativo, coletar_instagram, coletar_x, coletar_meta_ads, criado_em
      FROM palavras_chave
      WHERE ativo = TRUE
      ORDER BY termo ASC`,
@@ -170,6 +202,7 @@ export async function criarPalavraChave(input: PalavraChaveInput): Promise<Palav
 
   const coletarInstagram = Boolean(input.coletarInstagram);
   const coletarX = Boolean(input.coletarX);
+  const coletarMetaAds = Boolean(input.coletarMetaAds);
 
   const result = await getPool().query<{
     id: number;
@@ -177,16 +210,18 @@ export async function criarPalavraChave(input: PalavraChaveInput): Promise<Palav
     ativo: boolean;
     coletar_instagram: boolean;
     coletar_x: boolean;
+    coletar_meta_ads: boolean;
     criado_em: Date;
   }>(
-    `INSERT INTO palavras_chave (termo, ativo, coletar_instagram, coletar_x)
-     VALUES ($1, TRUE, $2, $3)
+    `INSERT INTO palavras_chave (termo, ativo, coletar_instagram, coletar_x, coletar_meta_ads)
+     VALUES ($1, TRUE, $2, $3, $4)
      ON CONFLICT (termo) DO UPDATE SET
        ativo = TRUE,
        coletar_instagram = EXCLUDED.coletar_instagram,
-       coletar_x = EXCLUDED.coletar_x
-     RETURNING id, termo, ativo, coletar_instagram, coletar_x, criado_em`,
-    [termo, coletarInstagram, coletarX],
+       coletar_x = EXCLUDED.coletar_x,
+       coletar_meta_ads = EXCLUDED.coletar_meta_ads
+     RETURNING id, termo, ativo, coletar_instagram, coletar_x, coletar_meta_ads, criado_em`,
+    [termo, coletarInstagram, coletarX, coletarMetaAds],
   );
 
   const palavra = mapPalavra(result.rows[0]);
@@ -196,7 +231,12 @@ export async function criarPalavraChave(input: PalavraChaveInput): Promise<Palav
 
 export async function atualizarPalavraChave(
   id: number,
-  patch: { ativo?: boolean; coletarInstagram?: boolean; coletarX?: boolean },
+  patch: {
+    ativo?: boolean;
+    coletarInstagram?: boolean;
+    coletarX?: boolean;
+    coletarMetaAds?: boolean;
+  },
 ): Promise<PalavraChave | null> {
   if (!isDatabaseConfigured()) return null;
 
@@ -206,20 +246,23 @@ export async function atualizarPalavraChave(
     ativo: boolean;
     coletar_instagram: boolean;
     coletar_x: boolean;
+    coletar_meta_ads: boolean;
     criado_em: Date;
   }>(
     `UPDATE palavras_chave
      SET
        ativo = COALESCE($2, ativo),
        coletar_instagram = COALESCE($3, coletar_instagram),
-       coletar_x = COALESCE($4, coletar_x)
+       coletar_x = COALESCE($4, coletar_x),
+       coletar_meta_ads = COALESCE($5, coletar_meta_ads)
      WHERE id = $1
-     RETURNING id, termo, ativo, coletar_instagram, coletar_x, criado_em`,
+     RETURNING id, termo, ativo, coletar_instagram, coletar_x, coletar_meta_ads, criado_em`,
     [
       id,
       patch.ativo ?? null,
       patch.coletarInstagram ?? null,
       patch.coletarX ?? null,
+      patch.coletarMetaAds ?? null,
     ],
   );
 

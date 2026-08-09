@@ -1,10 +1,11 @@
 import { getPool, isDatabaseConfigured } from "@/lib/db";
 import { listarInstagramBuscasAtivas } from "@/lib/instagram-db";
+import { listarMetaAdsBuscasAtivas } from "@/lib/meta-ads-db";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
 import { normalizeText } from "@/lib/text-normalize";
 import { listarXBuscasAtivas } from "@/lib/x-db";
 
-export type FontePanorama = "radio" | "youtube" | "instagram" | "x";
+export type FontePanorama = "radio" | "youtube" | "instagram" | "x" | "meta_ads";
 export type JanelaPanorama = "24h" | "7d" | "30d";
 
 export interface ItemPanorama {
@@ -27,6 +28,7 @@ export interface ContagensPanorama {
   youtube: number;
   instagram: number;
   x: number;
+  meta_ads: number;
 }
 
 function janelaParaDesde(janela: JanelaPanorama): Date {
@@ -47,10 +49,11 @@ function termoSql(termo?: string): { ilike: string | null; normalizado: string |
 export async function listarAssuntosPanorama(): Promise<string[]> {
   if (!isDatabaseConfigured()) return [];
 
-  const [palavras, buscasIg, buscasX] = await Promise.all([
+  const [palavras, buscasIg, buscasX, buscasMeta] = await Promise.all([
     listarPalavrasChaveAtivas(),
     listarInstagramBuscasAtivas(),
     listarXBuscasAtivas(),
+    listarMetaAdsBuscasAtivas(),
   ]);
 
   const vistos = new Set<string>();
@@ -60,6 +63,7 @@ export async function listarAssuntosPanorama(): Promise<string[]> {
     ...palavras.map((p) => p.termo),
     ...buscasIg.map((b) => b.termo),
     ...buscasX.map((b) => b.termo),
+    ...buscasMeta.map((b) => b.termo),
   ]) {
     const chave = normalizeText(item);
     if (!chave || vistos.has(chave)) continue;
@@ -75,7 +79,7 @@ export async function contarPanorama(params: {
   janela?: JanelaPanorama;
 }): Promise<ContagensPanorama> {
   if (!isDatabaseConfigured()) {
-    return { total: 0, radio: 0, youtube: 0, instagram: 0, x: 0 };
+    return { total: 0, radio: 0, youtube: 0, instagram: 0, x: 0, meta_ads: 0 };
   }
 
   const desde = janelaParaDesde(params.janela ?? "24h").toISOString();
@@ -86,6 +90,7 @@ export async function contarPanorama(params: {
     youtube: string;
     instagram: string;
     x: string;
+    meta_ads: string;
   }>(
     `SELECT
        (
@@ -139,7 +144,19 @@ export async function contarPanorama(params: {
              OR translate(lower(d.termo), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
              OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
            )
-       ) AS x`,
+       ) AS x,
+       (
+         SELECT COUNT(*)::text
+         FROM meta_ads_palavra_deteccoes d
+         WHERE d.detectado_em >= $1::timestamptz
+           AND (
+             $2::text IS NULL
+             OR d.termo ILIKE $2
+             OR d.contexto ILIKE $2
+             OR translate(lower(d.termo), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+             OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+           )
+       ) AS meta_ads`,
     [desde, busca.ilike, busca.normalizado],
   );
 
@@ -148,8 +165,16 @@ export async function contarPanorama(params: {
   const youtube = Number(row?.youtube ?? 0);
   const instagram = Number(row?.instagram ?? 0);
   const x = Number(row?.x ?? 0);
+  const meta_ads = Number(row?.meta_ads ?? 0);
 
-  return { total: radio + youtube + instagram + x, radio, youtube, instagram, x };
+  return {
+    total: radio + youtube + instagram + x + meta_ads,
+    radio,
+    youtube,
+    instagram,
+    x,
+    meta_ads,
+  };
 }
 
 export async function buscarPanorama(params: {
@@ -277,6 +302,38 @@ export async function buscarPanorama(params: {
       FROM x_palavra_deteccoes d
       JOIN x_posts posts ON posts.id = d.post_db_id
       LEFT JOIN x_buscas b ON b.id = posts.busca_id
+      WHERE d.detectado_em >= $1::timestamptz
+        AND (
+          $2::text IS NULL
+          OR d.termo ILIKE $2
+          OR d.contexto ILIKE $2
+          OR translate(lower(d.termo), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+          OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+        )
+    `);
+  }
+
+  if (fonte === "todas" || fonte === "meta_ads") {
+    partes.push(`
+      SELECT
+        'meta_ads'::text AS fonte,
+        d.id,
+        d.termo,
+        d.contexto,
+        d.detectado_em,
+        COALESCE(NULLIF(ads.page_name, ''), 'Anunciante') AS titulo,
+        CASE
+          WHEN b.termo IS NOT NULL THEN ('Anúncio · ' || b.termo)
+          WHEN p.slug IS NOT NULL THEN ('Página · ' || p.slug)
+          ELSE 'Anúncio'
+        END AS subtitulo,
+        ads.url AS url,
+        NULL::text AS trecho_audio,
+        NULL::text AS detalhe
+      FROM meta_ads_palavra_deteccoes d
+      JOIN meta_ads ads ON ads.id = d.ad_db_id
+      LEFT JOIN meta_ads_buscas b ON b.id = ads.busca_id
+      LEFT JOIN meta_ads_paginas p ON p.id = ads.pagina_id
       WHERE d.detectado_em >= $1::timestamptz
         AND (
           $2::text IS NULL

@@ -5,6 +5,7 @@ import {
   removerPalavraChave,
 } from "@/lib/palavras-chave-db";
 import { syncInstagramPerfisAgora } from "@/lib/instagram-monitor";
+import { syncMetaAdsAgora } from "@/lib/meta-ads-monitor";
 import { syncXBuscasAgora } from "@/lib/x-monitor";
 
 export const runtime = "nodejs";
@@ -27,12 +28,18 @@ export async function PATCH(
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
   }
 
-  let body: { ativo?: boolean; coletarInstagram?: boolean; coletarX?: boolean };
+  let body: {
+    ativo?: boolean;
+    coletarInstagram?: boolean;
+    coletarX?: boolean;
+    coletarMetaAds?: boolean;
+  };
   try {
     body = (await request.json()) as {
       ativo?: boolean;
       coletarInstagram?: boolean;
       coletarX?: boolean;
+      coletarMetaAds?: boolean;
     };
   } catch {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
@@ -41,10 +48,11 @@ export async function PATCH(
   if (
     typeof body.ativo !== "boolean" &&
     typeof body.coletarInstagram !== "boolean" &&
-    typeof body.coletarX !== "boolean"
+    typeof body.coletarX !== "boolean" &&
+    typeof body.coletarMetaAds !== "boolean"
   ) {
     return NextResponse.json(
-      { error: "Informe ativo, coletarInstagram e/ou coletarX" },
+      { error: "Informe ativo, coletarInstagram, coletarX e/ou coletarMetaAds" },
       { status: 400 },
     );
   }
@@ -54,6 +62,8 @@ export async function PATCH(
     coletarInstagram:
       typeof body.coletarInstagram === "boolean" ? body.coletarInstagram : undefined,
     coletarX: typeof body.coletarX === "boolean" ? body.coletarX : undefined,
+    coletarMetaAds:
+      typeof body.coletarMetaAds === "boolean" ? body.coletarMetaAds : undefined,
   });
 
   if (!palavra) {
@@ -62,6 +72,7 @@ export async function PATCH(
 
   if (palavra.coletar_instagram && palavra.ativo) void syncInstagramPerfisAgora();
   if (palavra.coletar_x && palavra.ativo) void syncXBuscasAgora();
+  if (palavra.coletar_meta_ads && palavra.ativo) void syncMetaAdsAgora();
 
   return NextResponse.json({ palavra });
 }

@@ -5,6 +5,7 @@ import {
   listarPalavrasChave,
 } from "@/lib/palavras-chave-db";
 import { syncInstagramPerfisAgora } from "@/lib/instagram-monitor";
+import { syncMetaAdsAgora } from "@/lib/meta-ads-monitor";
 import { syncXBuscasAgora } from "@/lib/x-monitor";
 
 export const runtime = "nodejs";
@@ -30,12 +31,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: { termo?: string; coletarInstagram?: boolean; coletarX?: boolean };
+  let body: {
+    termo?: string;
+    coletarInstagram?: boolean;
+    coletarX?: boolean;
+    coletarMetaAds?: boolean;
+  };
   try {
     body = (await request.json()) as {
       termo?: string;
       coletarInstagram?: boolean;
       coletarX?: boolean;
+      coletarMetaAds?: boolean;
     };
   } catch {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
@@ -51,10 +58,12 @@ export async function POST(request: NextRequest) {
       termo,
       coletarInstagram: body.coletarInstagram,
       coletarX: body.coletarX,
+      coletarMetaAds: body.coletarMetaAds,
     });
 
     if (palavra.coletar_instagram) void syncInstagramPerfisAgora();
     if (palavra.coletar_x) void syncXBuscasAgora();
+    if (palavra.coletar_meta_ads) void syncMetaAdsAgora();
 
     return NextResponse.json({ palavra });
   } catch (error) {

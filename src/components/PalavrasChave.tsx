@@ -8,6 +8,7 @@ interface PalavraChave {
   ativo: boolean;
   coletar_instagram: boolean;
   coletar_x: boolean;
+  coletar_meta_ads: boolean;
 }
 
 export default function PalavrasChave() {
@@ -15,6 +16,7 @@ export default function PalavrasChave() {
   const [novoTermo, setNovoTermo] = useState("");
   const [coletarIg, setColetarIg] = useState(false);
   const [coletarX, setColetarX] = useState(false);
+  const [coletarMetaAds, setColetarMetaAds] = useState(false);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
@@ -52,6 +54,7 @@ export default function PalavrasChave() {
         termo,
         coletarInstagram: coletarIg,
         coletarX: coletarX,
+        coletarMetaAds: coletarMetaAds,
       }),
     });
     setSalvando(false);
@@ -68,7 +71,12 @@ export default function PalavrasChave() {
 
   async function patch(
     id: number,
-    body: { ativo?: boolean; coletarInstagram?: boolean; coletarX?: boolean },
+    body: {
+      ativo?: boolean;
+      coletarInstagram?: boolean;
+      coletarX?: boolean;
+      coletarMetaAds?: boolean;
+    },
   ) {
     setErro("");
     const res = await fetch(`/api/palavras-chave/${id}`, {
@@ -94,8 +102,9 @@ export default function PalavrasChave() {
       <h2 className="text-lg font-semibold text-slate-900">Assuntos monitorados</h2>
       <p className="mt-1 text-sm text-slate-500">
         Cadastre uma vez — o sistema procura o termo em <strong>rádio</strong>,{" "}
-        <strong>YouTube</strong>, <strong>Instagram</strong> e <strong>X</strong> no conteúdo já
-        coletado. Marque as opções abaixo se também quiser <em>buscar posts novos</em> nessas redes.
+        <strong>YouTube</strong>, <strong>Instagram</strong>, <strong>X</strong> e{" "}
+        <strong>anúncios</strong> no conteúdo já coletado. Marque as opções abaixo se também quiser{" "}
+        <em>buscar conteúdo novo</em> nessas fontes.
       </p>
 
       <div className="mt-4 space-y-3">
@@ -139,10 +148,19 @@ export default function PalavrasChave() {
             />
             Também coletar posts no X
           </label>
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={coletarMetaAds}
+              onChange={(e) => setColetarMetaAds(e.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 text-emerald-700"
+            />
+            Também coletar anúncios (Biblioteca Meta)
+          </label>
         </div>
         <p className="text-xs text-slate-400">
           No Instagram, uma palavra vira busca por hashtag; frases só batem em legendas/comentários
-          já coletados (perfis + hashtags). No X, palavra ou frase entram na busca de posts.
+          já coletados (perfis + hashtags). No X e nos anúncios, palavra ou frase entram na busca.
         </p>
       </div>
 
@@ -163,6 +181,7 @@ export default function PalavrasChave() {
                 <th className="px-2 py-2">Detecta em</th>
                 <th className="px-2 py-2">Coletar IG</th>
                 <th className="px-2 py-2">Coletar X</th>
+                <th className="px-2 py-2">Coletar Ads</th>
                 <th className="px-2 py-2">Status</th>
                 <th className="px-2 py-2" />
               </tr>
@@ -172,7 +191,7 @@ export default function PalavrasChave() {
                 <tr key={item.id} className="border-b border-slate-50">
                   <td className="px-2 py-3 font-medium text-slate-900">{item.termo}</td>
                   <td className="px-2 py-3 text-xs text-slate-500">
-                    Rádio · YouTube · Instagram · X
+                    Rádio · YouTube · Instagram · X · Ads
                   </td>
                   <td className="px-2 py-3">
                     <input
@@ -192,6 +211,17 @@ export default function PalavrasChave() {
                       onChange={(e) => void patch(item.id, { coletarX: e.target.checked })}
                       className="h-4 w-4 rounded border-slate-300 text-emerald-700"
                       title="Buscar posts novos no X"
+                    />
+                  </td>
+                  <td className="px-2 py-3">
+                    <input
+                      type="checkbox"
+                      checked={item.coletar_meta_ads}
+                      onChange={(e) =>
+                        void patch(item.id, { coletarMetaAds: e.target.checked })
+                      }
+                      className="h-4 w-4 rounded border-slate-300 text-emerald-700"
+                      title="Buscar anúncios na Biblioteca Meta"
                     />
                   </td>
                   <td className="px-2 py-3">
