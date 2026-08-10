@@ -128,6 +128,8 @@ export function extrairTermoDeUrlHashtag(url: string): string | null {
 
 export interface OpcoesColetaInstagram {
   limitePorFonte?: number;
+  /** ISO ou relativo Apify ("2 days") — reduz itens já conhecidos. */
+  apenasMaisRecentesQue?: string;
 }
 
 async function chamarActorDataset(
@@ -167,10 +169,14 @@ export async function coletarPostsInstagram(
   fontes: { perfis?: string[]; termos?: string[] },
   opts: OpcoesColetaInstagram = {},
 ): Promise<PostInstagramColetado[]> {
-  const limite = Math.min(Math.max(opts.limitePorFonte ?? 10, 1), 50);
+  const limite = Math.min(Math.max(opts.limitePorFonte ?? 5, 1), 50);
   const perfis = fontes.perfis ?? [];
   const termos = fontes.termos ?? [];
   if (perfis.length === 0 && termos.length === 0) return [];
+
+  const filtroRecente = opts.apenasMaisRecentesQue?.trim()
+    ? { onlyPostsNewerThan: opts.apenasMaisRecentesQue.trim() }
+    : {};
 
   const jobs: Promise<ApifyPostItem[]>[] = [];
 
@@ -183,6 +189,7 @@ export async function coletarPostsInstagram(
           resultsType: "posts",
           resultsLimit: limite,
           addParentData: false,
+          ...filtroRecente,
         },
         "coleta de perfis",
       ),
@@ -196,6 +203,7 @@ export async function coletarPostsInstagram(
         {
           hashtags: termos,
           resultsLimit: limite,
+          ...filtroRecente,
         },
         "coleta de termos",
       ),

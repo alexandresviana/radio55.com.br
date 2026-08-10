@@ -4,9 +4,9 @@ import {
   criarPalavraChave,
   listarPalavrasChave,
 } from "@/lib/palavras-chave-db";
-import { syncInstagramPerfisAgora } from "@/lib/instagram-monitor";
-import { syncMetaAdsAgora } from "@/lib/meta-ads-monitor";
-import { syncXBuscasAgora } from "@/lib/x-monitor";
+import { agendarSyncInstagramPerfis } from "@/lib/instagram-monitor";
+import { agendarSyncMetaAds } from "@/lib/meta-ads-monitor";
+import { agendarSyncXBuscas } from "@/lib/x-monitor";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,9 +61,9 @@ export async function POST(request: NextRequest) {
       coletarMetaAds: body.coletarMetaAds,
     });
 
-    if (palavra.coletar_instagram) void syncInstagramPerfisAgora();
-    if (palavra.coletar_x) void syncXBuscasAgora();
-    if (palavra.coletar_meta_ads) void syncMetaAdsAgora();
+    if (palavra.coletar_instagram) agendarSyncInstagramPerfis();
+    if (palavra.coletar_x) agendarSyncXBuscas();
+    if (palavra.coletar_meta_ads) agendarSyncMetaAds();
 
     return NextResponse.json({ palavra });
   } catch (error) {

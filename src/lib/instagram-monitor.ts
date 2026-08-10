@@ -31,13 +31,16 @@ import {
 } from "@/lib/instagram-fetch";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
 
-// A coleta é cobrada por publicação/comentário retornado; intervalo maior = custo menor.
-const SYNC_MINUTOS_PADRAO = 30;
+// Pacote econômico: Apify cobra por item retornado — defaults conservadores.
+const SYNC_MINUTOS_PADRAO = 120;
 const RESCAN_MS = 60_000;
 const RESCAN_LOTE = 10;
 const RESCAN_LOTE_COMENTARIOS = 20;
-const COMENTARIOS_INTERVALO_PADRAO = 30;
-const COMENTARIOS_LOTE_POSTS = 5;
+const COMENTARIOS_INTERVALO_PADRAO = 180;
+const COMENTARIOS_LOTE_POSTS = 3;
+const POSTS_POR_FONTE_PADRAO = 5;
+const AGENDAR_SYNC_DEBOUNCE_MS = 60_000;
+const AGENDAR_SYNC_COOLDOWN_MS = 10 * 60_000;
 
 function getSyncMs(): number {
   const raw = Number(process.env.INSTAGRAM_SYNC_MINUTOS ?? SYNC_MINUTOS_PADRAO);
@@ -46,8 +49,10 @@ function getSyncMs(): number {
 }
 
 function getPostsPorPerfil(): number {
-  const raw = Number(process.env.INSTAGRAM_POSTS_POR_PERFIL ?? 10);
-  return Number.isFinite(raw) && raw >= 1 ? Math.min(Math.floor(raw), 50) : 10;
+  const raw = Number(process.env.INSTAGRAM_POSTS_POR_PERFIL ?? POSTS_POR_FONTE_PADRAO);
+  return Number.isFinite(raw) && raw >= 1
+    ? Math.min(Math.floor(raw), 50)
+    : POSTS_POR_FONTE_PADRAO;
 }
 
 function getComentariosMs(): number {
@@ -59,16 +64,18 @@ function getComentariosMs(): number {
 }
 
 function getComentariosPorPost(): number {
-  const raw = Number(process.env.INSTAGRAM_COMENTARIOS_POR_POST ?? 20);
-  return Number.isFinite(raw) && raw >= 1 ? Math.min(Math.floor(raw), 100) : 20;
+  const raw = Number(process.env.INSTAGRAM_COMENTARIOS_POR_POST ?? 10);
+  return Number.isFinite(raw) && raw >= 1 ? Math.min(Math.floor(raw), 100) : 10;
 }
 
+/** Opt-in: só coleta comentários com INSTAGRAM_COMENTARIOS_ENABLED=true. */
 function comentariosHabilitados(): boolean {
-  return process.env.INSTAGRAM_COMENTARIOS_ENABLED !== "false";
+  return process.env.INSTAGRAM_COMENTARIOS_ENABLED === "true";
 }
 
 type MonitorGlobal = typeof globalThis & {
   __radio55InstagramMonitor?: InstagramMonitorService;
+  __radio55InstagramSyncTimer?: NodeJS.Timeout;
 };
 
 class InstagramMonitorService {
@@ -119,7 +126,9 @@ class InstagramMonitorService {
         void this.coletarComentarios();
       }, getComentariosMs());
     } else {
-      console.warn("[instagram] INSTAGRAM_COMENTARIOS_ENABLED=false — coleta de comentários desativada");
+      console.warn(
+        "[instagram] comentários desativados — use INSTAGRAM_COMENTARIOS_ENABLED=true para ligar",
+      );
     }
   }
 
@@ -168,7 +177,15 @@ class InstagramMonitorService {
                 perfis: perfis.map((p) => p.username),
                 termos: buscasHashtag.map((b) => b.termo),
               },
-              { limitePorFonte: getPostsPorPerfil() },
+              {
+                limitePorFonte: getPostsPorPerfil(),
+                // Evita pagar de novo posts antigos já salvos (buffer 30 min).
+                apenasMaisRecentesQue: this.lastSyncAt
+                  ? new Date(
+                      new Date(this.lastSyncAt).getTime() - 30 * 60_000,
+                    ).toISOString()
+                  : "2 days",
+              },
             )
           : [];
 
@@ -259,7 +276,7 @@ class InstagramMonitorService {
 
   /**
    * Coleta comentários de um lote pequeno de publicações recentes ainda não
-   * processadas (ou processadas há mais de 24h). Uma execução por ciclo.
+   * processadas (ou processadas há mais de 72h). Uma execução por ciclo.
    */
   private async coletarComentarios(): Promise<void> {
     if (
@@ -413,4 +430,22 @@ export async function syncInstagramPerfisAgora(): Promise<void> {
     await globalRef.__radio55InstagramMonitor.start();
   }
   await globalRef.__radio55InstagramMonitor.forceSync();
+}
+
+/** Sync com debounce/cooldown — use em CRUD para não disparar Apify a cada cadastro. */
+export function agendarSyncInstagramPerfis(): void {
+  const globalRef = globalThis as MonitorGlobal;
+  const status = getInstagramMonitorStatus();
+  if (status.sincronizando) return;
+  if (status.ultima_sincronizacao) {
+    const idade = Date.now() - new Date(status.ultima_sincronizacao).getTime();
+    if (Number.isFinite(idade) && idade < AGENDAR_SYNC_COOLDOWN_MS) return;
+  }
+  if (globalRef.__radio55InstagramSyncTimer) {
+    clearTimeout(globalRef.__radio55InstagramSyncTimer);
+  }
+  globalRef.__radio55InstagramSyncTimer = setTimeout(() => {
+    globalRef.__radio55InstagramSyncTimer = undefined;
+    void syncInstagramPerfisAgora();
+  }, AGENDAR_SYNC_DEBOUNCE_MS);
 }

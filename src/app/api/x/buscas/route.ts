@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isDatabaseConfigured } from "@/lib/db";
 import { criarXBusca, listarXBuscas } from "@/lib/x-db";
 import { extrairTermoX } from "@/lib/x-fetch";
-import { syncXBuscasAgora } from "@/lib/x-monitor";
+import { agendarSyncXBuscas } from "@/lib/x-monitor";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const busca = await criarXBusca(termo);
-    void syncXBuscasAgora();
+    agendarSyncXBuscas();
     return NextResponse.json({ busca }, { status: 201 });
   } catch (error) {
     const pgCode =

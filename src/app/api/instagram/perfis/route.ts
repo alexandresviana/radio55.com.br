@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isDatabaseConfigured } from "@/lib/db";
 import { criarInstagramPerfil, listarInstagramPerfis } from "@/lib/instagram-db";
 import { extrairUsernameInstagram } from "@/lib/instagram-fetch";
-import { syncInstagramPerfisAgora } from "@/lib/instagram-monitor";
+import { agendarSyncInstagramPerfis } from "@/lib/instagram-monitor";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       urlEntrada: entrada,
     });
 
-    void syncInstagramPerfisAgora();
+    agendarSyncInstagramPerfis();
 
     return NextResponse.json({ perfil }, { status: 201 });
   } catch (error) {

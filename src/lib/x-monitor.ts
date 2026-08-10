@@ -9,9 +9,13 @@ import {
 import { escanearDeteccoesPostX, registrarDeteccaoDeBuscaX } from "@/lib/x-deteccao";
 import { coletarTweetsX, isXFetchConfigured } from "@/lib/x-fetch";
 
-const SYNC_MINUTOS_PADRAO = 30;
+// Pacote econômico Apify: intervalo maior e menos itens por ciclo.
+const SYNC_MINUTOS_PADRAO = 120;
+const TWEETS_POR_CICLO_PADRAO = 15;
 const RESCAN_MS = 60_000;
 const RESCAN_LOTE = 15;
+const AGENDAR_SYNC_DEBOUNCE_MS = 60_000;
+const AGENDAR_SYNC_COOLDOWN_MS = 10 * 60_000;
 
 function getSyncMs(): number {
   const raw = Number(process.env.X_SYNC_MINUTOS ?? SYNC_MINUTOS_PADRAO);
@@ -20,12 +24,15 @@ function getSyncMs(): number {
 }
 
 function getTweetsPorCiclo(): number {
-  const raw = Number(process.env.X_TWEETS_POR_CICLO ?? 40);
-  return Number.isFinite(raw) && raw >= 5 ? Math.min(Math.floor(raw), 200) : 40;
+  const raw = Number(process.env.X_TWEETS_POR_CICLO ?? TWEETS_POR_CICLO_PADRAO);
+  return Number.isFinite(raw) && raw >= 5
+    ? Math.min(Math.floor(raw), 200)
+    : TWEETS_POR_CICLO_PADRAO;
 }
 
 type MonitorGlobal = typeof globalThis & {
   __radio55XMonitor?: XMonitorService;
+  __radio55XSyncTimer?: NodeJS.Timeout;
 };
 
 class XMonitorService {
@@ -198,6 +205,22 @@ export async function startXMonitorService(): Promise<void> {
 
 export async function syncXBuscasAgora(): Promise<void> {
   await getService().forceSync();
+}
+
+/** Sync com debounce/cooldown — use em CRUD para não disparar Apify a cada cadastro. */
+export function agendarSyncXBuscas(): void {
+  const globalRef = globalThis as MonitorGlobal;
+  const status = getXMonitorStatus();
+  if (status.sincronizando) return;
+  if (status.ultima_sincronizacao) {
+    const idade = Date.now() - new Date(status.ultima_sincronizacao).getTime();
+    if (Number.isFinite(idade) && idade < AGENDAR_SYNC_COOLDOWN_MS) return;
+  }
+  if (globalRef.__radio55XSyncTimer) clearTimeout(globalRef.__radio55XSyncTimer);
+  globalRef.__radio55XSyncTimer = setTimeout(() => {
+    globalRef.__radio55XSyncTimer = undefined;
+    void syncXBuscasAgora();
+  }, AGENDAR_SYNC_DEBOUNCE_MS);
 }
 
 export async function reescanearDeteccoesXAgora(limite = 40): Promise<void> {

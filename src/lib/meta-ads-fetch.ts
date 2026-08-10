@@ -166,7 +166,7 @@ export async function coletarAnunciosMeta(
   const unicos = [...new Set(startUrls.map((u) => u.trim()).filter(Boolean))];
   if (unicos.length === 0) return [];
 
-  const limite = Math.min(Math.max(opts.limiteTotal ?? 30, 1), 200);
+  const limite = Math.min(Math.max(opts.limiteTotal ?? 15, 1), 200);
 
   const url = `${APIFY_BASE}/acts/${ACTOR_ADS_ID}/run-sync-get-dataset-items?token=${encodeURIComponent(token)}&format=json`;
   const res = await fetch(url, {

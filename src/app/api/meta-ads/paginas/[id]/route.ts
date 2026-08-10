@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isDatabaseConfigured } from "@/lib/db";
 import { atualizarMetaAdsPagina, removerMetaAdsPagina } from "@/lib/meta-ads-db";
-import { syncMetaAdsAgora } from "@/lib/meta-ads-monitor";
+import { agendarSyncMetaAds } from "@/lib/meta-ads-monitor";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,7 +34,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Página não encontrada" }, { status: 404 });
   }
 
-  if (pagina.ativo) void syncMetaAdsAgora();
+  if (pagina.ativo) agendarSyncMetaAds();
   return NextResponse.json({ pagina });
 }
 

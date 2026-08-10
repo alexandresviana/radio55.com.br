@@ -157,11 +157,11 @@ export async function buscarComentariosInstagram(params: {
 }
 
 /**
- * Publicações recentes (últimos 7 dias) que ainda não tiveram comentários
- * coletados, ou cuja coleta tem mais de 24h (para pegar comentários novos).
+ * Publicações recentes (últimos 3 dias) que ainda não tiveram comentários
+ * coletados, ou cuja coleta tem mais de 72h (pacote econômico Apify).
  */
 export async function listarPostsParaColetarComentarios(
-  limite = 5,
+  limite = 3,
 ): Promise<PostParaColetarComentarios[]> {
   if (!isDatabaseConfigured()) return [];
 
@@ -170,11 +170,11 @@ export async function listarPostsParaColetarComentarios(
      FROM instagram_posts
      WHERE url <> ''
        AND publicado_em IS NOT NULL
-       AND publicado_em > NOW() - INTERVAL '7 days'
+       AND publicado_em > NOW() - INTERVAL '3 days'
        AND COALESCE(comentarios, 0) > 0
        AND (
          comentarios_coletados_em IS NULL
-         OR comentarios_coletados_em < NOW() - INTERVAL '24 hours'
+         OR comentarios_coletados_em < NOW() - INTERVAL '72 hours'
        )
      ORDER BY
        comentarios_coletados_em ASC NULLS FIRST,

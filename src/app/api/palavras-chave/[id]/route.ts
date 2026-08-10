@@ -4,9 +4,9 @@ import {
   atualizarPalavraChave,
   removerPalavraChave,
 } from "@/lib/palavras-chave-db";
-import { syncInstagramPerfisAgora } from "@/lib/instagram-monitor";
-import { syncMetaAdsAgora } from "@/lib/meta-ads-monitor";
-import { syncXBuscasAgora } from "@/lib/x-monitor";
+import { agendarSyncInstagramPerfis } from "@/lib/instagram-monitor";
+import { agendarSyncMetaAds } from "@/lib/meta-ads-monitor";
+import { agendarSyncXBuscas } from "@/lib/x-monitor";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -70,9 +70,9 @@ export async function PATCH(
     return NextResponse.json({ error: "Palavra não encontrada" }, { status: 404 });
   }
 
-  if (palavra.coletar_instagram && palavra.ativo) void syncInstagramPerfisAgora();
-  if (palavra.coletar_x && palavra.ativo) void syncXBuscasAgora();
-  if (palavra.coletar_meta_ads && palavra.ativo) void syncMetaAdsAgora();
+  if (palavra.coletar_instagram && palavra.ativo) agendarSyncInstagramPerfis();
+  if (palavra.coletar_x && palavra.ativo) agendarSyncXBuscas();
+  if (palavra.coletar_meta_ads && palavra.ativo) agendarSyncMetaAds();
 
   return NextResponse.json({ palavra });
 }

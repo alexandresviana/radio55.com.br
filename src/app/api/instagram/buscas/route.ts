@@ -3,8 +3,8 @@ import { isDatabaseConfigured } from "@/lib/db";
 import { criarInstagramBusca, listarInstagramBuscas } from "@/lib/instagram-db";
 import { extrairTermoInstagram, termoInstagramEhHashtag } from "@/lib/instagram-fetch";
 import {
+  agendarSyncInstagramPerfis,
   reescanearDeteccoesInstagramAgora,
-  syncInstagramPerfisAgora,
 } from "@/lib/instagram-monitor";
 
 export const runtime = "nodejs";
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     if (termoInstagramEhHashtag(termo)) {
       // Hashtag: coleta publicações novas no Instagram.
-      void syncInstagramPerfisAgora();
+      agendarSyncInstagramPerfis();
     } else {
       // Frase: varre legendas e comentários já coletados.
       void reescanearDeteccoesInstagramAgora(80);

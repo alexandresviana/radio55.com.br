@@ -19,9 +19,13 @@ import {
 } from "@/lib/meta-ads-fetch";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
 
-const SYNC_MINUTOS_PADRAO = 30;
+// Pacote econômico Apify: intervalo maior e menos itens por ciclo.
+const SYNC_MINUTOS_PADRAO = 120;
+const ADS_POR_CICLO_PADRAO = 15;
 const RESCAN_MS = 60_000;
 const RESCAN_LOTE = 15;
+const AGENDAR_SYNC_DEBOUNCE_MS = 60_000;
+const AGENDAR_SYNC_COOLDOWN_MS = 10 * 60_000;
 
 function getSyncMs(): number {
   const raw = Number(process.env.META_ADS_SYNC_MINUTOS ?? SYNC_MINUTOS_PADRAO);
@@ -30,12 +34,15 @@ function getSyncMs(): number {
 }
 
 function getAdsPorCiclo(): number {
-  const raw = Number(process.env.META_ADS_POR_CICLO ?? 40);
-  return Number.isFinite(raw) && raw >= 5 ? Math.min(Math.floor(raw), 200) : 40;
+  const raw = Number(process.env.META_ADS_POR_CICLO ?? ADS_POR_CICLO_PADRAO);
+  return Number.isFinite(raw) && raw >= 5
+    ? Math.min(Math.floor(raw), 200)
+    : ADS_POR_CICLO_PADRAO;
 }
 
 type MonitorGlobal = typeof globalThis & {
   __radio55MetaAdsMonitor?: MetaAdsMonitorService;
+  __radio55MetaAdsSyncTimer?: NodeJS.Timeout;
 };
 
 class MetaAdsMonitorService {
@@ -258,6 +265,24 @@ export async function startMetaAdsMonitorService(): Promise<void> {
 
 export async function syncMetaAdsAgora(): Promise<void> {
   await getService().forceSync();
+}
+
+/** Sync com debounce/cooldown — use em CRUD para não disparar Apify a cada cadastro. */
+export function agendarSyncMetaAds(): void {
+  const globalRef = globalThis as MonitorGlobal;
+  const status = getMetaAdsMonitorStatus();
+  if (status.sincronizando) return;
+  if (status.ultima_sincronizacao) {
+    const idade = Date.now() - new Date(status.ultima_sincronizacao).getTime();
+    if (Number.isFinite(idade) && idade < AGENDAR_SYNC_COOLDOWN_MS) return;
+  }
+  if (globalRef.__radio55MetaAdsSyncTimer) {
+    clearTimeout(globalRef.__radio55MetaAdsSyncTimer);
+  }
+  globalRef.__radio55MetaAdsSyncTimer = setTimeout(() => {
+    globalRef.__radio55MetaAdsSyncTimer = undefined;
+    void syncMetaAdsAgora();
+  }, AGENDAR_SYNC_DEBOUNCE_MS);
 }
 
 export async function reescanearDeteccoesMetaAdsAgora(limite = 40): Promise<void> {

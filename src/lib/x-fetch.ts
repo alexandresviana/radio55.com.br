@@ -90,7 +90,7 @@ export async function coletarTweetsX(
   const unicos = [...new Set(termos.map((t) => t.trim()).filter(Boolean))];
   if (unicos.length === 0) return [];
 
-  const limite = Math.min(Math.max(opts.limiteTotal ?? 30, 1), 200);
+  const limite = Math.min(Math.max(opts.limiteTotal ?? 15, 1), 200);
   const searchTerms = unicos.map(queryBuscaX);
 
   const url = `${APIFY_BASE}/acts/${ACTOR_BUSCA_ID}/run-sync-get-dataset-items?token=${encodeURIComponent(token)}&format=json`;

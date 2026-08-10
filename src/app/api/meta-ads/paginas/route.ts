@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isDatabaseConfigured } from "@/lib/db";
 import { criarMetaAdsPagina, listarMetaAdsPaginas } from "@/lib/meta-ads-db";
 import { extrairPaginaFacebook, urlPaginaFacebook } from "@/lib/meta-ads-fetch";
-import { syncMetaAdsAgora } from "@/lib/meta-ads-monitor";
+import { agendarSyncMetaAds } from "@/lib/meta-ads-monitor";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       urlEntrada: urlPaginaFacebook(slug),
       titulo: slug,
     });
-    void syncMetaAdsAgora();
+    agendarSyncMetaAds();
     return NextResponse.json({ pagina }, { status: 201 });
   } catch (error) {
     const pgCode =
