@@ -383,7 +383,7 @@ export async function buscarPanorama(params: {
 }
 
 export interface PontoEvolucaoPanorama {
-  /** Início da hora (ISO). */
+  /** Início do bucket (hora ou dia, ISO). */
   hora: string;
   radio: number;
   youtube: number;
@@ -393,26 +393,23 @@ export interface PontoEvolucaoPanorama {
   total: number;
 }
 
-/** Contagem horária de menções por veículo nas últimas 24 horas. */
-export async function buscarEvolucaoPanorama24h(params: {
+/** Contagem de menções por veículo no período (hora em 24h; dia em 7d/30d). */
+export async function buscarEvolucaoPanorama(params: {
   termo?: string;
+  janela?: JanelaPanorama;
 }): Promise<PontoEvolucaoPanorama[]> {
-  const horas = montarHorasUltimas24();
+  const janela = params.janela ?? "24h";
+  const trunc = janela === "24h" ? "hour" : "day";
+  const buckets = montarBucketsEvolucao(janela);
+
   if (!isDatabaseConfigured()) {
-    return horas.map((hora) => ({
-      hora: hora.toISOString(),
-      radio: 0,
-      youtube: 0,
-      instagram: 0,
-      x: 0,
-      meta_ads: 0,
-      total: 0,
-    }));
+    return buckets.map((hora) => pontoVazio(hora.toISOString()));
   }
 
-  const desde = horas[0]!.toISOString();
+  const desde = buckets[0]!.toISOString();
   const busca = termoSql(params.termo);
 
+  // trunc é whitelist ('hour' | 'day') — seguro embutir no SQL.
   const result = await getPool().query<{
     hora: Date;
     fonte: FontePanorama;
@@ -420,7 +417,7 @@ export async function buscarEvolucaoPanorama24h(params: {
   }>(
     `SELECT hora, fonte, COUNT(*)::text AS total
      FROM (
-       SELECT date_trunc('hour', d.detectado_em) AS hora, 'radio'::text AS fonte
+       SELECT date_trunc('${trunc}', d.detectado_em) AS hora, 'radio'::text AS fonte
        FROM palavra_deteccoes d
        JOIN gravacao_arquivos g ON g.id = d.gravacao_id
        WHERE g.removido_em IS NULL
@@ -433,7 +430,7 @@ export async function buscarEvolucaoPanorama24h(params: {
            OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
          )
        UNION ALL
-       SELECT date_trunc('hour', d.detectado_em), 'youtube'
+       SELECT date_trunc('${trunc}', d.detectado_em), 'youtube'
        FROM youtube_palavra_deteccoes d
        JOIN youtube_videos v ON v.id = d.video_db_id
        WHERE d.detectado_em >= $1::timestamptz
@@ -446,7 +443,7 @@ export async function buscarEvolucaoPanorama24h(params: {
            OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
          )
        UNION ALL
-       SELECT date_trunc('hour', d.detectado_em), 'instagram'
+       SELECT date_trunc('${trunc}', d.detectado_em), 'instagram'
        FROM instagram_palavra_deteccoes d
        WHERE d.detectado_em >= $1::timestamptz
          AND (
@@ -457,7 +454,7 @@ export async function buscarEvolucaoPanorama24h(params: {
            OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
          )
        UNION ALL
-       SELECT date_trunc('hour', d.detectado_em), 'x'
+       SELECT date_trunc('${trunc}', d.detectado_em), 'x'
        FROM x_palavra_deteccoes d
        WHERE d.detectado_em >= $1::timestamptz
          AND (
@@ -468,7 +465,7 @@ export async function buscarEvolucaoPanorama24h(params: {
            OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
          )
        UNION ALL
-       SELECT date_trunc('hour', d.detectado_em), 'meta_ads'
+       SELECT date_trunc('${trunc}', d.detectado_em), 'meta_ads'
        FROM meta_ads_palavra_deteccoes d
        WHERE d.detectado_em >= $1::timestamptz
          AND (
@@ -484,23 +481,14 @@ export async function buscarEvolucaoPanorama24h(params: {
     [desde, busca.ilike, busca.normalizado],
   );
 
-  const porHora = new Map<string, PontoEvolucaoPanorama>();
-  for (const hora of horas) {
-    const chave = hora.toISOString();
-    porHora.set(chave, {
-      hora: chave,
-      radio: 0,
-      youtube: 0,
-      instagram: 0,
-      x: 0,
-      meta_ads: 0,
-      total: 0,
-    });
+  const porBucket = new Map<string, PontoEvolucaoPanorama>();
+  for (const bucket of buckets) {
+    porBucket.set(bucket.toISOString(), pontoVazio(bucket.toISOString()));
   }
 
   for (const row of result.rows) {
     const chave = new Date(row.hora).toISOString();
-    const ponto = porHora.get(chave);
+    const ponto = porBucket.get(chave);
     if (!ponto) continue;
     const n = Number(row.total ?? 0);
     if (row.fonte === "radio") ponto.radio = n;
@@ -511,20 +499,50 @@ export async function buscarEvolucaoPanorama24h(params: {
     ponto.total = ponto.radio + ponto.youtube + ponto.instagram + ponto.x + ponto.meta_ads;
   }
 
-  return [...porHora.values()];
+  return [...porBucket.values()];
 }
 
-function montarHorasUltimas24(): Date[] {
-  const agora = new Date();
-  const inicio = new Date(agora);
-  inicio.setMinutes(0, 0, 0);
-  inicio.setHours(inicio.getHours() - 23);
+/** @deprecated use buscarEvolucaoPanorama */
+export async function buscarEvolucaoPanorama24h(params: {
+  termo?: string;
+}): Promise<PontoEvolucaoPanorama[]> {
+  return buscarEvolucaoPanorama({ ...params, janela: "24h" });
+}
 
-  const horas: Date[] = [];
-  for (let i = 0; i < 24; i += 1) {
-    const h = new Date(inicio);
-    h.setHours(inicio.getHours() + i);
-    horas.push(h);
+function pontoVazio(hora: string): PontoEvolucaoPanorama {
+  return {
+    hora,
+    radio: 0,
+    youtube: 0,
+    instagram: 0,
+    x: 0,
+    meta_ads: 0,
+    total: 0,
+  };
+}
+
+function montarBucketsEvolucao(janela: JanelaPanorama): Date[] {
+  const agora = new Date();
+
+  if (janela === "24h") {
+    const inicio = new Date(agora);
+    inicio.setMinutes(0, 0, 0);
+    inicio.setHours(inicio.getHours() - 23);
+    return Array.from({ length: 24 }, (_, i) => {
+      const h = new Date(inicio);
+      h.setHours(inicio.getHours() + i);
+      return h;
+    });
   }
-  return horas;
+
+  const dias = janela === "7d" ? 7 : 30;
+  const inicio = new Date(agora);
+  inicio.setHours(0, 0, 0, 0);
+  inicio.setDate(inicio.getDate() - (dias - 1));
+
+  return Array.from({ length: dias }, (_, i) => {
+    const d = new Date(inicio);
+    d.setDate(inicio.getDate() + i);
+    return d;
+  });
 }

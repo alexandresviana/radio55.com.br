@@ -23,14 +23,15 @@ const SERIES: { id: SerieId; label: string; cor: string }[] = [
 ];
 
 const WIDTH = 720;
-const HEIGHT = 220;
-const PAD = { top: 16, right: 12, bottom: 28, left: 36 };
+const HEIGHT = 240;
+const PAD = { top: 20, right: 20, bottom: 40, left: 40 };
 
-function formatHora(iso: string): string {
-  return new Date(iso).toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+type Janela = "24h" | "7d" | "30d";
+
+function tituloJanela(janela: Janela): string {
+  if (janela === "7d") return "Menções por veículo — últimos 7 dias";
+  if (janela === "30d") return "Menções por veículo — últimos 30 dias";
+  return "Menções por veículo — últimas 24 horas";
 }
 
 function niceMax(valor: number): number {
@@ -42,19 +43,26 @@ function niceMax(valor: number): number {
   return 10 * pot;
 }
 
-export default function PanoramaEvolucao({ termo }: { termo?: string }) {
+export default function PanoramaEvolucao({
+  termo,
+  janela = "24h",
+}: {
+  termo?: string;
+  janela?: Janela;
+}) {
   const gradId = useId();
   const [pontos, setPontos] = useState<PontoEvolucao[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
-  const [ocultas, setOcultas] = useState<Set<SerieId>>(new Set());
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
   const carregar = useCallback(async () => {
     setLoading(true);
     setErro("");
+    setHoverIdx(null);
     const params = new URLSearchParams();
     if (termo?.trim()) params.set("termo", termo.trim());
+    params.set("janela", janela);
 
     const res = await fetch(`/api/panorama/evolucao?${params}`);
     const data = (await res.json()) as { pontos?: PontoEvolucao[]; error?: string };
@@ -66,88 +74,55 @@ export default function PanoramaEvolucao({ termo }: { termo?: string }) {
       setPontos(data.pontos ?? []);
     }
     setLoading(false);
-  }, [termo]);
+  }, [termo, janela]);
 
   useEffect(() => {
     void carregar();
   }, [carregar]);
 
-  const maxY = useMemo(() => {
-    let max = 0;
-    for (const p of pontos) {
-      for (const s of SERIES) {
-        if (ocultas.has(s.id)) continue;
-        max = Math.max(max, p[s.id]);
-      }
-    }
-    return niceMax(max);
-  }, [pontos, ocultas]);
+  const totais = useMemo(
+    () =>
+      SERIES.map((s) => ({
+        ...s,
+        valor: pontos.reduce((acc, p) => acc + p[s.id], 0),
+      })),
+    [pontos],
+  );
+
+  const maxY = useMemo(
+    () => niceMax(Math.max(0, ...totais.map((t) => t.valor))),
+    [totais],
+  );
 
   const plotW = WIDTH - PAD.left - PAD.right;
   const plotH = HEIGHT - PAD.top - PAD.bottom;
+  const n = totais.length;
 
   function xAt(i: number): number {
-    if (pontos.length <= 1) return PAD.left + plotW / 2;
-    return PAD.left + (i / (pontos.length - 1)) * plotW;
+    if (n <= 1) return PAD.left + plotW / 2;
+    return PAD.left + (i / (n - 1)) * plotW;
   }
 
   function yAt(v: number): number {
     return PAD.top + plotH - (v / maxY) * plotH;
   }
 
-  function pathSerie(id: SerieId): string {
-    if (pontos.length === 0) return "";
-    return pontos
-      .map((p, i) => `${i === 0 ? "M" : "L"} ${xAt(i).toFixed(1)} ${yAt(p[id]).toFixed(1)}`)
-      .join(" ");
-  }
+  const pathLinha = totais
+    .map((t, i) => `${i === 0 ? "M" : "L"} ${xAt(i).toFixed(1)} ${yAt(t.valor).toFixed(1)}`)
+    .join(" ");
 
-  function toggleSerie(id: SerieId) {
-    setOcultas((atual) => {
-      const next = new Set(atual);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  const hover = hoverIdx != null ? pontos[hoverIdx] : null;
-  const total24h = pontos.reduce((acc, p) => acc + p.total, 0);
+  const totalPeriodo = totais.reduce((acc, t) => acc + t.valor, 0);
+  const hover = hoverIdx != null ? totais[hoverIdx] : null;
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-semibold text-slate-900">Evolução nas últimas 24 horas</h3>
-          <p className="mt-1 text-sm text-slate-500">
-            Menções por hora em cada veículo monitorado
-            {termo?.trim() ? ` · filtro “${termo.trim()}”` : ""}.
-            {!loading && total24h === 0 ? " Sem menções no período." : ""}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {SERIES.map((s) => {
-            const off = ocultas.has(s.id);
-            return (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => toggleSerie(s.id)}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition ${
-                  off
-                    ? "border-slate-100 bg-slate-50 text-slate-400"
-                    : "border-slate-200 bg-white text-slate-700"
-                }`}
-              >
-                <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: off ? "#cbd5e1" : s.cor }}
-                />
-                {s.label}
-              </button>
-            );
-          })}
-        </div>
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold text-slate-900">{tituloJanela(janela)}</h3>
+        <p className="mt-1 text-sm text-slate-500">
+          Total de menções por veículo no período selecionado
+          {termo?.trim() ? ` · filtro “${termo.trim()}”` : ""}.
+          {!loading && totalPeriodo === 0 ? " Sem menções no período." : ""}
+        </p>
       </div>
 
       {erro && <p className="mb-3 text-sm text-red-600">{erro}</p>}
@@ -160,7 +135,7 @@ export default function PanoramaEvolucao({ termo }: { termo?: string }) {
             viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
             className="h-auto w-full min-w-[520px]"
             role="img"
-            aria-label="Gráfico de linhas com menções por hora nas últimas 24 horas"
+            aria-label={tituloJanela(janela)}
             onMouseLeave={() => setHoverIdx(null)}
           >
             <defs>
@@ -205,86 +180,87 @@ export default function PanoramaEvolucao({ termo }: { termo?: string }) {
               );
             })}
 
-            {pontos.map((p, i) => {
-              if (i % 3 !== 0 && i !== pontos.length - 1) return null;
-              return (
-                <text
-                  key={p.hora}
-                  x={xAt(i)}
-                  y={HEIGHT - 8}
-                  textAnchor="middle"
-                  className="fill-slate-400"
-                  style={{ fontSize: 10 }}
-                >
-                  {formatHora(p.hora)}
-                </text>
-              );
-            })}
-
-            {SERIES.map((s) =>
-              ocultas.has(s.id) ? null : (
-                <path
-                  key={s.id}
-                  d={pathSerie(s.id)}
-                  fill="none"
-                  stroke={s.cor}
-                  strokeWidth="2.25"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                />
-              ),
-            )}
-
-            {pontos.map((_, i) => (
-              <rect
-                key={`hit-${i}`}
-                x={xAt(i) - plotW / pontos.length / 2}
-                y={PAD.top}
-                width={Math.max(plotW / pontos.length, 8)}
-                height={plotH}
-                fill="transparent"
-                onMouseEnter={() => setHoverIdx(i)}
+            {/* Linhas verticais paralelas por veículo */}
+            {totais.map((t, i) => (
+              <line
+                key={`v-${t.id}`}
+                x1={xAt(i)}
+                x2={xAt(i)}
+                y1={PAD.top}
+                y2={PAD.top + plotH}
+                stroke="#e2e8f0"
+                strokeDasharray="2 4"
               />
             ))}
 
-            {hoverIdx != null && (
-              <line
-                x1={xAt(hoverIdx)}
-                x2={xAt(hoverIdx)}
-                y1={PAD.top}
-                y2={PAD.top + plotH}
-                stroke="#94a3b8"
-                strokeDasharray="4 3"
-              />
-            )}
+            <path
+              d={pathLinha}
+              fill="none"
+              stroke="#0f172a"
+              strokeWidth="2.25"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
 
-            {SERIES.map((s) =>
-              ocultas.has(s.id) || hoverIdx == null ? null : (
-                <circle
-                  key={`dot-${s.id}`}
-                  cx={xAt(hoverIdx)}
-                  cy={yAt(pontos[hoverIdx]![s.id])}
-                  r="3.5"
-                  fill={s.cor}
-                  stroke="#fff"
-                  strokeWidth="1.5"
+            {totais.map((t, i) => (
+              <g key={t.id}>
+                <line
+                  x1={xAt(i)}
+                  x2={xAt(i)}
+                  y1={yAt(0)}
+                  y2={yAt(t.valor)}
+                  stroke={t.cor}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  opacity={0.35}
                 />
-              ),
-            )}
+                <circle
+                  cx={xAt(i)}
+                  cy={yAt(t.valor)}
+                  r={hoverIdx === i ? 6 : 5}
+                  fill={t.cor}
+                  stroke="#fff"
+                  strokeWidth="2"
+                />
+                <text
+                  x={xAt(i)}
+                  y={yAt(t.valor) - 12}
+                  textAnchor="middle"
+                  className="fill-slate-700"
+                  style={{ fontSize: 11, fontWeight: 600 }}
+                >
+                  {t.valor}
+                </text>
+                <text
+                  x={xAt(i)}
+                  y={HEIGHT - 12}
+                  textAnchor="middle"
+                  className="fill-slate-600"
+                  style={{ fontSize: 12, fontWeight: 600 }}
+                >
+                  {t.label}
+                </text>
+                <rect
+                  x={xAt(i) - plotW / n / 2}
+                  y={PAD.top}
+                  width={Math.max(plotW / n, 24)}
+                  height={plotH + PAD.bottom}
+                  fill="transparent"
+                  onMouseEnter={() => setHoverIdx(i)}
+                />
+              </g>
+            ))}
           </svg>
 
           {hover && (
             <div className="pointer-events-none absolute right-3 top-3 rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-xs shadow-sm backdrop-blur">
-              <p className="mb-1 font-medium text-slate-800">{formatHora(hover.hora)}</p>
-              {SERIES.filter((s) => !ocultas.has(s.id)).map((s) => (
-                <p key={s.id} className="flex items-center justify-between gap-4 text-slate-600">
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: s.cor }} />
-                    {s.label}
-                  </span>
-                  <span className="font-medium text-slate-900">{hover[s.id]}</span>
-                </p>
-              ))}
+              <p className="mb-1 inline-flex items-center gap-1.5 font-medium text-slate-800">
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: hover.cor }} />
+                {hover.label}
+              </p>
+              <p className="text-slate-600">
+                <span className="font-medium text-slate-900">{hover.valor}</span> menções
+              </p>
             </div>
           )}
         </div>

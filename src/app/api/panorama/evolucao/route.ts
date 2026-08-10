@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isDatabaseConfigured } from "@/lib/db";
-import { buscarEvolucaoPanorama24h } from "@/lib/panorama-db";
+import {
+  buscarEvolucaoPanorama,
+  type JanelaPanorama,
+} from "@/lib/panorama-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const JANELAS = new Set<JanelaPanorama>(["24h", "7d", "30d"]);
 
 export async function GET(request: NextRequest) {
   if (!isDatabaseConfigured()) {
@@ -13,11 +18,14 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const termo = request.nextUrl.searchParams.get("termo")?.trim() || undefined;
+  const params = request.nextUrl.searchParams;
+  const termo = params.get("termo")?.trim() || undefined;
+  const janelaRaw = (params.get("janela") ?? "24h") as JanelaPanorama;
+  const janela = JANELAS.has(janelaRaw) ? janelaRaw : "24h";
 
   try {
-    const pontos = await buscarEvolucaoPanorama24h({ termo });
-    return NextResponse.json({ pontos, janela: "24h" });
+    const pontos = await buscarEvolucaoPanorama({ termo, janela });
+    return NextResponse.json({ pontos, janela });
   } catch (error) {
     console.error("[panorama/evolucao]", error);
     return NextResponse.json(
