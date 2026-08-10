@@ -223,7 +223,11 @@ export default function Panorama() {
         </div>
       </section>
 
-      <PanoramaEvolucao termo={assuntoAplicado} janela={janela} />
+      <PanoramaEvolucao
+        termo={assuntoAplicado}
+        janela={janela}
+        onFonteChange={(proxima) => setFonte(proxima)}
+      />
 
       {contagens && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">

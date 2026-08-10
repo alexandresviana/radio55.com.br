@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
 
-interface PontoEvolucao {
+interface PontoVeiculos {
   hora: string;
   radio: number;
   youtube: number;
@@ -12,9 +12,20 @@ interface PontoEvolucao {
   total: number;
 }
 
+interface SerieFonte {
+  id: string;
+  label: string;
+}
+
+interface PontoFontes {
+  hora: string;
+  valores: Record<string, number>;
+  total: number;
+}
+
 type SerieId = "radio" | "youtube" | "instagram" | "x" | "meta_ads";
 
-const SERIES: { id: SerieId; label: string; cor: string }[] = [
+const VEICULOS: { id: SerieId; label: string; cor: string }[] = [
   { id: "radio", label: "Rádio", cor: "#047857" },
   { id: "youtube", label: "YouTube", cor: "#b91c1c" },
   { id: "instagram", label: "Instagram", cor: "#a21caf" },
@@ -22,8 +33,23 @@ const SERIES: { id: SerieId; label: string; cor: string }[] = [
   { id: "meta_ads", label: "Anúncios", cor: "#4338ca" },
 ];
 
+const PALETTE_FONTES = [
+  "#047857",
+  "#b91c1c",
+  "#a21caf",
+  "#0369a1",
+  "#4338ca",
+  "#c2410c",
+  "#0f766e",
+  "#be185d",
+  "#1d4ed8",
+  "#854d0e",
+  "#334155",
+  "#7c3aed",
+];
+
 const WIDTH = 760;
-const PAD = { top: 8, right: 16, bottom: 28, left: 88 };
+const PAD = { top: 8, right: 16, bottom: 28, left: 120 };
 const ROW_H = 52;
 const ROW_GAP = 6;
 const INNER_PAD = 6;
@@ -61,15 +87,14 @@ function formatRotuloHover(iso: string, janela: Janela): string {
   });
 }
 
-function tituloJanela(janela: Janela): string {
-  if (janela === "7d") return "Evolução nos últimos 7 dias";
-  if (janela === "30d") return "Evolução nos últimos 30 dias";
-  return "Evolução nas últimas 24 horas";
-}
-
-function subtituloJanela(janela: Janela): string {
-  if (janela === "24h") return "Menções por hora em cada veículo";
-  return "Menções por dia em cada veículo";
+function tituloJanela(janela: Janela, veiculo?: string): string {
+  const base =
+    janela === "7d"
+      ? "Evolução nos últimos 7 dias"
+      : janela === "30d"
+        ? "Evolução nos últimos 30 dias"
+        : "Evolução nas últimas 24 horas";
+  return veiculo ? `${base} · ${veiculo}` : base;
 }
 
 function passoLabelEixo(total: number, janela: Janela): number {
@@ -88,18 +113,40 @@ function niceMax(valor: number): number {
   return 10 * pot;
 }
 
+function truncarLabel(label: string, max = 16): string {
+  const t = label.trim();
+  if (t.length <= max) return t;
+  return `${t.slice(0, max - 1)}…`;
+}
+
+function valorPonto(
+  ponto: PontoVeiculos | PontoFontes,
+  serieId: string,
+  modo: "veiculos" | "fontes",
+): number {
+  if (modo === "veiculos") return (ponto as PontoVeiculos)[serieId as SerieId] ?? 0;
+  return (ponto as PontoFontes).valores[serieId] ?? 0;
+}
+
 export default function PanoramaEvolucao({
   termo,
   janela = "24h",
+  onFonteChange,
 }: {
   termo?: string;
   janela?: Janela;
+  onFonteChange?: (fonte: SerieId | "todas") => void;
 }) {
   const gradId = useId().replace(/:/g, "");
-  const [pontos, setPontos] = useState<PontoEvolucao[]>([]);
+  const [fonteDrill, setFonteDrill] = useState<SerieId | null>(null);
+  const [series, setSeries] = useState<{ id: string; label: string; cor: string }[]>(VEICULOS);
+  const [pontos, setPontos] = useState<(PontoVeiculos | PontoFontes)[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+
+  const modo = fonteDrill ? "fontes" : "veiculos";
+  const veiculoAtual = VEICULOS.find((v) => v.id === fonteDrill);
 
   const carregar = useCallback(async () => {
     setLoading(true);
@@ -108,18 +155,35 @@ export default function PanoramaEvolucao({
     const params = new URLSearchParams();
     if (termo?.trim()) params.set("termo", termo.trim());
     params.set("janela", janela);
+    if (fonteDrill) params.set("fonte", fonteDrill);
 
     const res = await fetch(`/api/panorama/evolucao?${params}`);
-    const data = (await res.json()) as { pontos?: PontoEvolucao[]; error?: string };
+    const data = (await res.json()) as {
+      pontos?: (PontoVeiculos | PontoFontes)[];
+      series?: SerieFonte[];
+      error?: string;
+    };
 
     if (!res.ok) {
       setErro(data.error ?? "Erro ao carregar gráfico");
       setPontos([]);
+      setSeries(fonteDrill ? [] : VEICULOS);
+    } else if (fonteDrill) {
+      const corBase = VEICULOS.find((v) => v.id === fonteDrill)?.cor ?? "#334155";
+      setSeries(
+        (data.series ?? []).map((s, i) => ({
+          id: s.id,
+          label: s.label,
+          cor: PALETTE_FONTES[i % PALETTE_FONTES.length] ?? corBase,
+        })),
+      );
+      setPontos(data.pontos ?? []);
     } else {
+      setSeries(VEICULOS);
       setPontos(data.pontos ?? []);
     }
     setLoading(false);
-  }, [termo, janela]);
+  }, [termo, janela, fonteDrill]);
 
   useEffect(() => {
     void carregar();
@@ -128,12 +192,15 @@ export default function PanoramaEvolucao({
   const maxY = useMemo(() => {
     let max = 0;
     for (const p of pontos) {
-      for (const s of SERIES) max = Math.max(max, p[s.id]);
+      for (const s of series) {
+        max = Math.max(max, valorPonto(p, s.id, modo));
+      }
     }
     return niceMax(max);
-  }, [pontos]);
+  }, [pontos, series, modo]);
 
-  const height = PAD.top + SERIES.length * (ROW_H + ROW_GAP) - ROW_GAP + PAD.bottom;
+  const height =
+    PAD.top + Math.max(series.length, 1) * (ROW_H + ROW_GAP) - ROW_GAP + PAD.bottom;
   const plotW = WIDTH - PAD.left - PAD.right;
   const plotTop = PAD.top;
   const plotBottom = height - PAD.bottom;
@@ -153,63 +220,92 @@ export default function PanoramaEvolucao({
     return top + h - (valor / maxY) * h;
   }
 
-  function pathSerie(id: SerieId, row: number): string {
+  function pathSerie(id: string, row: number): string {
     if (pontos.length === 0) return "";
     return pontos
       .map((p, i) => {
         const cmd = i === 0 ? "M" : "L";
-        return `${cmd} ${xAt(i).toFixed(1)} ${yInRow(row, p[id]).toFixed(1)}`;
+        return `${cmd} ${xAt(i).toFixed(1)} ${yInRow(row, valorPonto(p, id, modo)).toFixed(1)}`;
       })
       .join(" ");
   }
 
-  function areaSerie(id: SerieId, row: number): string {
+  function areaSerie(id: string, row: number): string {
     if (pontos.length === 0) return "";
     const base = rowTop(row) + ROW_H - INNER_PAD;
-    const line = pontos
-      .map((p, i) => {
-        const cmd = i === 0 ? "M" : "L";
-        return `${cmd} ${xAt(i).toFixed(1)} ${yInRow(row, p[id]).toFixed(1)}`;
-      })
-      .join(" ");
+    const line = pathSerie(id, row);
     const lastX = xAt(pontos.length - 1);
     const firstX = xAt(0);
     return `${line} L ${lastX.toFixed(1)} ${base.toFixed(1)} L ${firstX.toFixed(1)} ${base.toFixed(1)} Z`;
   }
 
+  function abrirFonte(id: SerieId) {
+    setFonteDrill(id);
+    onFonteChange?.(id);
+  }
+
+  function voltarVeiculos() {
+    setFonteDrill(null);
+    onFonteChange?.("todas");
+  }
+
   const hover = hoverIdx != null ? pontos[hoverIdx] : null;
-  const totalPeriodo = pontos.reduce((acc, p) => acc + p.total, 0);
+  const totalPeriodo = pontos.reduce((acc, p) => acc + (p.total ?? 0), 0);
   const passoLabel = passoLabelEixo(pontos.length, janela);
+  const subtitulo = fonteDrill
+    ? `Menções por ${janela === "24h" ? "hora" : "dia"} em cada fonte monitorada · clique em Voltar para os veículos`
+    : `Menções por ${janela === "24h" ? "hora" : "dia"} · clique no nome do veículo para ver as fontes`;
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-slate-900">{tituloJanela(janela)}</h3>
-        <p className="mt-1 text-sm text-slate-500">
-          {subtituloJanela(janela)}
-          {termo?.trim() ? ` · filtro “${termo.trim()}”` : ""}.
-          {!loading && totalPeriodo === 0 ? " Sem menções no período." : ""}
-        </p>
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900">
+            {tituloJanela(janela, veiculoAtual?.label)}
+          </h3>
+          <p className="mt-1 text-sm text-slate-500">
+            {subtitulo}
+            {termo?.trim() ? ` · filtro “${termo.trim()}”` : ""}.
+            {!loading && totalPeriodo === 0 && series.length === 0
+              ? " Nenhuma fonte monitorada."
+              : !loading && totalPeriodo === 0
+                ? " Sem menções no período."
+                : ""}
+          </p>
+        </div>
+        {fonteDrill && (
+          <button
+            type="button"
+            onClick={voltarVeiculos}
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
+          >
+            ← Voltar aos veículos
+          </button>
+        )}
       </div>
 
       {erro && <p className="mb-3 text-sm text-red-600">{erro}</p>}
 
       {loading ? (
         <p className="py-16 text-center text-sm text-slate-500">Carregando gráfico...</p>
+      ) : series.length === 0 ? (
+        <p className="py-12 text-center text-sm text-slate-500">
+          Nenhuma conta/rádio monitorada neste veículo.
+        </p>
       ) : (
         <div className="relative w-full overflow-x-auto">
           <svg
             viewBox={`0 0 ${WIDTH} ${height}`}
             className="h-auto w-full min-w-[560px]"
             role="img"
-            aria-label={tituloJanela(janela)}
+            aria-label={tituloJanela(janela, veiculoAtual?.label)}
             onMouseLeave={() => setHoverIdx(null)}
           >
             <defs>
-              {SERIES.map((s) => (
+              {series.map((s) => (
                 <linearGradient
                   key={s.id}
-                  id={`${gradId}-${s.id}`}
+                  id={`${gradId}-${s.id.replace(/[^a-zA-Z0-9_-]/g, "_")}`}
                   x1="0"
                   y1="0"
                   x2="0"
@@ -221,8 +317,10 @@ export default function PanoramaEvolucao({
               ))}
             </defs>
 
-            {SERIES.map((s, row) => {
+            {series.map((s, row) => {
               const top = rowTop(row);
+              const grad = `${gradId}-${s.id.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+              const clicavel = !fonteDrill;
               return (
                 <g key={s.id}>
                   <rect
@@ -240,16 +338,7 @@ export default function PanoramaEvolucao({
                     y2={top + ROW_H - INNER_PAD}
                     stroke="#e2e8f0"
                   />
-                  <text
-                    x={PAD.left - 10}
-                    y={top + ROW_H / 2 + 4}
-                    textAnchor="end"
-                    className="fill-slate-700"
-                    style={{ fontSize: 12, fontWeight: 600 }}
-                  >
-                    {s.label}
-                  </text>
-                  <path d={areaSerie(s.id, row)} fill={`url(#${gradId}-${s.id})`} />
+                  <path d={areaSerie(s.id, row)} fill={`url(#${grad})`} />
                   <path
                     d={pathSerie(s.id, row)}
                     fill="none"
@@ -258,6 +347,32 @@ export default function PanoramaEvolucao({
                     strokeLinejoin="round"
                     strokeLinecap="round"
                   />
+                  <text
+                    x={PAD.left - 10}
+                    y={top + ROW_H / 2 + 4}
+                    textAnchor="end"
+                    className={clicavel ? "fill-slate-800" : "fill-slate-700"}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: clicavel ? "pointer" : "default",
+                    }}
+                  >
+                    {truncarLabel(s.label, fonteDrill ? 18 : 14)}
+                  </text>
+                  {clicavel && (
+                    <rect
+                      x={0}
+                      y={top}
+                      width={PAD.left + plotW}
+                      height={ROW_H}
+                      fill="transparent"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => abrirFonte(s.id as SerieId)}
+                    >
+                      <title>Ver fontes de {s.label}</title>
+                    </rect>
+                  )}
                 </g>
               );
             })}
@@ -301,12 +416,12 @@ export default function PanoramaEvolucao({
               />
             )}
 
-            {SERIES.map((s, row) =>
+            {series.map((s, row) =>
               hoverIdx == null ? null : (
                 <g key={`dot-${s.id}`}>
                   <circle
                     cx={xAt(hoverIdx)}
-                    cy={yInRow(row, pontos[hoverIdx]![s.id])}
+                    cy={yInRow(row, valorPonto(pontos[hoverIdx]!, s.id, modo))}
                     r="3.5"
                     fill={s.cor}
                     stroke="#fff"
@@ -319,7 +434,7 @@ export default function PanoramaEvolucao({
                     className="fill-slate-500"
                     style={{ fontSize: 10 }}
                   >
-                    {pontos[hoverIdx]![s.id]}
+                    {valorPonto(pontos[hoverIdx]!, s.id, modo)}
                   </text>
                 </g>
               ),
@@ -327,17 +442,19 @@ export default function PanoramaEvolucao({
           </svg>
 
           {hover && (
-            <div className="pointer-events-none absolute right-3 top-3 rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-xs shadow-sm backdrop-blur">
+            <div className="pointer-events-none absolute right-3 top-3 max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-xs shadow-sm backdrop-blur">
               <p className="mb-1 font-medium text-slate-800">
                 {formatRotuloHover(hover.hora, janela)}
               </p>
-              {SERIES.map((s) => (
+              {series.map((s) => (
                 <p key={s.id} className="flex items-center justify-between gap-4 text-slate-600">
                   <span className="inline-flex items-center gap-1.5">
                     <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: s.cor }} />
-                    {s.label}
+                    {truncarLabel(s.label, 20)}
                   </span>
-                  <span className="font-medium text-slate-900">{hover[s.id]}</span>
+                  <span className="font-medium text-slate-900">
+                    {valorPonto(hover, s.id, modo)}
+                  </span>
                 </p>
               ))}
             </div>

@@ -1,9 +1,14 @@
 import { getPool, isDatabaseConfigured } from "@/lib/db";
-import { listarInstagramBuscasAtivas } from "@/lib/instagram-db";
-import { listarMetaAdsBuscasAtivas } from "@/lib/meta-ads-db";
+import { readEmissoras } from "@/lib/emissoras";
+import { listarInstagramBuscasAtivas, listarInstagramPerfisAtivos } from "@/lib/instagram-db";
+import {
+  listarMetaAdsBuscasAtivas,
+  listarMetaAdsPaginasAtivas,
+} from "@/lib/meta-ads-db";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
 import { normalizeText } from "@/lib/text-normalize";
 import { listarXBuscasAtivas } from "@/lib/x-db";
+import { listarYoutubeCanaisAtivos } from "@/lib/youtube-db";
 
 export type FontePanorama = "radio" | "youtube" | "instagram" | "x" | "meta_ads";
 export type JanelaPanorama = "24h" | "7d" | "30d";
@@ -507,6 +512,302 @@ export async function buscarEvolucaoPanorama24h(params: {
   termo?: string;
 }): Promise<PontoEvolucaoPanorama[]> {
   return buscarEvolucaoPanorama({ ...params, janela: "24h" });
+}
+
+export interface SerieEvolucaoFonte {
+  id: string;
+  label: string;
+}
+
+export interface PontoEvolucaoFontes {
+  hora: string;
+  /** Contagem por id de série. */
+  valores: Record<string, number>;
+  total: number;
+}
+
+const LIMITE_SERIES_FONTE = 12;
+
+/**
+ * Evolução temporal das fontes monitoradas de um veículo
+ * (rádios gravando, canais YT, perfis IG, buscas X, páginas/termos Ads).
+ */
+export async function buscarEvolucaoPanoramaFontes(params: {
+  fonte: FontePanorama;
+  termo?: string;
+  janela?: JanelaPanorama;
+  limite?: number;
+}): Promise<{ series: SerieEvolucaoFonte[]; pontos: PontoEvolucaoFontes[] }> {
+  const janela = params.janela ?? "24h";
+  const trunc = janela === "24h" ? "hour" : "day";
+  const buckets = montarBucketsEvolucao(janela);
+  const limite = Math.min(
+    Math.max(params.limite ?? LIMITE_SERIES_FONTE, 1),
+    24,
+  );
+
+  const vazios = (): { series: SerieEvolucaoFonte[]; pontos: PontoEvolucaoFontes[] } => ({
+    series: [],
+    pontos: buckets.map((b) => ({
+      hora: b.toISOString(),
+      valores: {},
+      total: 0,
+    })),
+  });
+
+  if (!isDatabaseConfigured()) return vazios();
+
+  const desde = buckets[0]!.toISOString();
+  const busca = termoSql(params.termo);
+  const monitoradas = await listarSeriesMonitoradas(params.fonte);
+  const sqlEventos = sqlEventosPorFonte(params.fonte, trunc);
+  if (!sqlEventos) return vazios();
+
+  const result = await getPool().query<{
+    hora: Date;
+    serie_id: string;
+    serie_label: string;
+    total: string;
+  }>(
+    `SELECT hora, serie_id, serie_label, COUNT(*)::text AS total
+     FROM (${sqlEventos}) AS eventos
+     WHERE (
+         $2::text IS NULL
+         OR termo ILIKE $2
+         OR contexto ILIKE $2
+         OR titulo_extra ILIKE $2
+         OR translate(lower(termo), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+         OR translate(lower(contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+       )
+     GROUP BY hora, serie_id, serie_label
+     ORDER BY hora ASC`,
+    [desde, busca.ilike, busca.normalizado],
+  );
+
+  const totais = new Map<string, number>();
+  const labels = new Map<string, string>();
+  for (const m of monitoradas) {
+    labels.set(m.id, m.label);
+    totais.set(m.id, 0);
+  }
+
+  for (const row of result.rows) {
+    const id = row.serie_id;
+    if (!id) continue;
+    labels.set(id, row.serie_label || id);
+    totais.set(id, (totais.get(id) ?? 0) + Number(row.total ?? 0));
+  }
+
+  // Prioriza monitoradas; completa com as que mais mentaram no período.
+  const idsMonitorados = new Set(monitoradas.map((m) => m.id));
+  const ranqueadas = [...totais.entries()].sort((a, b) => {
+    const am = idsMonitorados.has(a[0]) ? 1 : 0;
+    const bm = idsMonitorados.has(b[0]) ? 1 : 0;
+    if (am !== bm) return bm - am;
+    return b[1] - a[1];
+  });
+
+  const series = ranqueadas.slice(0, limite).map(([id]) => ({
+    id,
+    label: labels.get(id) ?? id,
+  }));
+
+  if (series.length === 0) {
+    return {
+      series: monitoradas.slice(0, limite),
+      pontos: buckets.map((b) => ({
+        hora: b.toISOString(),
+        valores: Object.fromEntries(monitoradas.slice(0, limite).map((s) => [s.id, 0])),
+        total: 0,
+      })),
+    };
+  }
+
+  const ids = new Set(series.map((s) => s.id));
+  const porBucket = new Map<string, PontoEvolucaoFontes>();
+  for (const bucket of buckets) {
+    const hora = bucket.toISOString();
+    porBucket.set(hora, {
+      hora,
+      valores: Object.fromEntries(series.map((s) => [s.id, 0])),
+      total: 0,
+    });
+  }
+
+  for (const row of result.rows) {
+    if (!ids.has(row.serie_id)) continue;
+    const chave = new Date(row.hora).toISOString();
+    const ponto = porBucket.get(chave);
+    if (!ponto) continue;
+    const n = Number(row.total ?? 0);
+    ponto.valores[row.serie_id] = n;
+    ponto.total += n;
+  }
+
+  return { series, pontos: [...porBucket.values()] };
+}
+
+async function listarSeriesMonitoradas(
+  fonte: FontePanorama,
+): Promise<SerieEvolucaoFonte[]> {
+  if (fonte === "radio") {
+    const emissoras = await readEmissoras();
+    const series: SerieEvolucaoFonte[] = [];
+    for (const [municipio, dados] of Object.entries(emissoras)) {
+      for (const radio of dados.radios) {
+        if (!radio.gravar) continue;
+        series.push({
+          id: `${municipio}|${radio.nome}`,
+          label: `${radio.nome} · ${municipio}`,
+        });
+      }
+    }
+    return series.sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
+  }
+
+  if (fonte === "youtube") {
+    const canais = await listarYoutubeCanaisAtivos();
+    return canais.map((c) => ({
+      id: `yt:${c.id}`,
+      label: c.titulo || c.channel_id,
+    }));
+  }
+
+  if (fonte === "instagram") {
+    const perfis = await listarInstagramPerfisAtivos();
+    return perfis.map((p) => ({
+      id: `ig:${p.id}`,
+      label: `@${p.username}`,
+    }));
+  }
+
+  if (fonte === "x") {
+    const buscas = await listarXBuscasAtivas();
+    return buscas.map((b) => ({
+      id: `x:${b.id}`,
+      label: b.termo,
+    }));
+  }
+
+  const [paginas, buscas] = await Promise.all([
+    listarMetaAdsPaginasAtivas(),
+    listarMetaAdsBuscasAtivas(),
+  ]);
+  return [
+    ...paginas.map((p) => ({
+      id: `ads-pag:${p.id}`,
+      label: p.titulo || p.slug,
+    })),
+    ...buscas.map((b) => ({
+      id: `ads-busca:${b.id}`,
+      label: `Busca · ${b.termo}`,
+    })),
+  ];
+}
+
+/** Subquery com colunas: hora, serie_id, serie_label, termo, contexto, titulo_extra */
+function sqlEventosPorFonte(fonte: FontePanorama, trunc: "hour" | "day"): string | null {
+  if (fonte === "radio") {
+    return `
+      SELECT
+        date_trunc('${trunc}', d.detectado_em) AS hora,
+        (g.municipio || '|' || g.radio_nome) AS serie_id,
+        (g.radio_nome || ' · ' || g.municipio) AS serie_label,
+        d.termo,
+        d.contexto,
+        NULL::text AS titulo_extra
+      FROM palavra_deteccoes d
+      JOIN gravacao_arquivos g ON g.id = d.gravacao_id
+      WHERE g.removido_em IS NULL
+        AND d.detectado_em >= $1::timestamptz
+    `;
+  }
+
+  if (fonte === "youtube") {
+    return `
+      SELECT
+        date_trunc('${trunc}', d.detectado_em) AS hora,
+        ('yt:' || c.id::text) AS serie_id,
+        COALESCE(NULLIF(c.titulo, ''), c.channel_id) AS serie_label,
+        d.termo,
+        d.contexto,
+        v.titulo AS titulo_extra
+      FROM youtube_palavra_deteccoes d
+      JOIN youtube_videos v ON v.id = d.video_db_id
+      JOIN youtube_canais c ON c.id = v.canal_id
+      WHERE d.detectado_em >= $1::timestamptz
+    `;
+  }
+
+  if (fonte === "instagram") {
+    return `
+      SELECT
+        date_trunc('${trunc}', d.detectado_em) AS hora,
+        CASE
+          WHEN posts.perfil_id IS NOT NULL THEN ('ig:' || posts.perfil_id::text)
+          ELSE ('ig-user:' || lower(COALESCE(NULLIF(posts.owner_username, ''), 'instagram')))
+        END AS serie_id,
+        ('@' || COALESCE(NULLIF(p.username, ''), NULLIF(posts.owner_username, ''), 'instagram')) AS serie_label,
+        d.termo,
+        d.contexto,
+        NULL::text AS titulo_extra
+      FROM instagram_palavra_deteccoes d
+      JOIN instagram_posts posts ON posts.id = d.post_db_id
+      LEFT JOIN instagram_perfis p ON p.id = posts.perfil_id
+      WHERE d.detectado_em >= $1::timestamptz
+    `;
+  }
+
+  if (fonte === "x") {
+    return `
+      SELECT
+        date_trunc('${trunc}', d.detectado_em) AS hora,
+        CASE
+          WHEN posts.busca_id IS NOT NULL THEN ('x:' || posts.busca_id::text)
+          ELSE ('x-user:' || lower(COALESCE(NULLIF(posts.autor_username, ''), 'x')))
+        END AS serie_id,
+        COALESCE(
+          NULLIF(b.termo, ''),
+          ('@' || COALESCE(NULLIF(posts.autor_username, ''), 'x'))
+        ) AS serie_label,
+        d.termo,
+        d.contexto,
+        NULL::text AS titulo_extra
+      FROM x_palavra_deteccoes d
+      JOIN x_posts posts ON posts.id = d.post_db_id
+      LEFT JOIN x_buscas b ON b.id = posts.busca_id
+      WHERE d.detectado_em >= $1::timestamptz
+    `;
+  }
+
+  if (fonte === "meta_ads") {
+    return `
+      SELECT
+        date_trunc('${trunc}', d.detectado_em) AS hora,
+        CASE
+          WHEN ads.pagina_id IS NOT NULL THEN ('ads-pag:' || ads.pagina_id::text)
+          WHEN ads.busca_id IS NOT NULL THEN ('ads-busca:' || ads.busca_id::text)
+          ELSE ('ads-page:' || lower(COALESCE(NULLIF(ads.page_name, ''), 'anunciante')))
+        END AS serie_id,
+        COALESCE(
+          NULLIF(p.titulo, ''),
+          NULLIF(p.slug, ''),
+          CASE WHEN b.termo IS NOT NULL THEN ('Busca · ' || b.termo) END,
+          NULLIF(ads.page_name, ''),
+          'Anunciante'
+        ) AS serie_label,
+        d.termo,
+        d.contexto,
+        NULL::text AS titulo_extra
+      FROM meta_ads_palavra_deteccoes d
+      JOIN meta_ads ads ON ads.id = d.ad_db_id
+      LEFT JOIN meta_ads_buscas b ON b.id = ads.busca_id
+      LEFT JOIN meta_ads_paginas p ON p.id = ads.pagina_id
+      WHERE d.detectado_em >= $1::timestamptz
+    `;
+  }
+
+  return null;
 }
 
 function pontoVazio(hora: string): PontoEvolucaoPanorama {
