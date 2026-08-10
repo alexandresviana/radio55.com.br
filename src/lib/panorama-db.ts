@@ -381,3 +381,150 @@ export async function buscarPanorama(params: {
     detalhe: row.detalhe,
   }));
 }
+
+export interface PontoEvolucaoPanorama {
+  /** Início da hora (ISO). */
+  hora: string;
+  radio: number;
+  youtube: number;
+  instagram: number;
+  x: number;
+  meta_ads: number;
+  total: number;
+}
+
+/** Contagem horária de menções por veículo nas últimas 24 horas. */
+export async function buscarEvolucaoPanorama24h(params: {
+  termo?: string;
+}): Promise<PontoEvolucaoPanorama[]> {
+  const horas = montarHorasUltimas24();
+  if (!isDatabaseConfigured()) {
+    return horas.map((hora) => ({
+      hora: hora.toISOString(),
+      radio: 0,
+      youtube: 0,
+      instagram: 0,
+      x: 0,
+      meta_ads: 0,
+      total: 0,
+    }));
+  }
+
+  const desde = horas[0]!.toISOString();
+  const busca = termoSql(params.termo);
+
+  const result = await getPool().query<{
+    hora: Date;
+    fonte: FontePanorama;
+    total: string;
+  }>(
+    `SELECT hora, fonte, COUNT(*)::text AS total
+     FROM (
+       SELECT date_trunc('hour', d.detectado_em) AS hora, 'radio'::text AS fonte
+       FROM palavra_deteccoes d
+       JOIN gravacao_arquivos g ON g.id = d.gravacao_id
+       WHERE g.removido_em IS NULL
+         AND d.detectado_em >= $1::timestamptz
+         AND (
+           $2::text IS NULL
+           OR d.termo ILIKE $2
+           OR d.contexto ILIKE $2
+           OR translate(lower(d.termo), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+           OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+         )
+       UNION ALL
+       SELECT date_trunc('hour', d.detectado_em), 'youtube'
+       FROM youtube_palavra_deteccoes d
+       JOIN youtube_videos v ON v.id = d.video_db_id
+       WHERE d.detectado_em >= $1::timestamptz
+         AND (
+           $2::text IS NULL
+           OR d.termo ILIKE $2
+           OR d.contexto ILIKE $2
+           OR v.titulo ILIKE $2
+           OR translate(lower(d.termo), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+           OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+         )
+       UNION ALL
+       SELECT date_trunc('hour', d.detectado_em), 'instagram'
+       FROM instagram_palavra_deteccoes d
+       WHERE d.detectado_em >= $1::timestamptz
+         AND (
+           $2::text IS NULL
+           OR d.termo ILIKE $2
+           OR d.contexto ILIKE $2
+           OR translate(lower(d.termo), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+           OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+         )
+       UNION ALL
+       SELECT date_trunc('hour', d.detectado_em), 'x'
+       FROM x_palavra_deteccoes d
+       WHERE d.detectado_em >= $1::timestamptz
+         AND (
+           $2::text IS NULL
+           OR d.termo ILIKE $2
+           OR d.contexto ILIKE $2
+           OR translate(lower(d.termo), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+           OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+         )
+       UNION ALL
+       SELECT date_trunc('hour', d.detectado_em), 'meta_ads'
+       FROM meta_ads_palavra_deteccoes d
+       WHERE d.detectado_em >= $1::timestamptz
+         AND (
+           $2::text IS NULL
+           OR d.termo ILIKE $2
+           OR d.contexto ILIKE $2
+           OR translate(lower(d.termo), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+           OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+         )
+     ) AS eventos
+     GROUP BY hora, fonte
+     ORDER BY hora ASC`,
+    [desde, busca.ilike, busca.normalizado],
+  );
+
+  const porHora = new Map<string, PontoEvolucaoPanorama>();
+  for (const hora of horas) {
+    const chave = hora.toISOString();
+    porHora.set(chave, {
+      hora: chave,
+      radio: 0,
+      youtube: 0,
+      instagram: 0,
+      x: 0,
+      meta_ads: 0,
+      total: 0,
+    });
+  }
+
+  for (const row of result.rows) {
+    const chave = new Date(row.hora).toISOString();
+    const ponto = porHora.get(chave);
+    if (!ponto) continue;
+    const n = Number(row.total ?? 0);
+    if (row.fonte === "radio") ponto.radio = n;
+    else if (row.fonte === "youtube") ponto.youtube = n;
+    else if (row.fonte === "instagram") ponto.instagram = n;
+    else if (row.fonte === "x") ponto.x = n;
+    else if (row.fonte === "meta_ads") ponto.meta_ads = n;
+    ponto.total = ponto.radio + ponto.youtube + ponto.instagram + ponto.x + ponto.meta_ads;
+  }
+
+  return [...porHora.values()];
+}
+
+function montarHorasUltimas24(): Date[] {
+  const agora = new Date();
+  const inicio = new Date(agora);
+  inicio.setMinutes(0, 0, 0);
+  inicio.setHours(inicio.getHours() - 23);
+
+  const horas: Date[] = [];
+  for (let i = 0; i < 24; i += 1) {
+    const h = new Date(inicio);
+    h.setHours(inicio.getHours() + i);
+    horas.push(h);
+  }
+  return horas;
+}

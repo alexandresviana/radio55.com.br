@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import PanoramaEvolucao from "@/components/PanoramaEvolucao";
 
 type Fonte = "todas" | "radio" | "youtube" | "instagram" | "x" | "meta_ads";
 type Janela = "24h" | "7d" | "30d";
@@ -133,10 +134,12 @@ export default function Panorama() {
       <div>
         <h2 className="text-xl font-bold text-slate-900">O que está rolando?</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Menções recentes ao candidato ou assunto nas rádios, YouTube, Instagram e X — para bater
-          o olho e saber o que está sendo dito.
+          Menções recentes nas rádios, YouTube, Instagram, X e anúncios — para bater o olho e saber o
+          que está sendo dito.
         </p>
       </div>
+
+      <PanoramaEvolucao termo={assuntoAplicado} />
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
