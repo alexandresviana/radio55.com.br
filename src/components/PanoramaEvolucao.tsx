@@ -124,8 +124,12 @@ function valorPonto(
   serieId: string,
   modo: "veiculos" | "fontes",
 ): number {
-  if (modo === "veiculos") return (ponto as PontoVeiculos)[serieId as SerieId] ?? 0;
-  return (ponto as PontoFontes).valores[serieId] ?? 0;
+  // Defensivo: durante a troca de modo, pontos antigos podem ter o formato anterior.
+  if (modo === "veiculos") {
+    const v = (ponto as PontoVeiculos)[serieId as SerieId];
+    return typeof v === "number" ? v : 0;
+  }
+  return (ponto as PontoFontes).valores?.[serieId] ?? 0;
 }
 
 export default function PanoramaEvolucao({
@@ -240,11 +244,18 @@ export default function PanoramaEvolucao({
   }
 
   function abrirFonte(id: SerieId) {
+    // Limpa antes de trocar o modo: evita renderizar dados no formato antigo.
+    setPontos([]);
+    setSeries([]);
+    setLoading(true);
     setFonteDrill(id);
     onFonteChange?.(id);
   }
 
   function voltarVeiculos() {
+    setPontos([]);
+    setSeries(VEICULOS);
+    setLoading(true);
     setFonteDrill(null);
     onFonteChange?.("todas");
   }
