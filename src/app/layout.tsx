@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Rádio 55 — O que está rolando?",
+  title: "Orbit View — O que está rolando?",
   description:
-    "Monitoramento de menções em rádios, YouTube e Instagram na mídia regional.",
+    "Monitoramento de menções em rádio, YouTube, Instagram, X e anúncios na mídia regional.",
   icons: { icon: "/icon.svg" },
 };
 

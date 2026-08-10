@@ -25,42 +25,42 @@ export default function Logo({ size = "md", variant = "dark" }: LogoProps) {
         className="shrink-0"
       >
         <rect width="48" height="48" rx="12" className="fill-emerald-700" />
+
+        {/* Estrelas de fundo */}
+        <circle cx="12" cy="11" r="1" fill="#a7f3d0" opacity="0.8" />
+        <circle cx="38" cy="15" r="0.8" fill="#a7f3d0" opacity="0.6" />
+        <circle cx="35" cy="37" r="1" fill="#a7f3d0" opacity="0.7" />
+
+        {/* Planeta central */}
+        <circle cx="24" cy="24" r="8" fill="#059669" />
+        <circle cx="24" cy="24" r="8" stroke="#34d399" strokeWidth="1" opacity="0.8" />
         <path
-          d="M10 24c0-6 4-10 10-10"
-          stroke="#fbbf24"
-          strokeWidth="2.5"
+          d="M17.5 21.5c2-1.8 5.5-2.4 9-1.4M16.8 26c2.6 1.9 7.3 2.4 11.4.6"
+          stroke="#a7f3d0"
+          strokeWidth="1.2"
           strokeLinecap="round"
+          opacity="0.9"
           fill="none"
         />
-        <path
-          d="M10 24c0 6 4 10 10 10"
+
+        {/* Anel orbital */}
+        <ellipse
+          cx="24"
+          cy="24"
+          rx="17"
+          ry="7"
           stroke="#fbbf24"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          fill="none"
-          opacity="0.7"
-        />
-        <path
-          d="M14 24c0-4 2.5-6.5 6-6.5"
-          stroke="#fde68a"
           strokeWidth="2"
-          strokeLinecap="round"
           fill="none"
+          transform="rotate(-22 24 24)"
         />
-        <circle cx="30" cy="24" r="3" fill="#fbbf24" />
-        <text
-          x="34"
-          y="29"
-          fill="#fde68a"
-          fontSize="16"
-          fontWeight="800"
-          fontFamily="system-ui, sans-serif"
-        >
-          55
-        </text>
+
+        {/* Satélite na órbita */}
+        <circle cx="38.5" cy="17" r="3" fill="#fbbf24" />
+        <circle cx="38.5" cy="17" r="1.2" fill="#fef3c7" />
       </svg>
       <div className="leading-tight">
-        <p className={`font-bold tracking-tight ${s.text} ${textColor}`}>Rádio 55</p>
+        <p className={`font-bold tracking-tight ${s.text} ${textColor}`}>Orbit View</p>
         <p className={`text-xs font-medium uppercase tracking-wider ${subColor}`}>
           Monitoramento
         </p>

@@ -50,7 +50,7 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-white/95 p-8 shadow-2xl backdrop-blur">
         <div className="mb-8 flex flex-col items-center text-center">
           <Logo size="lg" />
-          <h1 className="mt-4 text-xl font-bold text-slate-900">Mapa de Emissoras</h1>
+          <h1 className="mt-4 text-xl font-bold text-slate-900">Monitoramento de mídia</h1>
           <p className="mt-2 text-sm text-slate-500">Acesso restrito</p>
         </div>
 
