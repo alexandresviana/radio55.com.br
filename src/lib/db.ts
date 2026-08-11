@@ -18,6 +18,13 @@ export function getPool(): Pool {
     globalRef.__radio55Pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       max: 10,
+      // Falha rápido em vez de pendurar a request até o proxy devolver 504.
+      connectionTimeoutMillis: 10_000,
+      statement_timeout: 30_000,
+      query_timeout: 35_000,
+    });
+    globalRef.__radio55Pool.on("error", (err) => {
+      console.error("[db] erro no pool:", err.message);
     });
   }
 

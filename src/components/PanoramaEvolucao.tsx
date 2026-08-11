@@ -162,7 +162,10 @@ export default function PanoramaEvolucao({
     if (fonteDrill) params.set("fonte", fonteDrill);
 
     const res = await fetch(`/api/panorama/evolucao?${params}`);
-    const data = (await res.json()) as {
+    // Proxy pode devolver HTML (504) — não deixa o parse quebrar a página.
+    const data = (await res.json().catch(() => ({
+      error: `Servidor demorou a responder (HTTP ${res.status}). Tente de novo.`,
+    }))) as {
       pontos?: (PontoVeiculos | PontoFontes)[];
       series?: SerieFonte[];
       error?: string;

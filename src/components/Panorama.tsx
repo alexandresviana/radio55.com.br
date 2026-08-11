@@ -99,7 +99,10 @@ export default function Panorama() {
     params.set("limite", "40");
 
     const res = await fetch(`/api/panorama?${params}`);
-    const data = (await res.json()) as {
+    // Proxy pode devolver HTML (504) — não deixa o parse quebrar a página.
+    const data = (await res.json().catch(() => ({
+      error: `Servidor demorou a responder (HTTP ${res.status}). Tente de novo.`,
+    }))) as {
       itens?: ItemPanorama[];
       contagens?: Contagens;
       assuntos?: string[];
