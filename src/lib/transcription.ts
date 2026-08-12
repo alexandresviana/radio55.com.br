@@ -1,5 +1,4 @@
-import { spawn } from "node:child_process";
-import { access, mkdir, stat, unlink } from "node:fs/promises";
+import { mkdir, stat, unlink } from "node:fs/promises";
 import path from "node:path";
 import { getTrechosDir, getWhisperCacheDir } from "@/lib/data-dir";
 import {
@@ -13,21 +12,16 @@ import { extractMp3Clip, extractWavSegment } from "@/lib/ffmpeg-audio";
 import { obterGravacaoPorCaminho } from "@/lib/gravacoes-db";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
 import { salvarSegmentosTranscricao } from "@/lib/transcricoes-db";
-import { getActiveRecordingPaths } from "@/lib/recorder";
+import { getActiveRecordingPaths, getRecordingBytesPerSecond } from "@/lib/recorder";
 import { encontrarPalavrasNoTexto, normalizeText } from "@/lib/text-normalize";
+import { WhisperWorker, type WhisperSegment } from "@/lib/whisper-worker";
 
 const POLL_MS = 15_000;
 const CHUNK_SECONDS = 30;
 const OVERLAP_SECONDS = 2;
 const MIN_NEW_SECONDS = 18;
 const LIVE_EDGE_MARGIN_SEC = 12;
-const BYTES_PER_SECOND = 12_000;
-
-interface WhisperSegment {
-  start: number;
-  end: number;
-  text: string;
-}
+const BYTES_PER_SECOND_PADRAO = 12_000;
 
 type TranscriptionGlobal = typeof globalThis & {
   __radio55Transcription?: TranscriptionService;
@@ -39,6 +33,7 @@ class TranscriptionService {
   private busy = false;
   private whisperReady: boolean | null = null;
   private lastError: string | null = null;
+  private worker = new WhisperWorker();
 
   async start(): Promise<void> {
     if (this.started || !isDatabaseConfigured()) return;
@@ -50,6 +45,16 @@ class TranscriptionService {
     this.started = true;
     await mkdir(getWhisperCacheDir(), { recursive: true });
     await mkdir(getTrechosDir(), { recursive: true });
+
+    const globalRef = globalThis as TranscriptionGlobal & {
+      __radio55TranscriptionShutdownHook?: boolean;
+    };
+    if (!globalRef.__radio55TranscriptionShutdownHook) {
+      globalRef.__radio55TranscriptionShutdownHook = true;
+      const stop = () => this.worker.stop();
+      process.once("SIGTERM", stop);
+      process.once("SIGINT", stop);
+    }
 
     void this.tick();
     this.timer = setInterval(() => {
@@ -101,9 +106,10 @@ class TranscriptionService {
 
     const progress = await obterProgressoTranscricao(filePath);
     const startSecond = Math.max(0, (progress?.ultimo_segundo ?? 0) - OVERLAP_SECONDS);
+    const bytesPerSecond = getRecordingBytesPerSecond(filePath) || BYTES_PER_SECOND_PADRAO;
     const availableSeconds = Math.max(
       0,
-      fileStat.size / BYTES_PER_SECOND - LIVE_EDGE_MARGIN_SEC,
+      fileStat.size / bytesPerSecond - LIVE_EDGE_MARGIN_SEC,
     );
 
     if (availableSeconds - startSecond < MIN_NEW_SECONDS) return;
@@ -163,54 +169,17 @@ class TranscriptionService {
   }
 
   private async transcribeWav(wavPath: string): Promise<WhisperSegment[]> {
-    const pythonPath = process.env.WHISPER_PYTHON ?? "/opt/whisper/bin/python";
-    const scriptPath =
-      process.env.WHISPER_SCRIPT ?? path.join(process.cwd(), "scripts", "transcribe.py");
-
     try {
-      await access(pythonPath);
-      await access(scriptPath);
+      const segments = await this.worker.transcribe(wavPath);
       this.whisperReady = true;
-    } catch {
-      this.whisperReady = false;
-      throw new Error("Whisper não disponível neste ambiente");
+      return segments;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Whisper indisponível";
+      if (/não disponível|não ficou pronto|ENOENT/i.test(message)) {
+        this.whisperReady = false;
+      }
+      throw error;
     }
-
-    const modelCacheDir =
-      process.env.WHISPER_CACHE_DIR?.trim() || getWhisperCacheDir();
-
-    const stdout = await new Promise<string>((resolve, reject) => {
-      // nice 15: o Whisper usa CPU ociosa e não estrangula o Node/Postgres handshakes.
-      const proc = spawn("nice", ["-n", "15", pythonPath, scriptPath, wavPath], {
-        env: {
-          ...process.env,
-          HF_HOME: modelCacheDir,
-          WHISPER_CACHE_DIR: modelCacheDir,
-          WHISPER_MODEL: process.env.WHISPER_MODEL ?? "base",
-          HF_HUB_OFFLINE: process.env.HF_HUB_OFFLINE ?? "1",
-        },
-        stdio: ["ignore", "pipe", "pipe"],
-      });
-
-      let out = "";
-      let err = "";
-
-      proc.stdout.on("data", (chunk: Buffer) => {
-        out += chunk.toString();
-      });
-      proc.stderr.on("data", (chunk: Buffer) => {
-        err += chunk.toString();
-      });
-
-      proc.on("error", reject);
-      proc.on("exit", (code) => {
-        if (code === 0) resolve(out);
-        else reject(new Error(err.trim().slice(-300) || `Whisper saiu com código ${code}`));
-      });
-    });
-
-    const parsed = JSON.parse(stdout) as { segments?: WhisperSegment[] };
-    return parsed.segments ?? [];
   }
 
   private async detectInSegments(input: {

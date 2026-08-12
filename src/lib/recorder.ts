@@ -9,7 +9,11 @@ import { tentarUploadGravacaoPorCaminho } from "@/lib/bunny-storage-uploader";
 import { isBenignFfmpegMessage } from "@/lib/ffmpeg-audio";
 import { formatRecordingFilename, radioOutputDir } from "@/lib/gravacoes-path";
 import { getRadioStream, makeStreamKey, readRadioStreams } from "@/lib/radios-streams";
-import { buildFfmpegStreamInputArgs, probeStreamUrl } from "@/lib/stream-input";
+import {
+  buildFfmpegStreamInputArgs,
+  buildRecordingAudioOutputArgs,
+  probeStreamUrl,
+} from "@/lib/stream-input";
 import type { Radio } from "@/types";
 
 const RECORDINGS_DIR = getGravacoesDir();
@@ -28,6 +32,7 @@ interface ActiveRecording {
   municipio: string;
   nome: string;
   filePath: string;
+  bytesPerSecond: number;
   intentionalStop: boolean;
   stopReason?: StopReason;
   rotateTimer: NodeJS.Timeout;
@@ -137,6 +142,13 @@ class RecorderService {
     return new Set([...this.recordings.values()].map((item) => item.filePath));
   }
 
+  bytesPerSecondFor(filePath: string): number {
+    for (const recording of this.recordings.values()) {
+      if (recording.filePath === filePath) return recording.bytesPerSecond;
+    }
+    return 0;
+  }
+
   private async refreshActiveFileSizes(): Promise<void> {
     for (const [key, recording] of this.recordings.entries()) {
       try {
@@ -242,35 +254,24 @@ class RecorderService {
       return;
     }
 
+    const output = buildRecordingAudioOutputArgs(probe);
     const args = [
       "-hide_banner",
       "-loglevel",
       "error",
-      ...buildFfmpegStreamInputArgs(info.streamUrl),
-      "-map",
-      "0:a:0?",
-      "-c:a",
-      "libmp3lame",
-      "-b:a",
-      "96k",
-      "-ar",
-      "44100",
-      "-ac",
-      "2",
-      "-write_xing",
-      "0",
-      "-id3v2_version",
-      "3",
-      "-flush_packets",
+      "-threads",
       "1",
-      "-f",
-      "mp3",
+      ...buildFfmpegStreamInputArgs(info.streamUrl),
+      ...output.args,
       "-y",
       outputFile,
     ];
 
     const proc = spawn("ffmpeg", args, { stdio: ["pipe", "ignore", "pipe"] });
     this.errors.delete(key);
+    console.info(
+      `[recorder] ${key}: ${output.copy ? `copy ${probe.codec}` : `lame 96k (fonte ${probe.codec ?? "?"})`}`,
+    );
 
     const rotateTimer = setTimeout(() => {
       void this.stopOne(key, "rotate");
@@ -281,6 +282,7 @@ class RecorderService {
       municipio,
       nome,
       filePath: outputFile,
+      bytesPerSecond: output.bytesPerSecond,
       intentionalStop: false,
       rotateTimer,
     };
@@ -503,4 +505,8 @@ export async function getRecordingStatus(): Promise<RecordingStatus[]> {
 
 export function getActiveRecordingPaths(): Set<string> {
   return getService().getActivePaths();
+}
+
+export function getRecordingBytesPerSecond(filePath: string): number {
+  return getService().bytesPerSecondFor(filePath);
 }

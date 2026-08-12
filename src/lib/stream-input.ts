@@ -7,6 +7,15 @@ export const ICECAST_HTTP_HEADERS =
 
 const PROBE_TIMEOUT_US = 12_000_000;
 
+const MP3_CODECS = new Set(["mp3", "mp3float", "mp3adu", "mp3on4"]);
+
+export function isMp3AudioCodec(codec: string | null | undefined): boolean {
+  return !!codec && MP3_CODECS.has(codec.trim().toLowerCase());
+}
+
+/** 96 kbps CBR — usado quando reencodamos com lame. */
+export const LAME_96K_BYTES_PER_SECOND = 12_000;
+
 export function buildFfmpegStreamInputArgs(streamUrl: string): string[] {
   const args = [
     "-user_agent",
@@ -35,7 +44,7 @@ export function buildFfmpegStreamInputArgs(streamUrl: string): string[] {
 
 export async function probeStreamUrl(
   streamUrl: string,
-): Promise<{ ok: boolean; codec: string | null; error: string | null }> {
+): Promise<{ ok: boolean; codec: string | null; bitRate: number | null; error: string | null }> {
   const args = [
     "-v",
     "error",
@@ -53,11 +62,11 @@ export async function probeStreamUrl(
 
   args.push(
     "-show_entries",
-    "stream=codec_name",
+    "stream=codec_name,bit_rate",
     "-select_streams",
     "a:0",
     "-of",
-    "default=noprint_wrappers=1:nokey=1",
+    "json",
     streamUrl,
   );
 
@@ -80,23 +89,84 @@ export async function probeStreamUrl(
 
     proc.on("exit", (code) => {
       clearTimeout(timer);
-      const codec = stdout.trim() || null;
+      const parsed = parseProbeJson(stdout);
 
-      if (code === 0 && codec) {
-        resolve({ ok: true, codec, error: null });
+      if (code === 0 && parsed.codec) {
+        resolve({ ok: true, codec: parsed.codec, bitRate: parsed.bitRate, error: null });
         return;
       }
 
       resolve({
         ok: false,
-        codec: null,
+        codec: parsed.codec,
+        bitRate: parsed.bitRate,
         error: (stderr || stdout).trim().slice(-200) || "Stream inacessível",
       });
     });
 
     proc.on("error", () => {
       clearTimeout(timer);
-      resolve({ ok: false, codec: null, error: "ffprobe indisponível" });
+      resolve({ ok: false, codec: null, bitRate: null, error: "ffprobe indisponível" });
     });
   });
+}
+
+function parseProbeJson(stdout: string): { codec: string | null; bitRate: number | null } {
+  try {
+    const data = JSON.parse(stdout) as {
+      streams?: { codec_name?: string; bit_rate?: string | number }[];
+    };
+    const stream = data.streams?.[0];
+    const codec = stream?.codec_name?.trim() || null;
+    const raw = stream?.bit_rate;
+    const bitRate = typeof raw === "number" ? raw : Number(raw);
+    return {
+      codec,
+      bitRate: Number.isFinite(bitRate) && bitRate > 0 ? bitRate : null,
+    };
+  } catch {
+    return { codec: null, bitRate: null };
+  }
+}
+
+export function buildRecordingAudioOutputArgs(probe: {
+  codec: string | null;
+  bitRate: number | null;
+}): { args: string[]; bytesPerSecond: number; copy: boolean } {
+  if (isMp3AudioCodec(probe.codec)) {
+    const fromProbe =
+      probe.bitRate && probe.bitRate > 0 ? Math.ceil(probe.bitRate / 8) : 16_000;
+    return {
+      copy: true,
+      bytesPerSecond: Math.min(24_000, Math.max(8_000, fromProbe)),
+      args: ["-map", "0:a:0?", "-c:a", "copy", "-flush_packets", "1", "-f", "mp3"],
+    };
+  }
+
+  return {
+    copy: false,
+    bytesPerSecond: LAME_96K_BYTES_PER_SECOND,
+    args: [
+      "-map",
+      "0:a:0?",
+      "-threads",
+      "1",
+      "-c:a",
+      "libmp3lame",
+      "-b:a",
+      "96k",
+      "-ar",
+      "44100",
+      "-ac",
+      "2",
+      "-write_xing",
+      "0",
+      "-id3v2_version",
+      "3",
+      "-flush_packets",
+      "1",
+      "-f",
+      "mp3",
+    ],
+  };
 }

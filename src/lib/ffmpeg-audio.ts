@@ -60,6 +60,8 @@ export async function extractWavSegment(
     "-hide_banner",
     "-loglevel",
     "error",
+    "-threads",
+    "1",
     "-y",
     ...FFMPEG_FILE_INPUT_FLAGS,
     "-ss",
@@ -94,6 +96,8 @@ export async function extractMp3Clip(
     "-hide_banner",
     "-loglevel",
     "error",
+    "-threads",
+    "1",
     "-y",
     ...FFMPEG_FILE_INPUT_FLAGS,
     "-ss",
@@ -120,6 +124,8 @@ export function streamMp3FromSeconds(
     "-hide_banner",
     "-loglevel",
     "error",
+    "-threads",
+    "1",
     ...FFMPEG_FILE_INPUT_FLAGS,
   ];
 
