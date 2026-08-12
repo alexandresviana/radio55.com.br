@@ -20,9 +20,14 @@ def main() -> int:
         print("faster-whisper não instalado", file=sys.stderr)
         return 2
 
+    # Limita os threads do ctranslate2: sem isso o Whisper toma todos os núcleos
+    # e o Node não consegue nem completar handshakes com o Postgres.
+    cpu_threads = int(os.environ.get("WHISPER_CPU_THREADS", "2"))
+
     kwargs: dict = {
         "device": "cpu",
         "compute_type": "int8",
+        "cpu_threads": cpu_threads,
     }
     if cache_dir:
         kwargs["download_root"] = cache_dir
@@ -38,10 +43,11 @@ def main() -> int:
                 file=sys.stderr,
             )
         raise
+    # word_timestamps desativado: só usamos start/end/text dos segmentos,
+    # e timestamps por palavra dobram o custo de CPU.
     segments, info = model.transcribe(
         audio_path,
         language="pt",
-        word_timestamps=True,
         vad_filter=True,
         beam_size=1,
     )

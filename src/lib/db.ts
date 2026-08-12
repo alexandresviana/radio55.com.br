@@ -18,8 +18,9 @@ export function getPool(): Pool {
     globalRef.__radio55Pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       max: 20,
-      // Falha rápido em vez de pendurar a request até o proxy devolver 504.
-      connectionTimeoutMillis: 10_000,
+      // Tolera picos de CPU do container (o handshake SCRAM precisa do event
+      // loop livre); abortar cedo e re-tentar só multiplicava handshakes.
+      connectionTimeoutMillis: 20_000,
       statement_timeout: 30_000,
       query_timeout: 35_000,
       // Menos churn de conexões: reconectar a cada 10s multiplicava handshakes,

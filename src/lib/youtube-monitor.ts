@@ -117,13 +117,14 @@ class YoutubeMonitorService {
   private async processarFila(): Promise<void> {
     if (this.processing || !isDatabaseConfigured()) return;
 
-    const video = await obterProximoVideoPendente();
-    if (!video) return;
-
     this.processing = true;
-    await atualizarStatusVideoYoutube(video.id, "processando");
-
+    let video: Awaited<ReturnType<typeof obterProximoVideoPendente>> = null;
     try {
+      // Dentro do try: se o banco cair aqui, era unhandledRejection.
+      video = await obterProximoVideoPendente();
+      if (!video) return;
+      await atualizarStatusVideoYoutube(video.id, "processando");
+
       const duracaoVideo = await fetchYoutubeVideoDuration(video.video_id);
       if (duracaoVideo) {
         await salvarDuracaoVideoYoutube(video.id, duracaoVideo);
@@ -160,13 +161,15 @@ class YoutubeMonitorService {
       this.lastProcessAt = new Date().toISOString();
       this.lastError = null;
     } catch (error) {
-      if (error instanceof YoutubeAguardandoEstreiaError) {
-        await atualizarStatusVideoYoutube(video.id, "aguardando", error.message);
-      } else if (error instanceof YoutubeSemTranscriptError) {
-        await atualizarStatusVideoYoutube(video.id, "sem_transcript", error.message);
+      if (video && error instanceof YoutubeAguardandoEstreiaError) {
+        await atualizarStatusVideoYoutube(video.id, "aguardando", error.message).catch(() => {});
+      } else if (video && error instanceof YoutubeSemTranscriptError) {
+        await atualizarStatusVideoYoutube(video.id, "sem_transcript", error.message).catch(() => {});
       } else {
         const message = error instanceof Error ? error.message : "Erro ao processar vídeo";
-        await atualizarStatusVideoYoutube(video.id, "erro", message);
+        if (video) {
+          await atualizarStatusVideoYoutube(video.id, "erro", message).catch(() => {});
+        }
         this.lastError = message;
         console.error("[youtube]", message);
       }

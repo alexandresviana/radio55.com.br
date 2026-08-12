@@ -24,13 +24,24 @@ export async function register() {
     const { limparTrechosInexistentes } = await import("@/lib/trecho-deteccao");
     void limparTrechosInexistentes();
 
-    void startGravacoesIndexer();
+    // Boot escalonado: subir os 8 serviços de uma vez saturava a CPU do
+    // container e os handshakes com o Postgres estouravam o timeout.
+    const iniciarComAtraso = (nome: string, atrasoMs: number, start: () => Promise<void>) => {
+      setTimeout(() => {
+        start().catch((error) => {
+          console.error(`[boot] falha ao iniciar ${nome}:`, error instanceof Error ? error.message : error);
+        });
+      }, atrasoMs);
+    };
+
     void startRecorderService();
-    void startTranscriptionService();
-    void startYoutubeMonitorService();
-    void startInstagramMonitorService();
-    void startXMonitorService();
-    void startMetaAdsMonitorService();
-    void startBunnyStorageUploader();
+    iniciarComAtraso("indexer", 5_000, startGravacoesIndexer);
+    iniciarComAtraso("youtube", 15_000, startYoutubeMonitorService);
+    iniciarComAtraso("instagram", 25_000, startInstagramMonitorService);
+    iniciarComAtraso("x", 35_000, startXMonitorService);
+    iniciarComAtraso("meta-ads", 45_000, startMetaAdsMonitorService);
+    iniciarComAtraso("bunny", 55_000, startBunnyStorageUploader);
+    // Transcrição por último: é quem mais consome CPU.
+    iniciarComAtraso("transcription", 90_000, startTranscriptionService);
   }
 }
