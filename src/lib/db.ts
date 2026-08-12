@@ -17,7 +17,7 @@ export function getPool(): Pool {
   if (!globalRef.__radio55Pool) {
     globalRef.__radio55Pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      max: 10,
+      max: 20,
       // Falha rápido em vez de pendurar a request até o proxy devolver 504.
       connectionTimeoutMillis: 10_000,
       statement_timeout: 30_000,

@@ -18,6 +18,7 @@ type IndexerGlobal = typeof globalThis & {
 class GravacoesIndexer {
   private timer?: NodeJS.Timeout;
   private started = false;
+  private scanning = false;
 
   async start(): Promise<void> {
     if (this.started || !isDatabaseConfigured()) return;
@@ -30,17 +31,29 @@ class GravacoesIndexer {
   }
 
   async scan(): Promise<number> {
-    if (!isDatabaseConfigured()) return 0;
+    // Sem a trava, varreduras lentas se acumulavam e esgotavam o pool do Postgres.
+    if (this.scanning || !isDatabaseConfigured()) return 0;
+    this.scanning = true;
 
-    const activePaths = getActiveRecordingPaths();
-    let indexed = 0;
+    try {
+      const activePaths = getActiveRecordingPaths();
+      let indexed = 0;
 
-    await this.walkDir(getGravacoesDir(), async (filePath) => {
-      const synced = await this.syncFile(filePath, activePaths.has(filePath));
-      if (synced) indexed += 1;
-    });
+      await this.walkDir(getGravacoesDir(), async (filePath) => {
+        const synced = await this.syncFile(filePath, activePaths.has(filePath));
+        if (synced) indexed += 1;
+      });
 
-    return indexed;
+      return indexed;
+    } catch (error) {
+      console.error(
+        "[indexer] varredura falhou:",
+        error instanceof Error ? error.message : error,
+      );
+      return 0;
+    } finally {
+      this.scanning = false;
+    }
   }
 
   private async walkDir(dir: string, onFile: (filePath: string) => Promise<void>): Promise<void> {

@@ -115,7 +115,46 @@ export async function reseedEmissorasFromBundled(): Promise<EmissorasData> {
   return seed;
 }
 
+// Cache em memória: o JSON tem vários MB e era relido do banco a cada chamada
+// (o indexador chama por arquivo MP3 — isso esgotava o pool de conexões).
+const EMISSORAS_CACHE_TTL_MS = 30_000;
+
+type EmissorasGlobal = typeof globalThis & {
+  __radio55EmissorasCache?: { dados: EmissorasData; expiraEm: number };
+  __radio55EmissorasInflight?: Promise<EmissorasData>;
+};
+
+function setEmissorasCache(dados: EmissorasData): void {
+  const globalRef = globalThis as EmissorasGlobal;
+  globalRef.__radio55EmissorasCache = {
+    dados,
+    expiraEm: Date.now() + EMISSORAS_CACHE_TTL_MS,
+  };
+}
+
 export async function readEmissoras(): Promise<EmissorasData> {
+  const globalRef = globalThis as EmissorasGlobal;
+
+  const cache = globalRef.__radio55EmissorasCache;
+  if (cache && cache.expiraEm > Date.now()) return cache.dados;
+
+  if (globalRef.__radio55EmissorasInflight) {
+    return globalRef.__radio55EmissorasInflight;
+  }
+
+  globalRef.__radio55EmissorasInflight = loadEmissoras()
+    .then((dados) => {
+      setEmissorasCache(dados);
+      return dados;
+    })
+    .finally(() => {
+      globalRef.__radio55EmissorasInflight = undefined;
+    });
+
+  return globalRef.__radio55EmissorasInflight;
+}
+
+async function loadEmissoras(): Promise<EmissorasData> {
   if (isDatabaseConfigured()) {
     const fromDb = await readEmissorasFromDb();
     if (fromDb) {
@@ -155,6 +194,8 @@ export async function writeEmissoras(data: EmissorasData): Promise<void> {
   if (isDatabaseConfigured()) {
     await writeEmissorasToDb(data);
   }
+
+  setEmissorasCache(data);
 }
 
 export async function readMunicipios(uf: string = UF_PADRAO): Promise<string[]> {
