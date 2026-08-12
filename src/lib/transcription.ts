@@ -69,15 +69,20 @@ class TranscriptionService {
   private async tick(): Promise<void> {
     if (this.busy || !isDatabaseConfigured()) return;
 
-    const keywords = await listarPalavrasChaveAtivas();
     const activePaths = [...getActiveRecordingPaths()];
     if (activePaths.length === 0) return;
 
     this.busy = true;
     try {
+      const keywords = await listarPalavrasChaveAtivas();
       for (const filePath of activePaths) {
         await this.processFile(filePath, keywords);
       }
+      this.lastError = null;
+    } catch (error) {
+      // Sem catch isso virava unhandledRejection e sujava o log a cada poll.
+      this.lastError = error instanceof Error ? error.message : "Erro na transcrição";
+      console.error("[transcription]", this.lastError);
     } finally {
       this.busy = false;
     }
@@ -175,7 +180,8 @@ class TranscriptionService {
       process.env.WHISPER_CACHE_DIR?.trim() || getWhisperCacheDir();
 
     const stdout = await new Promise<string>((resolve, reject) => {
-      const proc = spawn(pythonPath, [scriptPath, wavPath], {
+      // nice 15: o Whisper usa CPU ociosa e não estrangula o Node/Postgres handshakes.
+      const proc = spawn("nice", ["-n", "15", pythonPath, scriptPath, wavPath], {
         env: {
           ...process.env,
           HF_HOME: modelCacheDir,

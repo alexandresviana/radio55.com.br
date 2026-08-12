@@ -22,6 +22,10 @@ export function getPool(): Pool {
       connectionTimeoutMillis: 10_000,
       statement_timeout: 30_000,
       query_timeout: 35_000,
+      // Menos churn de conexões: reconectar a cada 10s multiplicava handshakes,
+      // que estouram quando o Whisper consome a CPU do container.
+      idleTimeoutMillis: 60_000,
+      keepAlive: true,
     });
     globalRef.__radio55Pool.on("error", (err) => {
       console.error("[db] erro no pool:", err.message);
