@@ -30,6 +30,10 @@ export function buildFfmpegStreamInputArgs(streamUrl: string): string[] {
     "1",
     "-reconnect_delay_max",
     "30",
+    "-reconnect_on_network_error",
+    "1",
+    "-reconnect_on_http_error",
+    "4xx,5xx",
     "-rw_timeout",
     "30000000",
   ];

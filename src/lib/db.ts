@@ -17,19 +17,23 @@ export function getPool(): Pool {
   if (!globalRef.__radio55Pool) {
     globalRef.__radio55Pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      max: 20,
+      max: 8,
       // Tolera picos de CPU do container (o handshake SCRAM precisa do event
       // loop livre); abortar cedo e re-tentar só multiplicava handshakes.
       connectionTimeoutMillis: 20_000,
       statement_timeout: 30_000,
       query_timeout: 35_000,
-      // Menos churn de conexões: reconectar a cada 10s multiplicava handshakes,
-      // que estouram quando o Whisper consome a CPU do container.
       idleTimeoutMillis: 60_000,
       keepAlive: true,
+      keepAliveInitialDelayMillis: 10_000,
     });
     globalRef.__radio55Pool.on("error", (err) => {
       console.error("[db] erro no pool:", err.message);
+    });
+    globalRef.__radio55Pool.on("connect", (client) => {
+      client.on("error", (err) => {
+        console.error("[db] erro no client:", err.message);
+      });
     });
   }
 

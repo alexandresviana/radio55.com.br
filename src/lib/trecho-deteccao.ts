@@ -116,25 +116,33 @@ export async function limparTrechosInexistentes(): Promise<{
   verificados: number;
   limpos: number;
 }> {
-  const trechosRoot = path.resolve(getTrechosDir());
-  const registros = await listarDeteccoesComTrecho();
-  let limpos = 0;
+  try {
+    const trechosRoot = path.resolve(getTrechosDir());
+    const registros = await listarDeteccoesComTrecho();
+    let limpos = 0;
 
-  for (const registro of registros) {
-    const resolved = trechoPathValido(registro.trecho_caminho, trechosRoot);
-    const existe = resolved ? await arquivoExiste(resolved) : false;
+    for (const registro of registros) {
+      const resolved = trechoPathValido(registro.trecho_caminho, trechosRoot);
+      const existe = resolved ? await arquivoExiste(resolved) : false;
 
-    if (!existe) {
-      await limparTrechoCaminho(registro.id);
-      limpos++;
+      if (!existe) {
+        await limparTrechoCaminho(registro.id);
+        limpos++;
+      }
     }
-  }
 
-  if (limpos > 0) {
-    console.log(
-      `[trecho] Limpeza: ${limpos} de ${registros.length} registro(s) sem arquivo no disco`,
+    if (limpos > 0) {
+      console.log(
+        `[trecho] Limpeza: ${limpos} de ${registros.length} registro(s) sem arquivo no disco`,
+      );
+    }
+
+    return { verificados: registros.length, limpos };
+  } catch (error) {
+    console.error(
+      "[trecho] limpeza falhou:",
+      error instanceof Error ? error.message : error,
     );
+    return { verificados: 0, limpos: 0 };
   }
-
-  return { verificados: registros.length, limpos };
 }

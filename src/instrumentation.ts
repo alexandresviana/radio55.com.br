@@ -21,8 +21,13 @@ export async function register() {
 
     await readEmissoras();
 
+    void startRecorderService().catch((error) => {
+      console.error("[boot] falha ao iniciar recorder:", error instanceof Error ? error.message : error);
+    });
     const { limparTrechosInexistentes } = await import("@/lib/trecho-deteccao");
-    void limparTrechosInexistentes();
+    void limparTrechosInexistentes().catch((error) => {
+      console.error("[boot] limpeza de trechos:", error instanceof Error ? error.message : error);
+    });
 
     // Boot escalonado: subir os 8 serviços de uma vez saturava a CPU do
     // container e os handshakes com o Postgres estouravam o timeout.
@@ -34,7 +39,6 @@ export async function register() {
       }, atrasoMs);
     };
 
-    void startRecorderService();
     iniciarComAtraso("indexer", 5_000, startGravacoesIndexer);
     iniciarComAtraso("youtube", 15_000, startYoutubeMonitorService);
     iniciarComAtraso("instagram", 25_000, startInstagramMonitorService);

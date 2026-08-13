@@ -101,6 +101,8 @@ class RecorderService {
   private sizeTimer?: NodeJS.Timeout;
   private started = false;
   private shuttingDown = false;
+  private syncing = false;
+  private syncAgain = false;
 
   async start(): Promise<void> {
     if (this.started) return;
@@ -110,10 +112,20 @@ class RecorderService {
 
     await mkdir(RECORDINGS_DIR, { recursive: true });
     await this.sync();
-    await this.cleanup();
+    await this.cleanup().catch((error) => {
+      console.error(
+        "[recorder] cleanup inicial falhou:",
+        error instanceof Error ? error.message : error,
+      );
+    });
 
     this.cleanupTimer = setInterval(() => {
-      void this.cleanup();
+      void this.cleanup().catch((error) => {
+        console.error(
+          "[recorder] cleanup falhou:",
+          error instanceof Error ? error.message : error,
+        );
+      });
     }, CLEANUP_INTERVAL_MS);
 
     this.syncTimer = setInterval(() => {
@@ -167,27 +179,45 @@ class RecorderService {
 
   async sync(): Promise<void> {
     if (this.shuttingDown) return;
-
-    const emissoras = await readEmissoras();
-    const desired = new Set<string>();
-
-    for (const [municipio, data] of Object.entries(emissoras)) {
-      for (const radio of data.radios) {
-        if (!radioDeveGravarAgora(radio)) continue;
-
-        const key = makeStreamKey(municipio, radio.nome);
-        desired.add(key);
-
-        if (!this.recordings.has(key)) {
-          await this.startOne(municipio, radio.nome);
-        }
-      }
+    if (this.syncing) {
+      this.syncAgain = true;
+      return;
     }
 
-    for (const key of this.recordings.keys()) {
-      if (!desired.has(key)) {
-        await this.stopOne(key, "disabled");
-        this.errors.delete(key);
+    this.syncing = true;
+    try {
+      const emissoras = await readEmissoras();
+      const desired = new Set<string>();
+
+      for (const [municipio, data] of Object.entries(emissoras)) {
+        for (const radio of data.radios) {
+          if (!radioDeveGravarAgora(radio)) continue;
+
+          const key = makeStreamKey(municipio, radio.nome);
+          desired.add(key);
+
+          if (!this.recordings.has(key)) {
+            await this.startOne(municipio, radio.nome);
+          }
+        }
+      }
+
+      for (const key of this.recordings.keys()) {
+        if (!desired.has(key)) {
+          await this.stopOne(key, "disabled");
+          this.errors.delete(key);
+        }
+      }
+    } catch (error) {
+      console.error(
+        "[recorder] sync falhou:",
+        error instanceof Error ? error.message : error,
+      );
+    } finally {
+      this.syncing = false;
+      if (this.syncAgain && !this.shuttingDown) {
+        this.syncAgain = false;
+        void this.sync();
       }
     }
   }
@@ -222,6 +252,23 @@ class RecorderService {
     if (this.shuttingDown) return;
 
     const key = makeStreamKey(municipio, nome);
+    if (this.recordings.has(key)) return;
+
+    try {
+      await this.startOneUnsafe(municipio, nome, key);
+    } catch (error) {
+      this.errors.set(
+        key,
+        error instanceof Error ? error.message.slice(-240) : "Falha ao iniciar gravação",
+      );
+      console.error(
+        `[recorder] ${key}:`,
+        error instanceof Error ? error.message : error,
+      );
+    }
+  }
+
+  private async startOneUnsafe(municipio: string, nome: string, key: string): Promise<void> {
     if (this.recordings.has(key)) return;
 
     const radio = await this.findRadio(municipio, nome);
@@ -274,7 +321,12 @@ class RecorderService {
     );
 
     const rotateTimer = setTimeout(() => {
-      void this.stopOne(key, "rotate");
+      void this.stopOne(key, "rotate").catch((error) => {
+        console.error(
+          `[recorder] ${key} rotate:`,
+          error instanceof Error ? error.message : error,
+        );
+      });
     }, ROTATE_MS);
 
     const recording: ActiveRecording = {
@@ -295,68 +347,80 @@ class RecorderService {
 
       const resumo = message.slice(-240);
       this.errors.set(key, resumo);
-
-      if (/stream ends prematurely|connection reset|timed out|i\/o error/i.test(message)) {
-        console.warn(`[recorder] ${key}: ${resumo}`);
-      }
+      console.warn(`[recorder] ${key}: ${resumo}`);
     });
 
-    proc.on("exit", async (code, signal) => {
-      clearTimeout(rotateTimer);
+    proc.on("exit", (code, signal) => {
+      void this.onRecordingExit({
+        key,
+        code,
+        signal,
+        rotateTimer,
+      }).catch((error) => {
+        console.error(
+          `[recorder] ${key} exit:`,
+          error instanceof Error ? error.message : error,
+        );
+      });
+    });
+  }
 
-      const current = this.recordings.get(key);
-      const finishedFile = current?.filePath;
-      const intentional = current?.intentionalStop ?? false;
-      const stopReason = current?.stopReason;
-      const municipioAtual = current?.municipio ?? municipio;
-      const nomeAtual = current?.nome ?? nome;
+  private async onRecordingExit(input: {
+    key: string;
+    code: number | null;
+    signal: NodeJS.Signals | null;
+    rotateTimer: NodeJS.Timeout;
+  }): Promise<void> {
+    clearTimeout(input.rotateTimer);
 
-      this.recordings.delete(key);
-      this.activeFileSizes.delete(key);
+    const current = this.recordings.get(input.key);
+    const finishedFile = current?.filePath;
+    const intentional = current?.intentionalStop ?? false;
+    const stopReason = current?.stopReason;
 
-      if (finishedFile) {
-        try {
-          await finalizarGravacao(finishedFile);
-          void tentarUploadGravacaoPorCaminho(finishedFile).catch((error) => {
-            console.error(
-              "[recorder] falha ao enviar para Bunny Storage:",
-              error instanceof Error ? error.message : error,
-            );
-          });
-        } catch (error) {
+    this.recordings.delete(input.key);
+    this.activeFileSizes.delete(input.key);
+
+    if (finishedFile) {
+      try {
+        await finalizarGravacao(finishedFile);
+        void tentarUploadGravacaoPorCaminho(finishedFile).catch((error) => {
           console.error(
-            `[recorder] falha ao finalizar ${finishedFile}:`,
+            "[recorder] falha ao enviar para Bunny Storage:",
             error instanceof Error ? error.message : error,
           );
-        }
+        });
+      } catch (error) {
+        console.error(
+          `[recorder] falha ao finalizar ${finishedFile}:`,
+          error instanceof Error ? error.message : error,
+        );
       }
+    }
 
-      if (this.shuttingDown || stopReason === "shutdown" || stopReason === "disabled") {
-        return;
-      }
+    if (this.shuttingDown || stopReason === "shutdown" || stopReason === "disabled") {
+      return;
+    }
 
-      if (stopReason === "rotate" || stopReason === "restart") {
-        await this.sync();
-        return;
-      }
+    if (stopReason === "rotate" || stopReason === "restart") {
+      await this.sync();
+      return;
+    }
 
-      if (signal === "SIGTERM" || signal === "SIGKILL") {
-        if (intentional) return;
-      }
+    if ((input.signal === "SIGTERM" || input.signal === "SIGKILL") && intentional) {
+      return;
+    }
 
-      const message =
-        code === 0
-          ? "Gravação encerrada — reiniciando"
-          : `Stream caiu (código ${code ?? "?"}) — reiniciando em ${RESTART_DELAY_MS / 1000}s`;
+    this.errors.set(
+      input.key,
+      input.code === 0
+        ? "Gravação encerrada — reiniciando"
+        : `Stream caiu (código ${input.code ?? "?"}) — reiniciando em ${RESTART_DELAY_MS / 1000}s`,
+    );
 
-      this.errors.set(key, message);
-
-      setTimeout(() => {
-        if (!this.shuttingDown) {
-          void this.sync();
-        }
-      }, RESTART_DELAY_MS);
-    });
+    setTimeout(() => {
+      if (!this.shuttingDown) void this.sync();
+    }, RESTART_DELAY_MS);
   }
 
   private async stopOne(key: string, reason: StopReason): Promise<void> {
