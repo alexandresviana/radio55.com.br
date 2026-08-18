@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import PanoramaEvolucao from "@/components/PanoramaEvolucao";
+import PanoramaRelatorio from "@/components/PanoramaRelatorio";
 
 type Fonte = "todas" | "radio" | "youtube" | "instagram" | "x" | "meta_ads";
 type Janela = "24h" | "7d" | "30d";
@@ -137,8 +138,8 @@ export default function Panorama() {
       <div>
         <h2 className="text-xl font-bold text-slate-900">O que está rolando?</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Menções recentes nas rádios, YouTube, Instagram, X e anúncios — para bater o olho e saber o
-          que está sendo dito.
+          Relatório de IA no topo; abaixo, o gráfico e as menções nas rádios, YouTube, Instagram, X e
+          anúncios.
         </p>
       </div>
 
@@ -225,6 +226,8 @@ export default function Panorama() {
           </div>
         </div>
       </section>
+
+      <PanoramaRelatorio janela={janela} fonte={fonte} termo={assuntoAplicado} />
 
       <PanoramaEvolucao
         termo={assuntoAplicado}

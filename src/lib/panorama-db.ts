@@ -387,6 +387,177 @@ export async function buscarPanorama(params: {
   }));
 }
 
+export interface AgregadoTermoRelatorio {
+  termo: string;
+  fonte: FontePanorama;
+  mencoes: number;
+}
+
+export interface TrechoRelatorio {
+  fonte: FontePanorama;
+  termo: string;
+  veiculo: string;
+  contexto: string;
+  detectado_em: string;
+}
+
+export interface BaseRelatorioPanorama {
+  total: number;
+  por_fonte: { fonte: FontePanorama; mencoes: number }[];
+  por_termo: { termo: string; mencoes: number }[];
+  agregados: AgregadoTermoRelatorio[];
+  trechos: TrechoRelatorio[];
+}
+
+function sqlEventosRelatorio(fonte: FontePanorama | "todas"): string[] {
+  const filtroTermo = `
+    AND (
+      $2::text IS NULL
+      OR d.termo ILIKE $2
+      OR d.contexto ILIKE $2
+      OR translate(lower(d.termo), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+      OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+    )`;
+
+  const partes: string[] = [];
+
+  if (fonte === "todas" || fonte === "radio") {
+    partes.push(`
+      SELECT 'radio'::text AS fonte, d.termo, d.contexto,
+             (g.radio_nome || ' · ' || g.municipio) AS veiculo, d.detectado_em
+      FROM palavra_deteccoes d
+      JOIN gravacao_arquivos g ON g.id = d.gravacao_id
+      WHERE g.removido_em IS NULL AND d.detectado_em >= $1::timestamptz ${filtroTermo}
+    `);
+  }
+  if (fonte === "todas" || fonte === "youtube") {
+    partes.push(`
+      SELECT 'youtube'::text AS fonte, d.termo, d.contexto,
+             c.titulo AS veiculo, d.detectado_em
+      FROM youtube_palavra_deteccoes d
+      JOIN youtube_videos v ON v.id = d.video_db_id
+      JOIN youtube_canais c ON c.id = v.canal_id
+      WHERE d.detectado_em >= $1::timestamptz ${filtroTermo}
+    `);
+  }
+  if (fonte === "todas" || fonte === "instagram") {
+    partes.push(`
+      SELECT 'instagram'::text AS fonte, d.termo, d.contexto,
+             ('@' || COALESCE(NULLIF(posts.owner_username, ''), p.username, 'instagram')) AS veiculo,
+             d.detectado_em
+      FROM instagram_palavra_deteccoes d
+      JOIN instagram_posts posts ON posts.id = d.post_db_id
+      LEFT JOIN instagram_perfis p ON p.id = posts.perfil_id
+      WHERE d.detectado_em >= $1::timestamptz ${filtroTermo}
+    `);
+  }
+  if (fonte === "todas" || fonte === "x") {
+    partes.push(`
+      SELECT 'x'::text AS fonte, d.termo, d.contexto,
+             ('@' || COALESCE(NULLIF(posts.autor_username, ''), 'x')) AS veiculo, d.detectado_em
+      FROM x_palavra_deteccoes d
+      JOIN x_posts posts ON posts.id = d.post_db_id
+      WHERE d.detectado_em >= $1::timestamptz ${filtroTermo}
+    `);
+  }
+  if (fonte === "todas" || fonte === "meta_ads") {
+    partes.push(`
+      SELECT 'meta_ads'::text AS fonte, d.termo, d.contexto,
+             COALESCE(NULLIF(ads.page_name, ''), 'Anunciante') AS veiculo, d.detectado_em
+      FROM meta_ads_palavra_deteccoes d
+      JOIN meta_ads ads ON ads.id = d.ad_db_id
+      WHERE d.detectado_em >= $1::timestamptz ${filtroTermo}
+    `);
+  }
+
+  return partes;
+}
+
+export async function buscarBaseRelatorioPanorama(params: {
+  termo?: string;
+  janela?: JanelaPanorama;
+  fonte?: FontePanorama | "todas";
+}): Promise<BaseRelatorioPanorama> {
+  const vazio: BaseRelatorioPanorama = {
+    total: 0,
+    por_fonte: [],
+    por_termo: [],
+    agregados: [],
+    trechos: [],
+  };
+
+  if (!isDatabaseConfigured()) return vazio;
+
+  const partes = sqlEventosRelatorio(params.fonte ?? "todas");
+  if (partes.length === 0) return vazio;
+
+  const desde = janelaParaDesde(params.janela ?? "24h").toISOString();
+  const busca = termoSql(params.termo);
+  const union = partes.join(" UNION ALL ");
+
+  const [totalResult, agregadosResult, trechosResult] = await Promise.all([
+    getPool().query<{ total: string }>(
+      `SELECT COUNT(*)::text AS total FROM (${union}) AS eventos`,
+      [desde, busca.ilike, busca.normalizado],
+    ),
+    getPool().query<{ fonte: FontePanorama; termo: string; mencoes: string }>(
+      `SELECT fonte, termo, COUNT(*)::text AS mencoes
+       FROM (${union}) AS eventos
+       GROUP BY fonte, termo
+       ORDER BY COUNT(*) DESC
+       LIMIT 40`,
+      [desde, busca.ilike, busca.normalizado],
+    ),
+    getPool().query<{
+      fonte: FontePanorama;
+      termo: string;
+      veiculo: string;
+      contexto: string;
+      detectado_em: Date;
+    }>(
+      `SELECT fonte, termo, veiculo, contexto, detectado_em
+       FROM (${union}) AS eventos
+       WHERE contexto IS NOT NULL AND length(btrim(contexto)) > 12
+       ORDER BY detectado_em DESC
+       LIMIT 50`,
+      [desde, busca.ilike, busca.normalizado],
+    ),
+  ]);
+
+  const agregados = agregadosResult.rows.map((row) => ({
+    termo: row.termo,
+    fonte: row.fonte,
+    mencoes: Number(row.mencoes),
+  }));
+
+  const porFonteMap = new Map<FontePanorama, number>();
+  const porTermoMap = new Map<string, number>();
+  for (const item of agregados) {
+    porFonteMap.set(item.fonte, (porFonteMap.get(item.fonte) ?? 0) + item.mencoes);
+    porTermoMap.set(item.termo, (porTermoMap.get(item.termo) ?? 0) + item.mencoes);
+  }
+  const total = Number(totalResult.rows[0]?.total ?? 0);
+
+  return {
+    total,
+    por_fonte: [...porFonteMap.entries()]
+      .map(([fonte, mencoes]) => ({ fonte, mencoes }))
+      .sort((a, b) => b.mencoes - a.mencoes),
+    por_termo: [...porTermoMap.entries()]
+      .map(([termo, mencoes]) => ({ termo, mencoes }))
+      .sort((a, b) => b.mencoes - a.mencoes)
+      .slice(0, 12),
+    agregados,
+    trechos: trechosResult.rows.map((row) => ({
+      fonte: row.fonte,
+      termo: row.termo,
+      veiculo: row.veiculo,
+      contexto: row.contexto.slice(0, 320),
+      detectado_em: new Date(row.detectado_em).toISOString(),
+    })),
+  };
+}
+
 export interface PontoEvolucaoPanorama {
   /** Início do bucket (hora ou dia, ISO). */
   hora: string;
