@@ -116,7 +116,7 @@ export default function PalavrasChave() {
             onKeyDown={(e) => {
               if (e.key === "Enter") void adicionar();
             }}
-            placeholder="Ex.: mamadeira, fabio mitidieri, eleições"
+            placeholder="Ex.: governador, deputado federal, presidente, eleições"
             className="min-w-[260px] flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm"
           />
           <button
