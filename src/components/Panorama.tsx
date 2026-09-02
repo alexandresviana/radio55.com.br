@@ -158,7 +158,7 @@ export default function Panorama() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") aplicarAssunto();
                 }}
-                placeholder="Ex.: fabio mitidieri, eleições, aracaju…"
+                placeholder="Ex.: governador, deputado federal, presidente, eleições"
                 className="min-w-[240px] flex-1 rounded-lg border border-slate-200 px-3 py-2.5 text-sm"
               />
               <datalist id="assuntos-panorama">
