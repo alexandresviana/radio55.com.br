@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import AdminBuscaIATab from "@/components/AdminBuscaIATab";
 import AdminInstagramTab from "@/components/AdminInstagramTab";
 import AdminMetaAdsTab from "@/components/AdminMetaAdsTab";
 import AdminRadiosTab from "@/components/AdminRadiosTab";
@@ -11,7 +10,7 @@ import AdminYoutubeTab from "@/components/AdminYoutubeTab";
 import Header from "@/components/Header";
 import PalavrasChave from "@/components/PalavrasChave";
 
-type AdminTab = "assuntos" | "radios" | "youtube" | "instagram" | "x" | "meta" | "ia";
+type AdminTab = "assuntos" | "radios" | "youtube" | "instagram" | "x" | "meta";
 
 const TABS: { id: AdminTab; label: string }[] = [
   { id: "assuntos", label: "Assuntos" },
@@ -20,7 +19,6 @@ const TABS: { id: AdminTab; label: string }[] = [
   { id: "instagram", label: "Instagram" },
   { id: "x", label: "X" },
   { id: "meta", label: "Anúncios" },
-  { id: "ia", label: "Busca IA" },
 ];
 
 const ABAS = new Set<AdminTab>(TABS.map((t) => t.id));
@@ -54,8 +52,7 @@ function AdminPageInner() {
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-slate-900">Admin</h1>
           <p className="text-sm text-slate-500">
-            Cadastre assuntos uma vez e configure as fontes (rádios, canais, perfis). O feed fica na
-            página inicial.
+            Cadastro de assuntos e fontes. Buscas e detecções ficam nas abas da página inicial.
           </p>
         </div>
 
@@ -82,7 +79,6 @@ function AdminPageInner() {
         {aba === "instagram" && <AdminInstagramTab />}
         {aba === "x" && <AdminXTab />}
         {aba === "meta" && <AdminMetaAdsTab />}
-        {aba === "ia" && <AdminBuscaIATab />}
       </main>
     </div>
   );

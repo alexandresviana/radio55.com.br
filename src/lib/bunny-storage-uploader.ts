@@ -1,4 +1,4 @@
-import { access, stat, unlink } from "node:fs/promises";
+import { access, stat } from "node:fs/promises";
 import {
   buildBunnyRemotePath,
   getBunnyStorageConfig,
@@ -74,9 +74,7 @@ export async function uploadGravacaoArquivo(
 
   await marcarGravacaoEnviadaStorage(gravacao.id, uploaded.remotePath, uploaded.sizeBytes);
 
-  if (process.env.BUNNY_STORAGE_DELETE_LOCAL_AFTER_UPLOAD === "true") {
-    await unlink(gravacao.caminho).catch(() => {});
-  }
+  // MP3 local fica 24h; o recorder apaga depois do upload, sem tirar do índice.
 
   console.info(`[bunny-storage] enviado ${remotePath} (${uploaded.sizeBytes} bytes)`);
   return uploaded.remotePath;

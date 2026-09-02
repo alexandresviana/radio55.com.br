@@ -133,6 +133,27 @@ export async function marcarGravacaoRemovida(caminho: string): Promise<void> {
   );
 }
 
+/** Gravações já no Bunny, com mais de 24h, ainda com arquivo local — a busca/transcrição fica. */
+export async function listarGravacoesLocaisExpiradas(
+  maisVelhasQueMs: number,
+): Promise<GravacaoArquivo[]> {
+  if (!isDatabaseConfigured()) return [];
+
+  const result = await getPool().query<GravacaoArquivo>(
+    `SELECT id, municipio, radio_nome, arquivo, caminho, gravado_em, tamanho_bytes, em_gravacao,
+            arquivo_valido, arquivo_erro, bunny_path, bunny_uploaded_em
+     FROM gravacao_arquivos
+     WHERE removido_em IS NULL
+       AND em_gravacao = FALSE
+       AND gravado_em < NOW() - ($1::bigint * INTERVAL '1 millisecond')
+     ORDER BY gravado_em ASC
+     LIMIT 80`,
+    [maisVelhasQueMs],
+  );
+
+  return result.rows.map(mapGravacaoRow);
+}
+
 export async function buscarGravacoes(
   params: BuscaGravacoesParams,
 ): Promise<GravacaoArquivo[]> {

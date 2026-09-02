@@ -4,7 +4,11 @@ import path from "node:path";
 import { getGravacoesDir } from "@/lib/data-dir";
 import { readEmissoras } from "@/lib/emissoras";
 import { radioDeveGravarAgora, rotuloFaixaGravacao } from "@/lib/gravacao-horario";
-import { finalizarGravacao, marcarGravacaoRemovida } from "@/lib/gravacoes-db";
+import {
+  finalizarGravacao,
+  listarGravacoesLocaisExpiradas,
+  obterGravacaoPorCaminho,
+} from "@/lib/gravacoes-db";
 import { tentarUploadGravacaoPorCaminho } from "@/lib/bunny-storage-uploader";
 import { isBenignFfmpegMessage } from "@/lib/ffmpeg-audio";
 import { formatRecordingFilename, radioOutputDir } from "@/lib/gravacoes-path";
@@ -438,6 +442,28 @@ class RecorderService {
     const cutoff = Date.now() - RETENTION_MS;
     const activePaths = this.getActivePaths();
     let removed = 0;
+    const vistos = new Set<string>();
+
+    const apagarLocalSePuder = async (filePath: string): Promise<boolean> => {
+      if (activePaths.has(filePath) || vistos.has(filePath)) return false;
+      vistos.add(filePath);
+
+      const gravacao = await obterGravacaoPorCaminho(filePath).catch(() => null);
+      if (gravacao?.em_gravacao) return false;
+
+      if (gravacao && !gravacao.bunny_uploaded_em) {
+        const enviado = await tentarUploadGravacaoPorCaminho(filePath).catch(() => null);
+        if (!enviado) {
+          console.warn(
+            `[recorder] MP3 local mantido (Bunny ainda não recebeu): ${filePath}`,
+          );
+          return false;
+        }
+      }
+
+      await unlink(filePath);
+      return true;
+    };
 
     const walk = async (dir: string): Promise<void> => {
       let entries;
@@ -458,16 +484,31 @@ class RecorderService {
         if (!entry.name.endsWith(".mp3")) continue;
         if (activePaths.has(fullPath)) continue;
 
-        const fileStat = await stat(fullPath);
-        if (fileStat.mtimeMs < cutoff) {
-          await unlink(fullPath);
-          await marcarGravacaoRemovida(fullPath);
-          removed += 1;
+        let fileStat;
+        try {
+          fileStat = await stat(fullPath);
+        } catch {
+          continue;
         }
+        if (fileStat.mtimeMs >= cutoff) continue;
+
+        if (await apagarLocalSePuder(fullPath)) removed += 1;
       }
     };
 
     await walk(RECORDINGS_DIR);
+
+    const expiradas = await listarGravacoesLocaisExpiradas(RETENTION_MS).catch(() => []);
+    for (const gravacao of expiradas) {
+      if (await apagarLocalSePuder(gravacao.caminho)) removed += 1;
+    }
+
+    if (removed > 0) {
+      console.info(
+        `[recorder] ${removed} MP3 local(is) apagado(s) após 24h — transcrições e busca seguem no índice`,
+      );
+    }
+
     return removed;
   }
 

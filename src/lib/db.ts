@@ -487,6 +487,20 @@ export async function initDatabase(): Promise<void> {
 
     `);
 
+    const restauradas = await client.query(
+      `UPDATE gravacao_arquivos
+       SET removido_em = NULL
+       WHERE removido_em IS NOT NULL
+         AND bunny_path IS NOT NULL
+         AND bunny_path <> ''
+         AND bunny_uploaded_em IS NOT NULL`,
+    );
+    if ((restauradas.rowCount ?? 0) > 0) {
+      console.info(
+        `[db] ${restauradas.rowCount} gravação(ões) no Bunny voltaram ao índice (MP3 local já tinha sido apagado)`,
+      );
+    }
+
     await sincronizarSequences(client);
   });
 }
