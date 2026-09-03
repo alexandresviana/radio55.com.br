@@ -48,6 +48,7 @@ const STATUS_LABEL: Record<string, string> = {
   erro: "Erro",
   sem_transcript: "Sem legenda",
   aguardando: "Aguardando estreia",
+  ignorado: "Fora do limite",
 };
 
 const FILTROS = [

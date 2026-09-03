@@ -6,7 +6,14 @@ export type YoutubeVideoStatus =
   | "concluido"
   | "erro"
   | "sem_transcript"
-  | "aguardando";
+  | "aguardando"
+  | "ignorado";
+
+export function limiteVideosPorCanalYoutube(): number {
+  const raw = Number(process.env.YOUTUBE_VIDEOS_POR_CANAL ?? 30);
+  if (!Number.isFinite(raw)) return 30;
+  return Math.min(100, Math.max(5, Math.floor(raw)));
+}
 
 export interface YoutubeCanal {
   id: number;
@@ -147,9 +154,36 @@ export async function registrarVideoYoutube(input: {
   return result.rows[0] ? "novo" : "existente";
 }
 
+/** Tira da fila vídeos além dos N mais recentes do canal — não apaga os já transcritos. */
+export async function ignorarVideosExcedentesDoCanal(
+  canalId: number,
+  limite = limiteVideosPorCanalYoutube(),
+): Promise<number> {
+  if (!isDatabaseConfigured()) return 0;
+
+  const result = await getPool().query(
+    `UPDATE youtube_videos
+     SET status = 'ignorado',
+         erro_msg = $3
+     WHERE canal_id = $1
+       AND status IN ('pendente', 'aguardando')
+       AND id NOT IN (
+         SELECT id
+         FROM youtube_videos
+         WHERE canal_id = $1
+         ORDER BY publicado_em DESC NULLS LAST, id DESC
+         LIMIT $2
+       )`,
+    [canalId, limite, `Fora dos ${limite} vídeos mais recentes do canal`],
+  );
+
+  return result.rowCount ?? 0;
+}
+
 export async function obterProximoVideoPendente(): Promise<YoutubeVideo | null> {
   if (!isDatabaseConfigured()) return null;
 
+  const limite = limiteVideosPorCanalYoutube();
   const result = await getPool().query<YoutubeVideo>(
     `SELECT
        v.id,
@@ -165,6 +199,21 @@ export async function obterProximoVideoPendente(): Promise<YoutubeVideo | null> 
      FROM youtube_videos v
      JOIN youtube_canais c ON c.id = v.canal_id
      WHERE c.ativo = TRUE
+       AND v.id IN (
+         SELECT ranked.id
+         FROM (
+           SELECT
+             v2.id,
+             ROW_NUMBER() OVER (
+               PARTITION BY v2.canal_id
+               ORDER BY v2.publicado_em DESC NULLS LAST, v2.id DESC
+             ) AS rn
+           FROM youtube_videos v2
+           JOIN youtube_canais c2 ON c2.id = v2.canal_id
+           WHERE c2.ativo = TRUE
+         ) ranked
+         WHERE ranked.rn <= $1
+       )
        AND (
          v.status IN ('pendente', 'aguardando')
          OR (
@@ -193,6 +242,7 @@ export async function obterProximoVideoPendente(): Promise<YoutubeVideo | null> 
        v.publicado_em DESC NULLS LAST,
        v.id ASC
      LIMIT 1`,
+    [limite],
   );
 
   const row = result.rows[0];

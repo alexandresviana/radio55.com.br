@@ -10,10 +10,7 @@ import {
   YoutubeAguardandoEstreiaError,
 } from "@/lib/youtube-transcript-innertube";
 import { fetchYoutubeTranscriptViaPlayzone } from "@/lib/youtube-transcript-playzone";
-import {
-  duracaoTranscriptSegundos,
-  escolherTranscriptMaisLongo,
-} from "@/lib/youtube-transcript-utils";
+import { duracaoTranscriptSegundos } from "@/lib/youtube-transcript-utils";
 
 export interface YoutubeTranscriptSegment {
   inicioSegundos: number;
@@ -129,17 +126,19 @@ export async function fetchYoutubeTranscript(
   videoId: string,
 ): Promise<{ segmentos: YoutubeTranscriptSegment[]; fonte: ProviderName }> {
   const providers: ProviderName[] = ["innertube", "playzone", "youtube-transcript-plus"];
-  const candidatos: { segmentos: YoutubeTranscriptSegment[]; fonte: ProviderName }[] = [];
   const errors: string[] = [];
 
   for (const provider of providers) {
     try {
       const segmentos = await runProvider(provider, videoId);
       if (segmentos.length > 0) {
-        candidatos.push({ segmentos, fonte: provider });
-      } else {
-        errors.push(`${provider}: legenda vazia`);
+        const duracaoMin = (duracaoTranscriptSegundos(segmentos) / 60).toFixed(1);
+        console.info(
+          `[youtube-transcript] ${videoId}: ${provider} (${segmentos.length} trechos, ${duracaoMin} min)`,
+        );
+        return { segmentos, fonte: provider };
       }
+      errors.push(`${provider}: legenda vazia`);
     } catch (error) {
       if (error instanceof YoutubeAguardandoEstreiaError) {
         throw error;
@@ -152,15 +151,6 @@ export async function fetchYoutubeTranscript(
         console.warn(`[youtube-transcript] ${provider} falhou para ${videoId}: ${message}`);
       }
     }
-  }
-
-  const melhor = escolherTranscriptMaisLongo(candidatos);
-  if (melhor) {
-    const duracaoMin = (duracaoTranscriptSegundos(melhor.segmentos) / 60).toFixed(1);
-    console.info(
-      `[youtube-transcript] ${videoId}: ${melhor.fonte} (${melhor.segmentos.length} trechos, ${duracaoMin} min)`,
-    );
-    return { segmentos: melhor.segmentos, fonte: melhor.fonte as ProviderName };
   }
 
   throw new YoutubeSemTranscriptError(

@@ -7,6 +7,8 @@ import {
 import { listarVideosConcluidosParaReescanear } from "@/lib/youtube-deteccoes-db";
 import {
   atualizarStatusVideoYoutube,
+  ignorarVideosExcedentesDoCanal,
+  limiteVideosPorCanalYoutube,
   listarYoutubeCanaisAtivos,
   marcarCanalVerificado,
   obterProximoVideoPendente,
@@ -92,8 +94,11 @@ class YoutubeMonitorService {
     this.syncing = true;
     try {
       const canais = await listarYoutubeCanaisAtivos();
+      const limite = limiteVideosPorCanalYoutube();
       for (const canal of canais) {
-        const videos = await fetchChannelVideosFromRss(canal.channel_id);
+        const videos = (await fetchChannelVideosFromRss(canal.channel_id))
+          .sort((a, b) => b.publicadoEm.getTime() - a.publicadoEm.getTime())
+          .slice(0, limite);
         for (const video of videos) {
           await registrarVideoYoutube({
             canalId: canal.id,
@@ -101,6 +106,12 @@ class YoutubeMonitorService {
             titulo: video.titulo,
             publicadoEm: video.publicadoEm,
           });
+        }
+        const ignorados = await ignorarVideosExcedentesDoCanal(canal.id, limite);
+        if (ignorados > 0) {
+          console.info(
+            `[youtube] ${canal.titulo}: ${ignorados} vídeo(s) antigo(s) fora da fila (limite ${limite})`,
+          );
         }
         await marcarCanalVerificado(canal.id);
       }
