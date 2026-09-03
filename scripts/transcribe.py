@@ -7,9 +7,9 @@ import sys
 def _limit_threads() -> int:
     """Trava OpenMP/BLAS *antes* de importar ctranslate2, senão usam todos os núcleos."""
     try:
-        cpu_threads = max(1, int(os.environ.get("WHISPER_CPU_THREADS", "2")))
+        cpu_threads = max(1, int(os.environ.get("WHISPER_CPU_THREADS", "1")))
     except ValueError:
-        cpu_threads = 2
+        cpu_threads = 1
     n = str(cpu_threads)
     for key in (
         "OMP_NUM_THREADS",
@@ -24,6 +24,13 @@ def _limit_threads() -> int:
 
 
 CPU_THREADS = _limit_threads()
+
+
+def _lower_priority() -> None:
+    try:
+        os.nice(15)
+    except OSError:
+        pass
 
 
 def load_model():
@@ -85,6 +92,7 @@ def emit(payload: dict) -> None:
 
 
 def run_worker() -> int:
+    _lower_priority()
     print("[whisper] carregando modelo...", file=sys.stderr, flush=True)
     model = load_model()
     emit({"event": "ready"})

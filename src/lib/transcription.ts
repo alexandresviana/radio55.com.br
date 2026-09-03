@@ -14,6 +14,11 @@ import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
 import { salvarSegmentosTranscricao } from "@/lib/transcricoes-db";
 import { getActiveRecordingPaths, getRecordingBytesPerSecond } from "@/lib/recorder";
 import { encontrarPalavrasNoTexto, normalizeText } from "@/lib/text-normalize";
+import {
+  killOrphanWhisperWorkers,
+  releaseWhisperLeadership,
+  tryAcquireWhisperLeadership,
+} from "@/lib/whisper-lock";
 import { WhisperWorker, type WhisperSegment } from "@/lib/whisper-worker";
 
 const POLL_MS = 15_000;
@@ -27,6 +32,8 @@ type TranscriptionGlobal = typeof globalThis & {
   __radio55Transcription?: TranscriptionService;
 };
 
+const LEADERSHIP_RETRY_MS = 30_000;
+
 class TranscriptionService {
   private timer?: NodeJS.Timeout;
   private started = false;
@@ -34,6 +41,7 @@ class TranscriptionService {
   private whisperReady: boolean | null = null;
   private lastError: string | null = null;
   private worker = new WhisperWorker();
+  private retryingLeadership = false;
 
   async start(): Promise<void> {
     if (this.started || !isDatabaseConfigured()) return;
@@ -42,7 +50,17 @@ class TranscriptionService {
       return;
     }
 
+    if (!tryAcquireWhisperLeadership()) {
+      this.scheduleLeadershipRetry();
+      return;
+    }
+
     this.started = true;
+    const orphans = killOrphanWhisperWorkers();
+    if (orphans > 0) {
+      console.warn(`[transcription] encerrou ${orphans} worker(s) Whisper órfão(s) ao assumir`);
+    }
+
     await mkdir(getWhisperCacheDir(), { recursive: true });
     await mkdir(getTrechosDir(), { recursive: true });
 
@@ -51,7 +69,10 @@ class TranscriptionService {
     };
     if (!globalRef.__radio55TranscriptionShutdownHook) {
       globalRef.__radio55TranscriptionShutdownHook = true;
-      const stop = () => this.worker.stop();
+      const stop = () => {
+        this.worker.stop();
+        releaseWhisperLeadership();
+      };
       process.once("SIGTERM", stop);
       process.once("SIGINT", stop);
     }
@@ -60,6 +81,18 @@ class TranscriptionService {
     this.timer = setInterval(() => {
       void this.tick();
     }, POLL_MS);
+  }
+
+  private scheduleLeadershipRetry(): void {
+    if (this.retryingLeadership) return;
+    this.retryingLeadership = true;
+    console.warn(
+      "[transcription] outro processo já conduz o Whisper neste container — aguardando",
+    );
+    setTimeout(() => {
+      this.retryingLeadership = false;
+      void this.start();
+    }, LEADERSHIP_RETRY_MS).unref();
   }
 
   getStatus() {

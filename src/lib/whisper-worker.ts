@@ -3,6 +3,7 @@ import { createInterface, type Interface as ReadlineInterface } from "node:readl
 import { access } from "node:fs/promises";
 import path from "node:path";
 import { getWhisperCacheDir } from "@/lib/data-dir";
+import { killOrphanWhisperWorkers } from "@/lib/whisper-lock";
 
 const READY_TIMEOUT_MS = 90_000;
 const JOB_TIMEOUT_MS = 120_000;
@@ -30,7 +31,7 @@ type PendingJob = {
 };
 
 function whisperEnv(): NodeJS.ProcessEnv {
-  const cpuThreads = process.env.WHISPER_CPU_THREADS?.trim() || "2";
+  const cpuThreads = process.env.WHISPER_CPU_THREADS?.trim() || "1";
   const modelCacheDir = process.env.WHISPER_CACHE_DIR?.trim() || getWhisperCacheDir();
 
   return {
@@ -121,8 +122,14 @@ export class WhisperWorker {
     const generation = ++this.generation;
     this.kill();
 
+    const orphans = killOrphanWhisperWorkers();
+    if (orphans > 0) {
+      console.warn(`[transcription] encerrou ${orphans} worker(s) Whisper órfão(s)`);
+    }
+
     await new Promise<void>((resolve, reject) => {
-      const proc = spawn("nice", ["-n", "15", pythonPath, scriptPath, "--worker"], {
+      // Spawn direto: `nice` como pai deixava o Python órfão no timeout/restart.
+      const proc = spawn(pythonPath, [scriptPath, "--worker"], {
         env: whisperEnv(),
         stdio: ["pipe", "pipe", "pipe"],
       });
