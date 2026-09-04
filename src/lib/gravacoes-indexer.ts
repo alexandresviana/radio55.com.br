@@ -8,7 +8,7 @@ import { parseMp3Timestamp, resolveRadioFromFilePath } from "@/lib/gravacoes-pat
 
 import { MIN_PLAYABLE_MP3_BYTES } from "@/lib/mp3-integrity";
 
-const INDEX_INTERVAL_MS = 10_000;
+const INDEX_INTERVAL_MS = 60_000;
 const MIN_FILE_BYTES = MIN_PLAYABLE_MP3_BYTES;
 
 type IndexerGlobal = typeof globalThis & {
@@ -19,6 +19,7 @@ class GravacoesIndexer {
   private timer?: NodeJS.Timeout;
   private started = false;
   private scanning = false;
+  private lastSeen = new Map<string, { size: number; emGravacao: boolean }>();
 
   async start(): Promise<void> {
     if (this.started || !isDatabaseConfigured()) return;
@@ -85,6 +86,11 @@ class GravacoesIndexer {
 
     if (fileStat.size < MIN_FILE_BYTES) return false;
 
+    const seen = this.lastSeen.get(filePath);
+    if (seen && seen.size === fileStat.size && seen.emGravacao === emGravacao) {
+      return false;
+    }
+
     const radio = await resolveRadioFromFilePath(filePath);
     if (!radio) return false;
 
@@ -101,6 +107,7 @@ class GravacoesIndexer {
       emGravacao,
     });
 
+    this.lastSeen.set(filePath, { size: fileStat.size, emGravacao });
     return true;
   }
 }

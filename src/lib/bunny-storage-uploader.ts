@@ -52,7 +52,7 @@ export async function uploadGravacaoArquivo(
   if (!isDatabaseConfigured() || !isBunnyStorageConfigured()) return null;
 
   const activePaths = getActiveRecordingPaths();
-  if (activePaths.has(gravacao.caminho) || gravacao.em_gravacao) return null;
+  if (activePaths.has(gravacao.caminho)) return null;
 
   const fileStat = await getFileStat(gravacao.caminho, opts?.exigirEstavel ?? false);
   if (!fileStat || fileStat.size < MIN_FILE_BYTES) return null;
@@ -177,7 +177,8 @@ export async function startBunnyStorageUploader(): Promise<void> {
 
 export async function tentarUploadGravacaoPorCaminho(caminho: string): Promise<string | null> {
   const gravacao = await obterGravacaoPorCaminho(caminho);
-  if (!gravacao || gravacao.em_gravacao || gravacao.arquivo_valido === false) return null;
+  if (!gravacao || gravacao.arquivo_valido === false) return null;
+  if (getActiveRecordingPaths().has(caminho)) return null;
   if (gravacao.bunny_uploaded_em) return gravacao.bunny_path;
 
   return uploadGravacaoArquivo(

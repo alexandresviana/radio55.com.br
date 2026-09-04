@@ -136,15 +136,29 @@ export async function uploadFileToBunnyStorage(input: {
     ? `https://${config.host}/${encodeURIComponent(config.zone)}/${directory}/${encodedFileName}`
     : `https://${config.host}/${encodeURIComponent(config.zone)}/${encodedFileName}`;
 
-  const response = await fetch(url, {
-    method: "PUT",
-    headers: {
-      AccessKey: config.accessKey,
-      "Content-Type": "audio/mpeg",
-      Checksum: checksum,
-    },
-    body: fileBuffer,
-  });
+  const putOnce = () =>
+    fetch(url, {
+      method: "PUT",
+      headers: {
+        AccessKey: config.accessKey,
+        "Content-Type": "audio/mpeg",
+        Checksum: checksum,
+      },
+      body: fileBuffer,
+      signal: AbortSignal.timeout(180_000),
+    });
+
+  let response: Response;
+  try {
+    response = await putOnce();
+  } catch (error) {
+    console.warn(
+      "[bunny-storage] upload falhou, tentando de novo:",
+      error instanceof Error ? error.message : error,
+    );
+    await new Promise((resolve) => setTimeout(resolve, 8_000));
+    response = await putOnce();
+  }
 
   if (!response.ok) {
     const body = await response.text().catch(() => "");

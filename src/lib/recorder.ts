@@ -31,6 +31,53 @@ const SYNC_INTERVAL_MS = 60 * 1000;
 const RESTART_DELAY_MS = 15_000;
 const ROTATE_MS = Number(process.env.RECORDING_ROTATE_MS ?? 60 * 60 * 1000);
 const GRACEFUL_STOP_TIMEOUT_MS = 12_000;
+const FIRST_ROTATE_MIN_MS = 3 * 60 * 1000;
+
+function hashKey(value: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+/** Primeira rotação espalhada na hora para as rádios não finalizarem juntas no boot. */
+function firstRotateDelayMs(key: string): number {
+  const window = Math.max(ROTATE_MS - FIRST_ROTATE_MIN_MS, FIRST_ROTATE_MIN_MS);
+  return FIRST_ROTATE_MIN_MS + (hashKey(key) % window);
+}
+
+let finalizeQueue: Promise<void> = Promise.resolve();
+
+function enqueueFinalizeAndUpload(filePath: string): void {
+  finalizeQueue = finalizeQueue
+    .then(async () => {
+      try {
+        await finalizarGravacao(filePath);
+      } catch (error) {
+        console.error(
+          `[recorder] falha ao finalizar ${filePath}:`,
+          error instanceof Error ? error.message : error,
+        );
+      }
+
+      try {
+        await tentarUploadGravacaoPorCaminho(filePath);
+      } catch (error) {
+        console.error(
+          "[recorder] falha ao enviar para Bunny Storage:",
+          error instanceof Error ? error.message : error,
+        );
+      }
+    })
+    .catch((error) => {
+      console.error(
+        "[recorder] fila de finalize:",
+        error instanceof Error ? error.message : error,
+      );
+    });
+}
 
 type StopReason = "rotate" | "shutdown" | "disabled" | "restart";
 
@@ -103,6 +150,7 @@ class RecorderService {
   private recordings = new Map<string, ActiveRecording>();
   private activeFileSizes = new Map<string, number>();
   private errors = new Map<string, string>();
+  private alreadyRotated = new Set<string>();
   private cleanupTimer?: NodeJS.Timeout;
   private syncTimer?: NodeJS.Timeout;
   private sizeTimer?: NodeJS.Timeout;
@@ -327,6 +375,9 @@ class RecorderService {
       `[recorder] ${key}: ${output.copy ? `copy ${probe.codec}` : `lame 96k (fonte ${probe.codec ?? "?"})`}`,
     );
 
+    const rotateDelay = this.alreadyRotated.has(key) ? ROTATE_MS : firstRotateDelayMs(key);
+    this.alreadyRotated.add(key);
+
     const rotateTimer = setTimeout(() => {
       void this.stopOne(key, "rotate").catch((error) => {
         console.error(
@@ -334,7 +385,7 @@ class RecorderService {
           error instanceof Error ? error.message : error,
         );
       });
-    }, ROTATE_MS);
+    }, rotateDelay);
 
     const recording: ActiveRecording = {
       proc,
@@ -389,20 +440,7 @@ class RecorderService {
     this.activeFileSizes.delete(input.key);
 
     if (finishedFile) {
-      try {
-        await finalizarGravacao(finishedFile);
-        void tentarUploadGravacaoPorCaminho(finishedFile).catch((error) => {
-          console.error(
-            "[recorder] falha ao enviar para Bunny Storage:",
-            error instanceof Error ? error.message : error,
-          );
-        });
-      } catch (error) {
-        console.error(
-          `[recorder] falha ao finalizar ${finishedFile}:`,
-          error instanceof Error ? error.message : error,
-        );
-      }
+      enqueueFinalizeAndUpload(finishedFile);
     }
 
     if (this.shuttingDown || stopReason === "shutdown" || stopReason === "disabled") {

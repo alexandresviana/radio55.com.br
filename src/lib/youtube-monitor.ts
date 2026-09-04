@@ -26,7 +26,7 @@ import { salvarSegmentosYoutube } from "@/lib/youtube-transcricoes-db";
 
 const SYNC_MS = 5 * 60 * 1000;
 const PROCESS_MS = 20_000;
-const RESCAN_MS = 45_000;
+const RESCAN_MS = 3 * 60 * 1000;
 const RESCAN_LOTE = 4;
 
 type MonitorGlobal = typeof globalThis & {

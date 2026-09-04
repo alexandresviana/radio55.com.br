@@ -1,3 +1,4 @@
+import { stat } from "node:fs/promises";
 import { getPool, isDatabaseConfigured, withClient } from "@/lib/db";
 import { validateAndRepairMp3 } from "@/lib/mp3-integrity";
 
@@ -103,6 +104,23 @@ export async function registrarGravacao(input: {
 
 export async function finalizarGravacao(caminho: string): Promise<void> {
   if (!isDatabaseConfigured()) return;
+
+  // Solta em_gravacao antes do ffprobe: se o banco estiver lento, o upload
+  // e o índice não ficam presos no arquivo como se ainda estivesse ao vivo.
+  try {
+    const sizeBytes = await stat(caminho).then((s) => s.size).catch(() => 0);
+    await getPool().query(
+      `UPDATE gravacao_arquivos
+       SET em_gravacao = FALSE, tamanho_bytes = $2
+       WHERE caminho = $1 AND removido_em IS NULL`,
+      [caminho, sizeBytes],
+    );
+  } catch (error) {
+    console.warn(
+      "[gravacoes] não marcou fim da gravação:",
+      error instanceof Error ? error.message : error,
+    );
+  }
 
   const validacao = await validateAndRepairMp3(caminho);
 
