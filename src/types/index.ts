@@ -2,7 +2,7 @@ export interface Radio {
   nome: string;
   pj: number;
   tipo: "comercial" | "comunitaria";
-  /** Quando true, a emissora entra na fila de gravação (MP3, retenção ~24h). */
+  /** Quando true, a emissora entra na fila de gravação (MP3, retenção local ~1h). */
   gravar?: boolean;
   /**
    * Início da faixa de gravação (HH:MM, fuso America/Sao_Paulo).

@@ -79,7 +79,7 @@ export default function HomeAbas() {
           <div>
             <h2 className="text-xl font-bold text-slate-900">Busca nas rádios</h2>
             <p className="text-sm text-slate-500">
-              Transcrições, detecções e arquivos — o MP3 antigo sai do disco após 24h, mas a busca
+              Transcrições, detecções e arquivos — o MP3 antigo sai do disco após 1h, mas a busca
               e a reprodução seguem pelo armazenamento.
             </p>
           </div>

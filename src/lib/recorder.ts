@@ -21,7 +21,10 @@ import {
 import type { Radio } from "@/types";
 
 const RECORDINGS_DIR = getGravacoesDir();
-const RETENTION_MS = 24 * 60 * 60 * 1000;
+const DEFAULT_RETENTION_MS = 60 * 60 * 1000;
+const parsedRetention = Number(process.env.RECORDING_RETENTION_MS ?? DEFAULT_RETENTION_MS);
+const RETENTION_MS =
+  Number.isFinite(parsedRetention) && parsedRetention > 0 ? parsedRetention : DEFAULT_RETENTION_MS;
 const CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
 /** Sync frequente o bastante para abrir/fechar faixas de horário perto do minuto certo. */
 const SYNC_INTERVAL_MS = 60 * 1000;
@@ -505,7 +508,7 @@ class RecorderService {
 
     if (removed > 0) {
       console.info(
-        `[recorder] ${removed} MP3 local(is) apagado(s) após 24h — transcrições e busca seguem no índice`,
+        `[recorder] ${removed} MP3 local(is) apagado(s) após ${Math.round(RETENTION_MS / 3_600_000)}h — transcrições e busca seguem no índice`,
       );
     }
 

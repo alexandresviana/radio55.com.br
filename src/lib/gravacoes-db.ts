@@ -133,7 +133,7 @@ export async function marcarGravacaoRemovida(caminho: string): Promise<void> {
   );
 }
 
-/** Gravações já no Bunny, com mais de 24h, ainda com arquivo local — a busca/transcrição fica. */
+/** Gravações já no Bunny, com mais de 1h, ainda com arquivo local — a busca/transcrição fica. */
 export async function listarGravacoesLocaisExpiradas(
   maisVelhasQueMs: number,
 ): Promise<GravacaoArquivo[]> {
