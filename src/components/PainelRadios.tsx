@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import RadioPlayer from "@/components/RadioPlayer";
+import { getMunicipioData, nomeMunicipioExibicao } from "@/lib/estados";
 import { getRegiaoCor } from "@/lib/regioes";
 import type { EmissorasData } from "@/types";
 
@@ -51,7 +52,10 @@ export default function PainelRadios({
     );
   }
 
-  const dados = emissoras[municipio];
+  const resolvido = getMunicipioData(emissoras, municipio);
+  const dados = resolvido?.dados;
+  const municipioKey = resolvido?.key ?? municipio;
+  const municipioLabel = nomeMunicipioExibicao(municipio);
   const regiaoCor = dados ? getRegiaoCor(dados.regiao) : "#64748b";
 
   return (
@@ -61,7 +65,7 @@ export default function PainelRadios({
         style={{ background: `linear-gradient(135deg, ${regiaoCor}18, transparent)` }}
       >
         <div>
-          <h2 className="text-lg font-semibold text-slate-800">{municipio}</h2>
+          <h2 className="text-lg font-semibold text-slate-800">{municipioLabel}</h2>
           {dados && (
             <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
               <span
@@ -88,7 +92,7 @@ export default function PainelRadios({
       {radioSelecionada && (
         <div className="border-b border-slate-100 px-4 py-4">
           <RadioPlayer
-            municipio={municipio}
+            municipio={municipioKey}
             nome={radioSelecionada}
             estado={dados?.estado ?? "SE"}
             regiaoCor={regiaoCor}
@@ -111,7 +115,7 @@ export default function PainelRadios({
             {dados.radios.map((radio) => {
               const ativa = radioSelecionada === radio.nome;
               return (
-                <li key={`${municipio}-${radio.nome}`}>
+                <li key={`${municipioKey}-${radio.nome}`}>
                   <button
                     type="button"
                     onClick={() => setRadioSelecionada(radio.nome)}

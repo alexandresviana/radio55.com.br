@@ -20838,5 +20838,4964 @@
     "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-sambaiba/33013",
     "title": "Web Rádio Sambaiba",
     "streamUrl": null
+  },
+  "AL|Penedo|Imperial Web Rádio": {
+    "estado": "AL",
+    "municipio": "Penedo",
+    "nome": "Imperial Web Rádio",
+    "radiosId": 290983,
+    "radiosUrl": "https://www.radios.com.br/aovivo/imperial-web-radio/290983",
+    "title": "Imperial Web Rádio",
+    "streamUrl": "https://srv30.ipstm.net:1131/stream"
+  },
+  "AL|Arapiraca|105.9 FM": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "105.9 FM",
+    "radiosId": 57186,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-1059-fm/57186",
+    "title": "Rádio 105.9 FM",
+    "streamUrl": "http://stm16.painelcast.com:7064/stream"
+  },
+  "AL|Arapiraca|96 FM Arapiraca": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "96 FM Arapiraca",
+    "radiosId": 8806,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-96-fm-arapiraca/8806",
+    "title": "Rádio 96 FM Arapiraca",
+    "streamUrl": "https://www.appradio.app:8182/live"
+  },
+  "AL|Maceió|96 Maceió FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "96 Maceió FM",
+    "radiosId": 18335,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-96-maceio-fm/18335",
+    "title": "Rádio 96 Maceió FM",
+    "streamUrl": "https://streaming.livespanel.com:20096/radio96fm"
+  },
+  "AL|Maceió|Adore": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Adore",
+    "radiosId": 198032,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-adore-893-fm/198032",
+    "title": "Rádio Adore 89.3 FM",
+    "streamUrl": "https://03.painelstreaming.com.br:27014/stream"
+  },
+  "AL|União dos Palmares|AG": {
+    "estado": "AL",
+    "municipio": "União dos Palmares",
+    "nome": "AG",
+    "radiosId": 137865,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-ag-999-fm/137865",
+    "title": "Rádio AG 99.9 FM",
+    "streamUrl": "https://stm8.painelcast.com:7754/stream"
+  },
+  "AL|Água Branca|Água Branca": {
+    "estado": "AL",
+    "municipio": "Água Branca",
+    "nome": "Água Branca",
+    "radiosId": 40836,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-agua-branca-1049-fm/40836",
+    "title": "Rádio Água Branca 104.9 FM",
+    "streamUrl": "https://hts02.brascast.com:8220/stream"
+  },
+  "AL|Delmiro Gouveia|Alternativa": {
+    "estado": "AL",
+    "municipio": "Delmiro Gouveia",
+    "nome": "Alternativa",
+    "radiosId": 27048,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-alternativa-985-fm/27048",
+    "title": "Rádio Alternativa 98.5 FM",
+    "streamUrl": "https://hts02.brascast.com:9158/stream"
+  },
+  "AL|Anadia|Anadia": {
+    "estado": "AL",
+    "municipio": "Anadia",
+    "nome": "Anadia",
+    "radiosId": 9487,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-anadia-1049-fm/9487",
+    "title": "Rádio Anadia 104.9 FM",
+    "streamUrl": "http://stm13.xcast.com.br:8512/stream"
+  },
+  "AL|Delmiro Gouveia|Angiquinho": {
+    "estado": "AL",
+    "municipio": "Delmiro Gouveia",
+    "nome": "Angiquinho",
+    "radiosId": 37212,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-angiquinho-985-fm/37212",
+    "title": "Rádio Angiquinho 98.5 FM",
+    "streamUrl": "https://stm20.xcast.com.br:7328/stream"
+  },
+  "AL|Mata Grande|Antena do Sertão": {
+    "estado": "AL",
+    "municipio": "Mata Grande",
+    "nome": "Antena do Sertão",
+    "radiosId": 85005,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-antena-do-sertao-879-fm/85005",
+    "title": "Rádio Antena do Sertão 87.9 FM",
+    "streamUrl": "https://stream.zeno.fm/p35ujgvwvmavv"
+  },
+  "AL|Barra de Santo Antônio|Barra FM Litoral Norte": {
+    "estado": "AL",
+    "municipio": "Barra de Santo Antônio",
+    "nome": "Barra FM Litoral Norte",
+    "radiosId": 44561,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-barra-fm-litoral-norte-879/44561",
+    "title": "Rádio Barra FM Litoral Norte 87.9",
+    "streamUrl": "https://stm24.xcast.com.br:12920/stream"
+  },
+  "AL|Batalha|Batalha": {
+    "estado": "AL",
+    "municipio": "Batalha",
+    "nome": "Batalha",
+    "radiosId": 199958,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-batalha-1049-fm/199958",
+    "title": "Rádio Batalha 104.9 FM",
+    "streamUrl": "https://9336.brasilstream.com.br/stream"
+  },
+  "AL|Boca da Mata|Boca da Mata": {
+    "estado": "AL",
+    "municipio": "Boca da Mata",
+    "nome": "Boca da Mata",
+    "radiosId": 10436,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-boca-da-mata-1049-fm/10436",
+    "title": "Rádio Boca da Mata 104.9 FM",
+    "streamUrl": "https://player.srvaudio.com.br/proxy/11412"
+  },
+  "AL|Palmeira dos Índios|Cacique": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Cacique",
+    "radiosId": 64065,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-cacique-1049-fm/64065",
+    "title": "Rádio Cacique 104.9 FM",
+    "streamUrl": "https://cast4.hoost.com.br:20340/stream"
+  },
+  "AL|São Miguel dos Campos|Caeté": {
+    "estado": "AL",
+    "municipio": "São Miguel dos Campos",
+    "nome": "Caeté",
+    "radiosId": 32843,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-caete-1049-fm/32843",
+    "title": "Rádio Caeté 104.9 FM",
+    "streamUrl": "https://hts06.brascast.com:9946/live"
+  },
+  "AL|Porto Calvo|Calabar": {
+    "estado": "AL",
+    "municipio": "Porto Calvo",
+    "nome": "Calabar",
+    "radiosId": 23928,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-calabar-879-fm/23928",
+    "title": "Rádio Calabar 87.9 FM",
+    "streamUrl": "http://centova1.euroti.com.br:8108/stream"
+  },
+  "AL|Matriz de Camaragibe|Camaragibe": {
+    "estado": "AL",
+    "municipio": "Matriz de Camaragibe",
+    "nome": "Camaragibe",
+    "radiosId": 179493,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-camaragibe-879-fm/179493",
+    "title": "Rádio Camaragibe 87.9 FM",
+    "streamUrl": "http://stm2.roxcast.com.br:7348/stream"
+  },
+  "AL|Campestre|Campestre": {
+    "estado": "AL",
+    "municipio": "Campestre",
+    "nome": "Campestre",
+    "radiosId": 31156,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-campestre-879-fm/31156",
+    "title": "Rádio Campestre 87.9 FM",
+    "streamUrl": "https://stm28.srvaudio.com.br:11786/stream"
+  },
+  "AL|Campo Alegre|Campo Alegre": {
+    "estado": "AL",
+    "municipio": "Campo Alegre",
+    "nome": "Campo Alegre",
+    "radiosId": 30737,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-campo-alegre-1059-fm/30737",
+    "title": "Rádio Campo Alegre 105.9 FM",
+    "streamUrl": "http://stm3.xcast.com.br:9474/stream"
+  },
+  "AL|Capela|Capela": {
+    "estado": "AL",
+    "municipio": "Capela",
+    "nome": "Capela",
+    "radiosId": 24026,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-capela-879-fm/24026",
+    "title": "Rádio Capela 87.9 FM",
+    "streamUrl": "https://hts07.brascast.com:12324/live"
+  },
+  "AL|Maceió|CBN Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "CBN Maceió",
+    "radiosId": 22234,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-cbn-maceio-1045-fm/22234",
+    "title": "Rádio CBN Maceió 104.5 FM",
+    "streamUrl": "http://v3.directradios.com:8229/stream"
+  },
+  "AL|Santana do Ipanema|Cidade": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "Cidade",
+    "radiosId": 23115,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-cidade-879-fm/23115",
+    "title": "Rádio Cidade 87.9 FM",
+    "streamUrl": "https://stm28.srvstm.com:6826/stream"
+  },
+  "AL|Teotônio Vilela|Cidade": {
+    "estado": "AL",
+    "municipio": "Teotônio Vilela",
+    "nome": "Cidade",
+    "radiosId": 138923,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-cidade-883-fm/138923",
+    "title": "Rádio Cidade 88.3 FM",
+    "streamUrl": "https://stream.zeno.fm/ktpqnqxazgytv"
+  },
+  "AL|Murici|Correio": {
+    "estado": "AL",
+    "municipio": "Murici",
+    "nome": "Correio",
+    "radiosId": 135630,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-correio-885-fm/135630",
+    "title": "Rádio Correio 88.5 FM",
+    "streamUrl": "http://directradios.net:9094/stream"
+  },
+  "AL|Joaquim Gomes|Correio": {
+    "estado": "AL",
+    "municipio": "Joaquim Gomes",
+    "nome": "Correio",
+    "radiosId": 34744,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-correio-905-fm/34744",
+    "title": "Rádio Correio 90.5 FM",
+    "streamUrl": "http://v3.directradios.com:9069/stream"
+  },
+  "AL|Matriz de Camaragibe|Correio": {
+    "estado": "AL",
+    "municipio": "Matriz de Camaragibe",
+    "nome": "Correio",
+    "radiosId": 22233,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-correio-917-fm/22233",
+    "title": "Rádio Correio 91.7 FM",
+    "streamUrl": "http://v3.directradios.com:8034/stream"
+  },
+  "AL|Delmiro Gouveia|Correio Delmiro": {
+    "estado": "AL",
+    "municipio": "Delmiro Gouveia",
+    "nome": "Correio Delmiro",
+    "radiosId": 116569,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-correio-delmiro-919-fm/116569",
+    "title": "Rádio Correio Delmiro 91.9 FM",
+    "streamUrl": "https://cast.radiu.live:6732/stream"
+  },
+  "AL|Santana do Ipanema|Correio do Sertão": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "Correio do Sertão",
+    "radiosId": 33651,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-correio-do-sertao-1009-fm/33651",
+    "title": "Rádio Correio do Sertão 100.9 FM",
+    "streamUrl": "https://stm2.matutos.com.br:10198/stream"
+  },
+  "AL|Água Branca|Correio FM": {
+    "estado": "AL",
+    "municipio": "Água Branca",
+    "nome": "Correio FM",
+    "radiosId": 29842,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-correio-fm-889/29842",
+    "title": "Radio Correio FM 88.9",
+    "streamUrl": "http://directradios.net:9061/stream"
+  },
+  "AL|Maragogi|Costa Dourada": {
+    "estado": "AL",
+    "municipio": "Maragogi",
+    "nome": "Costa Dourada",
+    "radiosId": 33918,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-costa-dourada-879-fm/33918",
+    "title": "Rádio Costa Dourada 87.9 FM",
+    "streamUrl": "https://stm1.painelaudiocast.com.br:7356/stream"
+  },
+  "AL|Delmiro Gouveia|da Vila": {
+    "estado": "AL",
+    "municipio": "Delmiro Gouveia",
+    "nome": "da Vila",
+    "radiosId": 189914,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-da-vila-939-fm/189914",
+    "title": "Rádio da Vila 93.9 FM",
+    "streamUrl": "http://server04.srvsh.com.br:8510/stream"
+  },
+  "AL|Delmiro Gouveia|Delmiro": {
+    "estado": "AL",
+    "municipio": "Delmiro Gouveia",
+    "nome": "Delmiro",
+    "radiosId": 12507,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-delmiro-899-fm/12507",
+    "title": "Rádio Delmiro 89.9 FM",
+    "streamUrl": "https://cast.radiu.live:6888/stream"
+  },
+  "AL|Maceió|Difusora": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Difusora",
+    "radiosId": 13036,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-difusora-933-fm/13036",
+    "title": "Rádio Difusora 93.3 FM",
+    "streamUrl": "https://radio.saopaulo01.com.br/9348/stream"
+  },
+  "AL|Arapiraca|Educativa": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Educativa",
+    "radiosId": 194552,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-educativa-1069-fm/194552",
+    "title": "Rádio Educativa 106.9 FM",
+    "streamUrl": "http://radio.saopaulo01.com.br:9386/stream"
+  },
+  "AL|Maceió|Educativa": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Educativa",
+    "radiosId": 13035,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-educativa-1077-fm/13035",
+    "title": "Rádio Educativa 107.7 FM",
+    "streamUrl": "https://radio.saopaulo01.com.br/9370/stream"
+  },
+  "AL|Rio Largo|Farol": {
+    "estado": "AL",
+    "municipio": "Rio Largo",
+    "nome": "Farol",
+    "radiosId": 24910,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-farol-901-fm/24910",
+    "title": "Rádio Farol 90.1 FM",
+    "streamUrl": "https://s46.maxcast.com.br:8240/live"
+  },
+  "AL|Coruripe|Francês": {
+    "estado": "AL",
+    "municipio": "Coruripe",
+    "nome": "Francês",
+    "radiosId": 31935,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-frances-1043-fm/31935",
+    "title": "Rádio Francês 104.3 FM",
+    "streamUrl": "https://s13.maxcast.com.br:8729/live"
+  },
+  "AL|Palmeira dos Índios|Francês": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Francês",
+    "radiosId": 13158,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-frances-1057-fm/13158",
+    "title": "Rádio Francês 105.7 FM",
+    "streamUrl": "http://stm3.painelcast.com:7188/stream"
+  },
+  "AL|Maceió|Francês": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Francês",
+    "radiosId": 214571,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-frances-1061-fm/214571",
+    "title": "Rádio Francês 106.1 FM",
+    "streamUrl": "https://playerservices.streamtheworld.com/api/livestream-redirect/FRANCESFM_MACAAC.aac?dist=RadiosNet"
+  },
+  "AL|Penedo|Francês": {
+    "estado": "AL",
+    "municipio": "Penedo",
+    "nome": "Francês",
+    "radiosId": 27626,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-frances-1063-fm/27626",
+    "title": "Rádio Francês 106.3 FM",
+    "streamUrl": "https://s16.maxcast.com.br:8711/live"
+  },
+  "AL|Maribondo|Francês": {
+    "estado": "AL",
+    "municipio": "Maribondo",
+    "nome": "Francês",
+    "radiosId": 43600,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-frances-1071-fm/43600",
+    "title": "Rádio Francês 107.1 FM",
+    "streamUrl": "http://02.stmip.in:27314/stream"
+  },
+  "AL|Arapiraca|Gazeta": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Gazeta",
+    "radiosId": 13294,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-gazeta-1011-fm/13294",
+    "title": "Rádio Gazeta 101.1 FM",
+    "streamUrl": "https://www.appradio.app:8032/live"
+  },
+  "AL|Pão de Açúcar|Gazeta": {
+    "estado": "AL",
+    "municipio": "Pão de Açúcar",
+    "nome": "Gazeta",
+    "radiosId": 59373,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-gazeta-1013-fm/59373",
+    "title": "Rádio Gazeta 101.3 FM",
+    "streamUrl": "https://www.appradio.app:8188/stream"
+  },
+  "AL|Maceió|Gazeta": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Gazeta",
+    "radiosId": 13291,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-gazeta-941-fm/13291",
+    "title": "Rádio Gazeta 94.1 FM",
+    "streamUrl": "https://virtues.live:8144/stream"
+  },
+  "AL|Carneiros|Geração Jovem": {
+    "estado": "AL",
+    "municipio": "Carneiros",
+    "nome": "Geração Jovem",
+    "radiosId": 227525,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-geracao-jovem-877-fm/227525",
+    "title": "Rádio Geração Jovem 87.7 FM",
+    "streamUrl": "https://stm1.matutos.com.br:11464/;"
+  },
+  "AL|Penedo|Grande Rio FM": {
+    "estado": "AL",
+    "municipio": "Penedo",
+    "nome": "Grande Rio FM",
+    "radiosId": 26140,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-grande-rio-fm-991/26140",
+    "title": "Rádio Grande Rio FM 99.1",
+    "streamUrl": "https://hts07.brascast.com:10708/live"
+  },
+  "AL|Maceió|Imaculada": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Imaculada",
+    "radiosId": 15070,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-imaculada-923-fm/15070",
+    "title": "Rádio Imaculada 92.3 FM",
+    "streamUrl": "https://radio.saopaulo01.com.br:10862/stream"
+  },
+  "AL|Arapiraca|Imprima": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Imprima",
+    "radiosId": 13429,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-imprima-1053-fm/13429",
+    "title": "Rádio Imprima 105.3 FM",
+    "streamUrl": "https://cast2.hoost.com.br:20039/stream"
+  },
+  "AL|Piranhas|Independente": {
+    "estado": "AL",
+    "municipio": "Piranhas",
+    "nome": "Independente",
+    "radiosId": 27169,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-independente-981-fm/27169",
+    "title": "Rádio Independente 98.1 FM",
+    "streamUrl": "http://08.stmip.net:8418/stream"
+  },
+  "AL|Jacuípe|Jacuípe": {
+    "estado": "AL",
+    "municipio": "Jacuípe",
+    "nome": "Jacuípe",
+    "radiosId": 28857,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-jacuipe-879-fm/28857",
+    "title": "Rádio Jacuípe 87.9 FM",
+    "streamUrl": "https://stm28.srvaudio.com.br:9888/stream"
+  },
+  "AL|Maceió|Jovem Pan": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Jovem Pan",
+    "radiosId": 18359,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-jovem-pan-1007-fm/18359",
+    "title": "Rádio Jovem Pan 100.7 FM",
+    "streamUrl": "https://directradios.net/proxy/jpmaceio?mp=/stream"
+  },
+  "AL|Maceió|Jovem Pan News": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Jovem Pan News",
+    "radiosId": 270381,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-jovem-pan-news-1027-fm/270381",
+    "title": "Rádio Jovem Pan News 102.7 FM",
+    "streamUrl": "https://streaming.livespanel.com:20520"
+  },
+  "AL|Junqueiro|Junqueiro": {
+    "estado": "AL",
+    "municipio": "Junqueiro",
+    "nome": "Junqueiro",
+    "radiosId": 38620,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-junqueiro-1059-fm/38620",
+    "title": "Rádio Junqueiro 105.9 FM",
+    "streamUrl": null
+  },
+  "AL|São José da Laje|Laje": {
+    "estado": "AL",
+    "municipio": "São José da Laje",
+    "nome": "Laje",
+    "radiosId": 27468,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-laje-879-fm/27468",
+    "title": "Rádio Laje 87.9 FM",
+    "streamUrl": null
+  },
+  "AL|Arapiraca|Líder Arapiraca": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Líder Arapiraca",
+    "radiosId": 32269,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-lider-arapiraca-1019-fm/32269",
+    "title": "Rádio Líder Arapiraca 101.9 FM",
+    "streamUrl": null
+  },
+  "AL|Coruripe|Litoral": {
+    "estado": "AL",
+    "municipio": "Coruripe",
+    "nome": "Litoral",
+    "radiosId": 18890,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-litoral-1049-fm/18890",
+    "title": "Rádio Litoral 104.9 FM",
+    "streamUrl": null
+  },
+  "AL|Maceió|Mar Azul": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Mar Azul",
+    "radiosId": 59465,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-mar-azul-1049-fm/59465",
+    "title": "Rádio Mar Azul 104.9 FM",
+    "streamUrl": null
+  },
+  "AL|Mar Vermelho|Mar Vermelho": {
+    "estado": "AL",
+    "municipio": "Mar Vermelho",
+    "nome": "Mar Vermelho",
+    "radiosId": 32430,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-mar-vermelho-1049-fm/32430",
+    "title": "Rádio Mar Vermelho 104.9 FM",
+    "streamUrl": null
+  },
+  "AL|Maragogi|Maragogi": {
+    "estado": "AL",
+    "municipio": "Maragogi",
+    "nome": "Maragogi",
+    "radiosId": 13802,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-maragogi-973-fm/13802",
+    "title": "Rádio Maragogi 97.3 FM",
+    "streamUrl": "https://04.painelstreaming.com.br:27124/;"
+  },
+  "AL|Marechal Deodoro|Mares Do Sul": {
+    "estado": "AL",
+    "municipio": "Marechal Deodoro",
+    "nome": "Mares Do Sul",
+    "radiosId": 100800,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-mares-do-sul-879-fm/100800",
+    "title": "Rádio Mares Do Sul 87.9 FM",
+    "streamUrl": null
+  },
+  "AL|Maribondo|Maribondo": {
+    "estado": "AL",
+    "municipio": "Maribondo",
+    "nome": "Maribondo",
+    "radiosId": 14029,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-maribondo-1049-fm/14029",
+    "title": "Rádio Maribondo 104.9 FM",
+    "streamUrl": "https://servidor14-2.brlogic.com:7698/live"
+  },
+  "AL|Maceió|Martins": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Martins",
+    "radiosId": 40460,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-martins-879-fm/40460",
+    "title": "Radio Martins 87.9 FM",
+    "streamUrl": null
+  },
+  "AL|Piaçabuçu|Melodia": {
+    "estado": "AL",
+    "municipio": "Piaçabuçu",
+    "nome": "Melodia",
+    "radiosId": 58046,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-melodia-879-fm/58046",
+    "title": "Rádio Melodia 87.9 FM",
+    "streamUrl": null
+  },
+  "AL|Teotônio Vilela|Menestrel": {
+    "estado": "AL",
+    "municipio": "Teotônio Vilela",
+    "nome": "Menestrel",
+    "radiosId": 36355,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-menestrel-1049-fm/36355",
+    "title": "Rádio Menestrel 104.9 FM",
+    "streamUrl": null
+  },
+  "AL|Messias|Messias": {
+    "estado": "AL",
+    "municipio": "Messias",
+    "nome": "Messias",
+    "radiosId": 13874,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-messias-879-fm/13874",
+    "title": "Rádio Messias 87.9 FM",
+    "streamUrl": "http://audio8.cmaudioevideo.com:8765/stream"
+  },
+  "AL|Maceió|Metropolitana": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Metropolitana",
+    "radiosId": 260824,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-metropolitana-977-fm/260824",
+    "title": "Rádio Metropolitana 97.7 FM",
+    "streamUrl": null
+  },
+  "AL|Santana do Ipanema|Milênio": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "Milênio",
+    "radiosId": 35175,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-milenio-907-fm/35175",
+    "title": "Rádio Milênio 90.7 FM",
+    "streamUrl": null
+  },
+  "AL|Arapiraca|Mix": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Mix",
+    "radiosId": 24797,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-mix-1033-fm/24797",
+    "title": "Rádio Mix 103.3 FM",
+    "streamUrl": null
+  },
+  "AL|Maceió|Mix": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Mix",
+    "radiosId": 13177,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-mix-983-fm/13177",
+    "title": "Rádio Mix 98.3 FM",
+    "streamUrl": null
+  },
+  "AL|Maceió|Moral": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Moral",
+    "radiosId": 283191,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-moral-761-fm/283191",
+    "title": "Rádio Moral 76.1 FM",
+    "streamUrl": null
+  },
+  "AL|Feliz Deserto|Moral": {
+    "estado": "AL",
+    "municipio": "Feliz Deserto",
+    "nome": "Moral",
+    "radiosId": 250475,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-moral-879-fm/250475",
+    "title": "Rádio Moral 87.9 FM",
+    "streamUrl": null
+  },
+  "AL|Girau do Ponciano|Nativa": {
+    "estado": "AL",
+    "municipio": "Girau do Ponciano",
+    "nome": "Nativa",
+    "radiosId": 181206,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nativa-987-fm/181206",
+    "title": "Rádio Nativa 98.7 FM",
+    "streamUrl": null
+  },
+  "AL|Maceió|Nova Brasil": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Nova Brasil",
+    "radiosId": 124924,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nova-brasil-1065-fm/124924",
+    "title": "Rádio Nova Brasil 106.5 FM",
+    "streamUrl": null
+  },
+  "AL|Cajueiro|Nova Cajueiro": {
+    "estado": "AL",
+    "municipio": "Cajueiro",
+    "nome": "Nova Cajueiro",
+    "radiosId": 36176,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nova-cajueiro-1049-fm/36176",
+    "title": "Rádio Nova Cajueiro 104.9 FM",
+    "streamUrl": "http://stream.zeno.fm/tg3k9zs5aa9uv"
+  },
+  "AL|Palmeira dos Índios|Nova FM": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Nova FM",
+    "radiosId": 93785,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nova-fm-925/93785",
+    "title": "Rádio Nova FM 92.5",
+    "streamUrl": null
+  },
+  "AL|Olho d'Água das Flores|Olho D'agua": {
+    "estado": "AL",
+    "municipio": "Olho d'Água das Flores",
+    "nome": "Olho D'agua",
+    "radiosId": 232343,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-olho-dagua-1049-fm/232343",
+    "title": "Rádio Olho D'agua 104.9 FM",
+    "streamUrl": null
+  },
+  "AL|Olivença|Olivença": {
+    "estado": "AL",
+    "municipio": "Olivença",
+    "nome": "Olivença",
+    "radiosId": 35562,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-olivenca-1049-fm/35562",
+    "title": "Rádio Olivença 104.9 FM",
+    "streamUrl": null
+  },
+  "AL|Ouro Branco|Ouro Branco": {
+    "estado": "AL",
+    "municipio": "Ouro Branco",
+    "nome": "Ouro Branco",
+    "radiosId": 13896,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-ouro-branco-879-fm/13896",
+    "title": "Rádio Ouro Branco 87.9 FM",
+    "streamUrl": null
+  },
+  "AL|Maceió|Pajuçara": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Pajuçara",
+    "radiosId": 14126,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-pajucara-1037-fm/14126",
+    "title": "Rádio Pajuçara 103.7 FM",
+    "streamUrl": null
+  },
+  "AL|Palmeira dos Índios|Palmeira FM": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Palmeira FM",
+    "radiosId": 13913,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-palmeira-fm-1041/13913",
+    "title": "Rádio Palmeira FM 104.1",
+    "streamUrl": "https://stm22.painelcast.com:6800/stream"
+  },
+  "AL|Penedo|Penedo": {
+    "estado": "AL",
+    "municipio": "Penedo",
+    "nome": "Penedo",
+    "radiosId": 14134,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-penedo-973-fm/14134",
+    "title": "Rádio Penedo 97.3 FM",
+    "streamUrl": "https://stm16.painelcast.com:7206/stream"
+  },
+  "AL|Piaçabuçu|Piaçabuçu": {
+    "estado": "AL",
+    "municipio": "Piaçabuçu",
+    "nome": "Piaçabuçu",
+    "radiosId": 26952,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-piacabucu-903-fm/26952",
+    "title": "Rádio Piaçabuçu 90.3 FM",
+    "streamUrl": "http://radio.awvps.com:8045/stream"
+  },
+  "AL|Pilar|Pilar": {
+    "estado": "AL",
+    "municipio": "Pilar",
+    "nome": "Pilar",
+    "radiosId": 105109,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-pilar-879-fm/105109",
+    "title": "Rádio Pilar 87.9 FM",
+    "streamUrl": "http://stm1.srvif.com:7320/stream"
+  },
+  "AL|Viçosa|Princesa FM": {
+    "estado": "AL",
+    "municipio": "Viçosa",
+    "nome": "Princesa FM",
+    "radiosId": 14070,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-princesa-fm-1035-fm/14070",
+    "title": "Rádio Princesa FM 103.5 FM",
+    "streamUrl": "http://stm7.xcast.com.br:7468/stream"
+  },
+  "AL|União dos Palmares|Quilombo": {
+    "estado": "AL",
+    "municipio": "União dos Palmares",
+    "nome": "Quilombo",
+    "radiosId": 122154,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-quilombo-1067-fm/122154",
+    "title": "Rádio Quilombo 106.7 FM",
+    "streamUrl": "http://stm3.conectastreaming.com:31550/;"
+  },
+  "AL|Maceió|Rede Aleluia": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Rede Aleluia",
+    "radiosId": 57411,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-rede-aleluia-1003-fm/57411",
+    "title": "Rádio Rede Aleluia 100.3 FM",
+    "streamUrl": "https://station.azrmcsoftbroadcast.com.br/listen/radio_alagoas/Alagoas"
+  },
+  "AL|Santana do Ipanema|Rural": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "Rural",
+    "radiosId": 62141,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-rural-949-fm/62141",
+    "title": "Rádio Rural 94.9 FM",
+    "streamUrl": "http://09.stmip.in:27304/stream"
+  },
+  "AL|Palmeira dos Índios|Sampaio": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Sampaio",
+    "radiosId": 14490,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-sampaio-945-fm/14490",
+    "title": "Rádio Sampaio 94.5 FM",
+    "streamUrl": "https://radio02.logicahost.com.br/8032/stream"
+  },
+  "AL|Satuba|Satuba": {
+    "estado": "AL",
+    "municipio": "Satuba",
+    "nome": "Satuba",
+    "radiosId": 191537,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-satuba-997-fm/191537",
+    "title": "Rádio Satuba 99.7 FM",
+    "streamUrl": "http://stm2.matutos.com.br:9498/stream"
+  },
+  "AL|São José da Tapera|Tapera": {
+    "estado": "AL",
+    "municipio": "São José da Tapera",
+    "nome": "Tapera",
+    "radiosId": 32149,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-tapera-875-fm/32149",
+    "title": "Rádio Tapera 87.5 FM",
+    "streamUrl": "http://streaming02.hstbr.net:8198/live"
+  },
+  "AL|Viçosa|Tropical": {
+    "estado": "AL",
+    "municipio": "Viçosa",
+    "nome": "Tropical",
+    "radiosId": 32373,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-tropical-1049-fm/32373",
+    "title": "Rádio Tropical 104.9 FM",
+    "streamUrl": "https://stm1.srvif.com:7686/stream"
+  },
+  "AL|Quebrangulo|Victória": {
+    "estado": "AL",
+    "municipio": "Quebrangulo",
+    "nome": "Victória",
+    "radiosId": 14800,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-victoria-1049-fm/14800",
+    "title": "Rádio Victória 104.9 FM",
+    "streamUrl": "http://victoriafm.serverplace.com.br:6677/;"
+  },
+  "AL|Palmeira dos Índios|Vitório": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Vitório",
+    "radiosId": 27261,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-vitorio-1049-fm/27261",
+    "title": "Rádio Vitório 104.9 FM",
+    "streamUrl": "https://centova4.transmissaodigital.com:20131/stream"
+  },
+  "AL|Santa Luzia do Norte|Rede Alagoas de Rádios": {
+    "estado": "AL",
+    "municipio": "Santa Luzia do Norte",
+    "nome": "Rede Alagoas de Rádios",
+    "radiosId": 200441,
+    "radiosUrl": "https://www.radios.com.br/aovivo/rede-alagoas-de-radios-107-fm/200441",
+    "title": "Rede Alagoas de Rádios 107 FM",
+    "streamUrl": "https://stm35.srvstm.com:7566/stream"
+  },
+  "AL|União dos Palmares|Rede Benção": {
+    "estado": "AL",
+    "municipio": "União dos Palmares",
+    "nome": "Rede Benção",
+    "radiosId": 145478,
+    "radiosUrl": "https://www.radios.com.br/aovivo/rede-bencao/145478",
+    "title": "Rede Benção",
+    "streamUrl": "https://01.megadinamica.com:7040/live"
+  },
+  "AL|Palmeira dos Índios|A Melhor": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "A Melhor",
+    "radiosId": 150783,
+    "radiosUrl": "https://www.radios.com.br/aovivo/a-melhor/150783",
+    "title": "A Melhor",
+    "streamUrl": "https://stream.zeno.fm/4nxu43qrdrruv"
+  },
+  "AL|Maceió|Alternativa Classe A": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Alternativa Classe A",
+    "radiosId": 135385,
+    "radiosUrl": "https://www.radios.com.br/aovivo/alternativa-classe-a/135385",
+    "title": "Alternativa Classe A",
+    "streamUrl": "http://stm14.xcast.com.br:11686/stream"
+  },
+  "AL|Maceió|Antena7 Rede de Radio": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Antena7 Rede de Radio",
+    "radiosId": 150078,
+    "radiosUrl": "https://www.radios.com.br/aovivo/antena7-rede-de-radio/150078",
+    "title": "Antena7 Rede de Radio",
+    "streamUrl": "https://stm1.painelcast.com:7248/stream"
+  },
+  "AL|Maceió|Aracauã Rádio Web": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Aracauã Rádio Web",
+    "radiosId": 192155,
+    "radiosUrl": "https://www.radios.com.br/aovivo/aracaua-radio-web/192155",
+    "title": "Aracauã Rádio Web",
+    "streamUrl": "https://stream.zeno.fm/mxb97qy40s8uv"
+  },
+  "AL|Arapiraca|Arapiraca Acontece": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Arapiraca Acontece",
+    "radiosId": 13740,
+    "radiosUrl": "https://www.radios.com.br/aovivo/arapiraca-acontece/13740",
+    "title": "Arapiraca Acontece",
+    "streamUrl": "https://server02.ouvir.radio.br:8050/stream"
+  },
+  "AL|Maceió|BG WebRádio FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "BG WebRádio FM",
+    "radiosId": 69995,
+    "radiosUrl": "https://www.radios.com.br/aovivo/bg-webradio-fm/69995",
+    "title": "BG WebRádio FM",
+    "streamUrl": "https://node-29.zeno.fm/g08cvrdruzzuv.aac"
+  },
+  "AL|Boca da Mata|BM Web Rádio": {
+    "estado": "AL",
+    "municipio": "Boca da Mata",
+    "nome": "BM Web Rádio",
+    "radiosId": 263650,
+    "radiosUrl": "https://www.radios.com.br/aovivo/bm-web-radio/263650",
+    "title": "BM Web Rádio",
+    "streamUrl": "https://s01.svrdedicado.org:7400/stream"
+  },
+  "AL|Boca da Mata|BM Web Rádio Gospel": {
+    "estado": "AL",
+    "municipio": "Boca da Mata",
+    "nome": "BM Web Rádio Gospel",
+    "radiosId": 277914,
+    "radiosUrl": "https://www.radios.com.br/aovivo/bm-web-radio-gospel/277914",
+    "title": "BM Web Rádio Gospel",
+    "streamUrl": "https://s01.svrdedicado.org:7312/stream"
+  },
+  "AL|Maceió|Café Louvor e Fé": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Café Louvor e Fé",
+    "radiosId": 36080,
+    "radiosUrl": "https://www.radios.com.br/aovivo/cafe-louvor-e-fe/36080",
+    "title": "Café Louvor e Fé",
+    "streamUrl": "http://server02.ouvir.radio.br:8070/stream"
+  },
+  "AL|Maceió|Canção De Boadeiro Web": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Canção De Boadeiro Web",
+    "radiosId": 123804,
+    "radiosUrl": "https://www.radios.com.br/aovivo/cancao-de-boadeiro-web/123804",
+    "title": "Canção De Boadeiro Web",
+    "streamUrl": "https://stm5.srvif.com:8978/stream"
+  },
+  "AL|Chã Preta|Chã Preta Web": {
+    "estado": "AL",
+    "municipio": "Chã Preta",
+    "nome": "Chã Preta Web",
+    "radiosId": 272919,
+    "radiosUrl": "https://www.radios.com.br/aovivo/cha-preta-web/272919",
+    "title": "Chã Preta Web",
+    "streamUrl": "https://stream.zeno.fm/ouuivm34hkmuv"
+  },
+  "AL|Coité do Nóia|Cidade Rádio Web": {
+    "estado": "AL",
+    "municipio": "Coité do Nóia",
+    "nome": "Cidade Rádio Web",
+    "radiosId": 186611,
+    "radiosUrl": "https://www.radios.com.br/aovivo/cidade-radio-web/186611",
+    "title": "Cidade Rádio Web",
+    "streamUrl": "http://srv1.iorehost.com.br:7538/stream"
+  },
+  "AL|Maceió|Classe A Web Rádio MCZ": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Classe A Web Rádio MCZ",
+    "radiosId": 274239,
+    "radiosUrl": "https://www.radios.com.br/aovivo/classe-a-web-radio-mcz/274239",
+    "title": "Classe A Web Rádio MCZ",
+    "streamUrl": "https://stm5.xcast.com.br:10026/stream"
+  },
+  "AL|Maceió|Clássicos Rádio Web": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Clássicos Rádio Web",
+    "radiosId": 180006,
+    "radiosUrl": "https://www.radios.com.br/aovivo/classicos-radio-web/180006",
+    "title": "Clássicos Rádio Web",
+    "streamUrl": "http://stm23.xcast.com.br:10174/stream"
+  },
+  "AL|Maceió|Colina Web Rádio": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Colina Web Rádio",
+    "radiosId": 151713,
+    "radiosUrl": "https://www.radios.com.br/aovivo/colina-web-radio/151713",
+    "title": "Colina Web Rádio",
+    "streamUrl": "https://stream.zeno.fm/fe6ngw8fxy8uv"
+  },
+  "AL|São José da Laje|Conexão Filadélfia": {
+    "estado": "AL",
+    "municipio": "São José da Laje",
+    "nome": "Conexão Filadélfia",
+    "radiosId": 42906,
+    "radiosUrl": "https://www.radios.com.br/aovivo/conexao-filadelfia/42906",
+    "title": "Conexão Filadélfia",
+    "streamUrl": "https://stream.zeno.fm/w6hc8nruwchvv"
+  },
+  "AL|Maceió|Cool Play Web Rádio": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Cool Play Web Rádio",
+    "radiosId": 50276,
+    "radiosUrl": "https://www.radios.com.br/aovivo/cool-play-web-radio/50276",
+    "title": "Cool Play Web Rádio",
+    "streamUrl": "http://server02.ouvir.radio.br:8050/stream"
+  },
+  "AL|Maceió|Cultura Gospel": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Cultura Gospel",
+    "radiosId": 35574,
+    "radiosUrl": "https://www.radios.com.br/aovivo/cultura-gospel/35574",
+    "title": "Cultura Gospel",
+    "streamUrl": "http://server02.ouvir.radio.br:8070/stream"
+  },
+  "AL|Estrela de Alagoas|Estrela FM": {
+    "estado": "AL",
+    "municipio": "Estrela de Alagoas",
+    "nome": "Estrela FM",
+    "radiosId": 75805,
+    "radiosUrl": "https://www.radios.com.br/aovivo/estrela-fm/75805",
+    "title": "Estrela FM",
+    "streamUrl": "https://s10.maxcast.com.br:8252/live"
+  },
+  "AL|Arapiraca|Flor do Mandacaru": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Flor do Mandacaru",
+    "radiosId": 104674,
+    "radiosUrl": "https://www.radios.com.br/aovivo/flor-do-mandacaru/104674",
+    "title": "Flor do Mandacaru",
+    "streamUrl": null
+  },
+  "AL|Maceió|G Webrádio": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "G Webrádio",
+    "radiosId": 42144,
+    "radiosUrl": "https://www.radios.com.br/aovivo/g-webradio/42144",
+    "title": "G Webrádio",
+    "streamUrl": null
+  },
+  "AL|Maceió|Geração Gospel": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Geração Gospel",
+    "radiosId": 34577,
+    "radiosUrl": "https://www.radios.com.br/aovivo/geracao-gospel/34577",
+    "title": "Geração Gospel",
+    "streamUrl": null
+  },
+  "AL|Maceió|GK Music": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "GK Music",
+    "radiosId": 104974,
+    "radiosUrl": "https://www.radios.com.br/aovivo/gk-music/104974",
+    "title": "GK Music",
+    "streamUrl": null
+  },
+  "AL|Maceió|HD Web Rádio Gospel": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "HD Web Rádio Gospel",
+    "radiosId": 205513,
+    "radiosUrl": "https://www.radios.com.br/aovivo/hd-web-radio-gospel/205513",
+    "title": "HD Web Rádio Gospel",
+    "streamUrl": null
+  },
+  "AL|Maceió|History Web Rádio": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "History Web Rádio",
+    "radiosId": 165765,
+    "radiosUrl": "https://www.radios.com.br/aovivo/history-web-radio/165765",
+    "title": "History Web Rádio",
+    "streamUrl": null
+  },
+  "AL|Maceió|John Rádio Web": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "John Rádio Web",
+    "radiosId": 274743,
+    "radiosUrl": "https://www.radios.com.br/aovivo/john-radio-web/274743",
+    "title": "John Rádio Web",
+    "streamUrl": null
+  },
+  "AL|Maceió|Juventude Gospel": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Juventude Gospel",
+    "radiosId": 77710,
+    "radiosUrl": "https://www.radios.com.br/aovivo/juventude-gospel/77710",
+    "title": "Juventude Gospel",
+    "streamUrl": "https://player.ifantasy.com.br/proxy/27532"
+  },
+  "AL|Arapiraca|KB Rádio Gold": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "KB Rádio Gold",
+    "radiosId": 161405,
+    "radiosUrl": "https://www.radios.com.br/aovivo/kb-radio-gold/161405",
+    "title": "KB Rádio Gold",
+    "streamUrl": null
+  },
+  "AL|Arapiraca|KB Rádio Online": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "KB Rádio Online",
+    "radiosId": 153183,
+    "radiosUrl": "https://www.radios.com.br/aovivo/kb-radio-online/153183",
+    "title": "KB Rádio Online",
+    "streamUrl": null
+  },
+  "AL|Maceió|Legal Rádio Web": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Legal Rádio Web",
+    "radiosId": 146658,
+    "radiosUrl": "https://www.radios.com.br/aovivo/legal-radio-web/146658",
+    "title": "Legal Rádio Web",
+    "streamUrl": null
+  },
+  "AL|União dos Palmares|Liberdade Web Rádio": {
+    "estado": "AL",
+    "municipio": "União dos Palmares",
+    "nome": "Liberdade Web Rádio",
+    "radiosId": 37726,
+    "radiosUrl": "https://www.radios.com.br/aovivo/liberdade-web-radio/37726",
+    "title": "Liberdade Web Rádio",
+    "streamUrl": "http://server02.ouvir.radio.br:8060/stream"
+  },
+  "AL|Barra de Santo Antônio|Litoral Norte": {
+    "estado": "AL",
+    "municipio": "Barra de Santo Antônio",
+    "nome": "Litoral Norte",
+    "radiosId": 34969,
+    "radiosUrl": "https://www.radios.com.br/aovivo/litoral-norte/34969",
+    "title": "Litoral Norte",
+    "streamUrl": null
+  },
+  "AL|Maceió|Maceió WebRádio": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Maceió WebRádio",
+    "radiosId": 235325,
+    "radiosUrl": "https://www.radios.com.br/aovivo/maceio-webradio/235325",
+    "title": "Maceió WebRádio",
+    "streamUrl": "https://stm1.srvif.com:7844/stream"
+  },
+  "AL|Estrela de Alagoas|Maktub Web Rádio": {
+    "estado": "AL",
+    "municipio": "Estrela de Alagoas",
+    "nome": "Maktub Web Rádio",
+    "radiosId": 225584,
+    "radiosUrl": "https://www.radios.com.br/aovivo/maktub-web-radio/225584",
+    "title": "Maktub Web Rádio",
+    "streamUrl": "http://stm21.srvaudio.com.br:11418/stream"
+  },
+  "AL|Palmeira dos Índios|Mandacaru Web Rádio": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Mandacaru Web Rádio",
+    "radiosId": 262369,
+    "radiosUrl": "https://www.radios.com.br/aovivo/mandacaru-web-radio/262369",
+    "title": "Mandacaru Web Rádio",
+    "streamUrl": "https://stm3.srvif.com:7890/stream"
+  },
+  "AL|Maragogi|Maragogi Connection": {
+    "estado": "AL",
+    "municipio": "Maragogi",
+    "nome": "Maragogi Connection",
+    "radiosId": 263868,
+    "radiosUrl": "https://www.radios.com.br/aovivo/maragogi-connection/263868",
+    "title": "Maragogi Connection",
+    "streamUrl": "http://stm10.voxhd.com.br:8394/stream"
+  },
+  "AL|Mata Grande|Mata Grande Web Rádio": {
+    "estado": "AL",
+    "municipio": "Mata Grande",
+    "nome": "Mata Grande Web Rádio",
+    "radiosId": 189116,
+    "radiosUrl": "https://www.radios.com.br/aovivo/mata-grande-web-radio/189116",
+    "title": "Mata Grande Web Rádio",
+    "streamUrl": "http://stm.srvaudio.com.br:10500/stream"
+  },
+  "AL|Maceió|Máxima Web Rádio": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Máxima Web Rádio",
+    "radiosId": 217736,
+    "radiosUrl": "https://www.radios.com.br/aovivo/maxima-web-radio/217736",
+    "title": "Máxima Web Rádio",
+    "streamUrl": null
+  },
+  "AL|Messias|Messias Web Rádio": {
+    "estado": "AL",
+    "municipio": "Messias",
+    "nome": "Messias Web Rádio",
+    "radiosId": 247922,
+    "radiosUrl": "https://www.radios.com.br/aovivo/messias-web-radio/247922",
+    "title": "Messias Web Rádio",
+    "streamUrl": null
+  },
+  "AL|Maceió|Moof Rádio Web": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Moof Rádio Web",
+    "radiosId": 290272,
+    "radiosUrl": "https://www.radios.com.br/aovivo/moof-radio-web/290272",
+    "title": "Moof Rádio Web",
+    "streamUrl": null
+  },
+  "AL|Maceió|Music Door FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Music Door FM",
+    "radiosId": 262493,
+    "radiosUrl": "https://www.radios.com.br/aovivo/music-door-fm/262493",
+    "title": "Music Door FM",
+    "streamUrl": null
+  },
+  "AL|Maceió|Nossa Central FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Nossa Central FM",
+    "radiosId": 239425,
+    "radiosUrl": "https://www.radios.com.br/aovivo/nossa-central-fm/239425",
+    "title": "Nossa Central FM",
+    "streamUrl": null
+  },
+  "AL|Rio Largo|Nova Rádio Jovem": {
+    "estado": "AL",
+    "municipio": "Rio Largo",
+    "nome": "Nova Rádio Jovem",
+    "radiosId": 143903,
+    "radiosUrl": "https://www.radios.com.br/aovivo/nova-radio-jovem/143903",
+    "title": "Nova Rádio Jovem",
+    "streamUrl": null
+  },
+  "AL|Maceió|Nova Vida Web Rádio": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Nova Vida Web Rádio",
+    "radiosId": 289198,
+    "radiosUrl": "https://www.radios.com.br/aovivo/nova-vida-web-radio/289198",
+    "title": "Nova Vida Web Rádio",
+    "streamUrl": null
+  },
+  "AL|Traipu|Nso Web Rádio": {
+    "estado": "AL",
+    "municipio": "Traipu",
+    "nome": "Nso Web Rádio",
+    "radiosId": 69351,
+    "radiosUrl": "https://www.radios.com.br/aovivo/nso-web-radio/69351",
+    "title": "Nso Web Rádio",
+    "streamUrl": null
+  },
+  "AL|Maceió|Onplay Web Rádio": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Onplay Web Rádio",
+    "radiosId": 282090,
+    "radiosUrl": "https://www.radios.com.br/aovivo/onplay-web-radio/282090",
+    "title": "Onplay Web Rádio",
+    "streamUrl": null
+  },
+  "AL|Piranhas|Opa Rádio Digital": {
+    "estado": "AL",
+    "municipio": "Piranhas",
+    "nome": "Opa Rádio Digital",
+    "radiosId": 205252,
+    "radiosUrl": "https://www.radios.com.br/aovivo/opa-radio-digital/205252",
+    "title": "Opa Rádio Digital",
+    "streamUrl": null
+  },
+  "AL|Penedo|Opara News": {
+    "estado": "AL",
+    "municipio": "Penedo",
+    "nome": "Opara News",
+    "radiosId": 27871,
+    "radiosUrl": "https://www.radios.com.br/aovivo/opara-news/27871",
+    "title": "Opara News",
+    "streamUrl": null
+  },
+  "AL|Palmeira dos Índios|Palmeira News Web Rádio": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Palmeira News Web Rádio",
+    "radiosId": 284292,
+    "radiosUrl": "https://www.radios.com.br/aovivo/palmeira-news-web-radio/284292",
+    "title": "Palmeira News Web Rádio",
+    "streamUrl": null
+  },
+  "AL|São José da Laje|Pioneiríssima Lajense": {
+    "estado": "AL",
+    "municipio": "São José da Laje",
+    "nome": "Pioneiríssima Lajense",
+    "radiosId": 195473,
+    "radiosUrl": "https://www.radios.com.br/aovivo/pioneirissima-lajense/195473",
+    "title": "Pioneiríssima Lajense",
+    "streamUrl": null
+  },
+  "AL|Delmiro Gouveia|Piseiro FM": {
+    "estado": "AL",
+    "municipio": "Delmiro Gouveia",
+    "nome": "Piseiro FM",
+    "radiosId": 145368,
+    "radiosUrl": "https://www.radios.com.br/aovivo/piseiro-fm/145368",
+    "title": "Piseiro FM",
+    "streamUrl": "https://stm23.xcast.com.br:11472/stream"
+  },
+  "AL|Piaçabuçu|Pontal do Peba Fm": {
+    "estado": "AL",
+    "municipio": "Piaçabuçu",
+    "nome": "Pontal do Peba Fm",
+    "radiosId": 121197,
+    "radiosUrl": "https://www.radios.com.br/aovivo/pontal-do-peba-fm/121197",
+    "title": "Pontal do Peba Fm",
+    "streamUrl": "https://sv14.hdradios.net:9416/stream"
+  },
+  "AL|União dos Palmares|Positiva Rádio": {
+    "estado": "AL",
+    "municipio": "União dos Palmares",
+    "nome": "Positiva Rádio",
+    "radiosId": 251513,
+    "radiosUrl": "https://www.radios.com.br/aovivo/positiva-radio/251513",
+    "title": "Positiva Rádio",
+    "streamUrl": null
+  },
+  "AL|Piranhas|4 Estações Web": {
+    "estado": "AL",
+    "municipio": "Piranhas",
+    "nome": "4 Estações Web",
+    "radiosId": 196358,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-4-estacoes-web/196358",
+    "title": "Rádio 4 Estações Web",
+    "streamUrl": "http://stream.zeno.fm/4tlao7qtub7tv"
+  },
+  "AL|Arapiraca|98 Arapiraca": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "98 Arapiraca",
+    "radiosId": 198992,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-98-arapiraca/198992",
+    "title": "Rádio 98 Arapiraca",
+    "streamUrl": "https://stm27.xcast.com.br:8196/stream"
+  },
+  "AL|Maceió|98 Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "98 Maceió",
+    "radiosId": 283500,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-98-maceio/283500",
+    "title": "Rádio 98 Maceió",
+    "streamUrl": "https://stm16.xcast.com.br:9992/stream"
+  },
+  "AL|Delmiro Gouveia|A Biblia Pela Biblia": {
+    "estado": "AL",
+    "municipio": "Delmiro Gouveia",
+    "nome": "A Biblia Pela Biblia",
+    "radiosId": 137710,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-a-biblia-pela-biblia/137710",
+    "title": "Rádio A Biblia Pela Biblia",
+    "streamUrl": null
+  },
+  "AL|União dos Palmares|A Voz Do Campo": {
+    "estado": "AL",
+    "municipio": "União dos Palmares",
+    "nome": "A Voz Do Campo",
+    "radiosId": 162150,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-a-voz-do-campo/162150",
+    "title": "Rádio A Voz Do Campo",
+    "streamUrl": "http://stream.zeno.fm/h4wa9vfx2a0uv"
+  },
+  "AL|Água Branca|A Voz Do Vaqueiro": {
+    "estado": "AL",
+    "municipio": "Água Branca",
+    "nome": "A Voz Do Vaqueiro",
+    "radiosId": 115349,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-a-voz-do-vaqueiro/115349",
+    "title": "Rádio A Voz Do Vaqueiro",
+    "streamUrl": "https://stream.zeno.fm/puf50mn88ibtv"
+  },
+  "AL|Arapiraca|AABB Arapiraca": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "AABB Arapiraca",
+    "radiosId": 163985,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-aabb-arapiraca/163985",
+    "title": "Rádio AABB Arapiraca",
+    "streamUrl": null
+  },
+  "AL|Maceió|AABB Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "AABB Maceió",
+    "radiosId": 236312,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-aabb-maceio/236312",
+    "title": "Rádio AABB Maceió",
+    "streamUrl": null
+  },
+  "AL|Palmeira dos Índios|AABB Palmeira dos Índios": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "AABB Palmeira dos Índios",
+    "radiosId": 250784,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-aabb-palmeira-dos-indios/250784",
+    "title": "Rádio AABB Palmeira dos Índios",
+    "streamUrl": "https://stm8.painelcast.com:7492/stream"
+  },
+  "AL|Joaquim Gomes|Acompec FM": {
+    "estado": "AL",
+    "municipio": "Joaquim Gomes",
+    "nome": "Acompec FM",
+    "radiosId": 205303,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-acompec-fm/205303",
+    "title": "Rádio Acompec FM",
+    "streamUrl": "https://stm7.conectastreaming.com:19670/stream"
+  },
+  "AL|Delmiro Gouveia|AD Barragem Leste": {
+    "estado": "AL",
+    "municipio": "Delmiro Gouveia",
+    "nome": "AD Barragem Leste",
+    "radiosId": 197084,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-ad-barragem-leste/197084",
+    "title": "Rádio AD Barragem Leste",
+    "streamUrl": "http://s03.taaqui.org:9578/stream"
+  },
+  "AL|Jacuípe|AD Viva em Cristo": {
+    "estado": "AL",
+    "municipio": "Jacuípe",
+    "nome": "AD Viva em Cristo",
+    "radiosId": 169930,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-ad-viva-em-cristo/169930",
+    "title": "Rádio AD Viva em Cristo",
+    "streamUrl": "https://stm28.srvaudio.com.br:11576/stream"
+  },
+  "AL|Rio Largo|Adae": {
+    "estado": "AL",
+    "municipio": "Rio Largo",
+    "nome": "Adae",
+    "radiosId": 240049,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-adae/240049",
+    "title": "Rádio Adae",
+    "streamUrl": "http://server03.srvsh.com.br:8532/stream"
+  },
+  "AL|Arapiraca|ADM Arapiraca": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "ADM Arapiraca",
+    "radiosId": 32439,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-adm-arapiraca/32439",
+    "title": "Rádio ADM Arapiraca",
+    "streamUrl": "http://server02.ouvir.radio.br:8070/stream"
+  },
+  "AL|União dos Palmares|Adventista União Dos Palmares": {
+    "estado": "AL",
+    "municipio": "União dos Palmares",
+    "nome": "Adventista União Dos Palmares",
+    "radiosId": 232418,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-adventista-uniao-dos-palmares/232418",
+    "title": "Rádio Adventista União Dos Palmares",
+    "streamUrl": null
+  },
+  "AL|Maragogi|Agora Vai": {
+    "estado": "AL",
+    "municipio": "Maragogi",
+    "nome": "Agora Vai",
+    "radiosId": 253600,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-agora-vai/253600",
+    "title": "Rádio Agora Vai",
+    "streamUrl": "https://stm1.painelaudiocast.com.br:7358/stream"
+  },
+  "AL|Maceió|Agosto FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Agosto FM",
+    "radiosId": 288007,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-agosto-fm/288007",
+    "title": "Rádio Agosto FM",
+    "streamUrl": "https://stm4.colossocast.com.br:7978/stream"
+  },
+  "AL|Arapiraca|Alagoas": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Alagoas",
+    "radiosId": 271944,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-alagoas/271944",
+    "title": "Rádio Alagoas",
+    "streamUrl": "https://s03.svrdedicado.org:7950/stream"
+  },
+  "AL|Penedo|Alagoas": {
+    "estado": "AL",
+    "municipio": "Penedo",
+    "nome": "Alagoas",
+    "radiosId": 285922,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-alagoas-1025-fm/285922",
+    "title": "Radio Alagoas 102.5 FM",
+    "streamUrl": "https://stm26.xcast.com.br:11260/stream"
+  },
+  "AL|Coruripe|Alagoas FM": {
+    "estado": "AL",
+    "municipio": "Coruripe",
+    "nome": "Alagoas FM",
+    "radiosId": 285658,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-alagoas-fm/285658",
+    "title": "Rádio Alagoas FM",
+    "streamUrl": "http://stm10.xcast.com.br:10068/stream"
+  },
+  "AL|Arapiraca|Alagoas FM Web": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Alagoas FM Web",
+    "radiosId": 251843,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-alagoas-fm-web/251843",
+    "title": "Rádio Alagoas FM Web",
+    "streamUrl": "http://s03.svrdedicado.org:6728/stream"
+  },
+  "AL|Penedo|Alerta Penedo": {
+    "estado": "AL",
+    "municipio": "Penedo",
+    "nome": "Alerta Penedo",
+    "radiosId": 143448,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-alerta-penedo/143448",
+    "title": "Rádio Alerta Penedo",
+    "streamUrl": "http://stm28.srvaudio.com.br:11706/stream"
+  },
+  "AL|Maceió|Amado Batista": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Amado Batista",
+    "radiosId": 136735,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-amado-batista/136735",
+    "title": "Rádio Amado Batista",
+    "streamUrl": "http://stream.zeno.fm/aeab6tt0yqruv"
+  },
+  "AL|Campo Alegre|Amor e Fé": {
+    "estado": "AL",
+    "municipio": "Campo Alegre",
+    "nome": "Amor e Fé",
+    "radiosId": 187829,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-amor-e-fe/187829",
+    "title": "Radio Amor e Fé",
+    "streamUrl": "https://hts02.kshost.com.br:9644/live"
+  },
+  "AL|Arapiraca|Aramix": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Aramix",
+    "radiosId": 273474,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-aramix/273474",
+    "title": "Rádio Aramix",
+    "streamUrl": "http://server20.srvsh.com.br:8814/stream"
+  },
+  "AL|Arapiraca|Arapiraca News": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Arapiraca News",
+    "radiosId": 263606,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-arapiraca-news/263606",
+    "title": "Rádio Arapiraca News",
+    "streamUrl": "http://stm1.painelcast.com:7730/stream"
+  },
+  "AL|Arapiraca|Arapiraca Web": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Arapiraca Web",
+    "radiosId": 78580,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-arapiraca-web/78580",
+    "title": "Rádio Arapiraca Web",
+    "streamUrl": "http://45.164.52.152:8000/radioarapiracaweb"
+  },
+  "AL|Arapiraca|Arapiraquense Web": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Arapiraquense Web",
+    "radiosId": 99785,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-arapiraquense-web/99785",
+    "title": "Rádio Arapiraquense Web",
+    "streamUrl": "https://stm21.xcast.com.br:12936/stream"
+  },
+  "AL|Santana do Ipanema|Areias": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "Areias",
+    "radiosId": 64085,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-areias/64085",
+    "title": "Rádio Areias",
+    "streamUrl": "https://s16.maxcast.com.br:8001/live"
+  },
+  "AL|Carneiros|Asa Branca Musical": {
+    "estado": "AL",
+    "municipio": "Carneiros",
+    "nome": "Asa Branca Musical",
+    "radiosId": 236782,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-asa-branca-musical/236782",
+    "title": "Rádio Asa Branca Musical",
+    "streamUrl": "https://stm5.srvif.com:7470/stream"
+  },
+  "AL|Maceió|Astefal Gospel": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Astefal Gospel",
+    "radiosId": 196661,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-astefal-gospel/196661",
+    "title": "Rádio Astefal Gospel",
+    "streamUrl": "https://hts03.brascast.com:9998/stream"
+  },
+  "AL|Atalaia|Atalaia Notícias": {
+    "estado": "AL",
+    "municipio": "Atalaia",
+    "nome": "Atalaia Notícias",
+    "radiosId": 279258,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-atalaia-noticias/279258",
+    "title": "Rádio Atalaia Notícias",
+    "streamUrl": "https://stream.zeno.fm/vke4udmppeauv"
+  },
+  "AL|Maceió|Atividade FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Atividade FM",
+    "radiosId": 205171,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-atividade-fm/205171",
+    "title": "Rádio Atividade FM",
+    "streamUrl": "http://stream.zeno.fm/0en6bx97v0hvv"
+  },
+  "AL|São Miguel dos Campos|Atlântica Sat": {
+    "estado": "AL",
+    "municipio": "São Miguel dos Campos",
+    "nome": "Atlântica Sat",
+    "radiosId": 48121,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-atlantica-sat/48121",
+    "title": "Rádio Atlântica Sat",
+    "streamUrl": "http://stm9.xcast.com.br:10224/;"
+  },
+  "AL|Atalaia|Avercidade": {
+    "estado": "AL",
+    "municipio": "Atalaia",
+    "nome": "Avercidade",
+    "radiosId": 195284,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-avercidade/195284",
+    "title": "Rádio Avercidade",
+    "streamUrl": "http://stream.zeno.fm/cq44v775xf9uv"
+  },
+  "AL|Barra de Santo Antônio|Barra Mar": {
+    "estado": "AL",
+    "municipio": "Barra de Santo Antônio",
+    "nome": "Barra Mar",
+    "radiosId": 222863,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-barra-mar/222863",
+    "title": "Rádio Barra Mar",
+    "streamUrl": "https://stm16.xcast.com.br:8118/stream"
+  },
+  "AL|Maceió|Beat": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Beat",
+    "radiosId": 18508,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-beat/18508",
+    "title": "Rádio Beat",
+    "streamUrl": "https://stream.zeno.fm/hl9rpjykjcwvv"
+  },
+  "AL|Maceió|Bela Voz": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Bela Voz",
+    "radiosId": 109797,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-bela-voz/109797",
+    "title": "Rádio Bela Voz",
+    "streamUrl": "https://stream.zeno.fm/xr7eafde1k0uv"
+  },
+  "AL|Penedo|Betel Web": {
+    "estado": "AL",
+    "municipio": "Penedo",
+    "nome": "Betel Web",
+    "radiosId": 224297,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-betel-web/224297",
+    "title": "Rádio Betel Web",
+    "streamUrl": "https://stm4.onecast.com.br:7560/stream"
+  },
+  "AL|Maceió|Boas Novas FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Boas Novas FM",
+    "radiosId": 106665,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-boas-novas-fm/106665",
+    "title": "Rádio Boas Novas FM",
+    "streamUrl": "https://stream.zeno.fm/0en6bx97v0hvv"
+  },
+  "AL|Santana do Ipanema|Boas Novas FM": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "Boas Novas FM",
+    "radiosId": 254977,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-boas-novas-fm/254977",
+    "title": "Rádio Boas Novas FM",
+    "streamUrl": "https://stm13.xcast.com.br:7748/stream"
+  },
+  "AL|Maceió|Bossa Nacional": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Bossa Nacional",
+    "radiosId": 8739,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-bossa-nacional/8739",
+    "title": "Rádio Bossa Nacional",
+    "streamUrl": "https://stream.zeno.fm/qyuawojfojxuv"
+  },
+  "AL|Branquinha|Branquinha": {
+    "estado": "AL",
+    "municipio": "Branquinha",
+    "nome": "Branquinha",
+    "radiosId": 225686,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-branquinha/225686",
+    "title": "Rádio Branquinha",
+    "streamUrl": "https://stm12.pluscast.com.br:7246/stream"
+  },
+  "AL|Maceió|Brasil Espírita": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Brasil Espírita",
+    "radiosId": 27621,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-brasil-espirita/27621",
+    "title": "Rádio Brasil Espírita",
+    "streamUrl": "http://stm15.xcast.com.br:8840/stream"
+  },
+  "AL|Maceió|Brasil Espírita Canal 2": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Brasil Espírita Canal 2",
+    "radiosId": 30205,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-brasil-espirita-canal-2/30205",
+    "title": "Rádio Brasil Espírita Canal 2",
+    "streamUrl": "https://ssl.xcast.com.br:8840/stream"
+  },
+  "AL|Palmeira dos Índios|Brasil Sertão": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Brasil Sertão",
+    "radiosId": 42917,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-brasil-sertao/42917",
+    "title": "Rádio Brasil Sertão",
+    "streamUrl": "https://stream.zeno.fm/qv44naebeeruv"
+  },
+  "AL|Maceió|Brega Fm": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Brega Fm",
+    "radiosId": 144223,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-brega-fm/144223",
+    "title": "Rádio Brega Fm",
+    "streamUrl": "http://stream.zeno.fm/dxe2we5z3tzuv"
+  },
+  "AL|Arapiraca|Brisa Web Arapiraca": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Brisa Web Arapiraca",
+    "radiosId": 161080,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-brisa-web-arapiraca/161080",
+    "title": "Rádio Brisa Web Arapiraca",
+    "streamUrl": "https://tgaurl.com.br/brisaweb"
+  },
+  "AL|Viçosa|Café No Bule Viçosa": {
+    "estado": "AL",
+    "municipio": "Viçosa",
+    "nome": "Café No Bule Viçosa",
+    "radiosId": 42467,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-cafe-no-bule-vicosa/42467",
+    "title": "Rádio Café No Bule Viçosa",
+    "streamUrl": "https://stm4.conectastreaming.com:7120/;"
+  },
+  "AL|Matriz de Camaragibe|Camaragibe (Camaragibe)": {
+    "estado": "AL",
+    "municipio": "Matriz de Camaragibe",
+    "nome": "Camaragibe (Camaragibe)",
+    "radiosId": 179472,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-camaragibe/179472",
+    "title": "Rádio Camaragibe",
+    "streamUrl": "http://s03.transmissaodigital.com:7536/stream"
+  },
+  "AL|Maceió|Campina Web": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Campina Web",
+    "radiosId": 279312,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-campina-web/279312",
+    "title": "Rádio Campina Web",
+    "streamUrl": "https://directradios.net/proxy/maceioweb?mp=/stream&1760482422766"
+  },
+  "AL|Maceió|Campo Verde FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Campo Verde FM",
+    "radiosId": 190316,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-campo-verde-fm/190316",
+    "title": "Rádio Campo Verde FM",
+    "streamUrl": "https://stream.zeno.fm/qf50kfh7b48uv"
+  },
+  "AL|Arapiraca|Canal DN": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Canal DN",
+    "radiosId": 220041,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-canal-dn/220041",
+    "title": "Rádio Canal DN",
+    "streamUrl": "http://stream.zeno.fm/3dxmdt6w2pwuv"
+  },
+  "AL|Lagoa da Canoa|Canoa FM": {
+    "estado": "AL",
+    "municipio": "Lagoa da Canoa",
+    "nome": "Canoa FM",
+    "radiosId": 187043,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-canoa-fm/187043",
+    "title": "Rádio Canoa FM",
+    "streamUrl": "http://stm1.voxplayer.com.br:7044/stream"
+  },
+  "AL|Arapiraca|Capital do Agreste": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Capital do Agreste",
+    "radiosId": 194690,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-capital-do-agreste/194690",
+    "title": "Rádio Capital do Agreste",
+    "streamUrl": "https://casthttps1.suaradionanet.net/13787/stream"
+  },
+  "AL|Maceió|Carreiro": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Carreiro",
+    "radiosId": 25602,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-carreiro/25602",
+    "title": "Rádio Carreiro",
+    "streamUrl": null
+  },
+  "AL|Maceió|Carreiro Sat de Rádios": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Carreiro Sat de Rádios",
+    "radiosId": 173858,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-carreiro-sat-de-radios/173858",
+    "title": "Rádio Carreiro Sat de Rádios",
+    "streamUrl": null
+  },
+  "AL|Olho d'Água do Casado|Casadense FM": {
+    "estado": "AL",
+    "municipio": "Olho d'Água do Casado",
+    "nome": "Casadense FM",
+    "radiosId": 111961,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-casadense-fm/111961",
+    "title": "Rádio Casadense FM",
+    "streamUrl": null
+  },
+  "AL|Maceió|Cedo Venho": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Cedo Venho",
+    "radiosId": 109565,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-cedo-venho/109565",
+    "title": "Rádio Cedo Venho",
+    "streamUrl": null
+  },
+  "AL|Maceió|Cenário Alagoas": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Cenário Alagoas",
+    "radiosId": 213878,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-cenario-alagoas/213878",
+    "title": "Rádio Cenário Alagoas",
+    "streamUrl": null
+  },
+  "AL|Maceió|Central FM Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Central FM Maceió",
+    "radiosId": 117979,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-central-fm-maceio/117979",
+    "title": "Rádio Central FM Maceió",
+    "streamUrl": null
+  },
+  "AL|Estrela de Alagoas|CH Web": {
+    "estado": "AL",
+    "municipio": "Estrela de Alagoas",
+    "nome": "CH Web",
+    "radiosId": 262342,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-ch-web/262342",
+    "title": "Rádio CH Web",
+    "streamUrl": null
+  },
+  "AL|Piranhas|Cidade": {
+    "estado": "AL",
+    "municipio": "Piranhas",
+    "nome": "Cidade",
+    "radiosId": 149453,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-cidade/149453",
+    "title": "Rádio Cidade",
+    "streamUrl": null
+  },
+  "AL|Chã Preta|Cidade": {
+    "estado": "AL",
+    "municipio": "Chã Preta",
+    "nome": "Cidade",
+    "radiosId": 242482,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-cidade/242482",
+    "title": "Rádio Cidade",
+    "streamUrl": null
+  },
+  "AL|Palmeira dos Índios|Cidade FM": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Cidade FM",
+    "radiosId": 201302,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-cidade-fm/201302",
+    "title": "Rádio Cidade FM",
+    "streamUrl": null
+  },
+  "AL|Maceió|Clamor das Nações": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Clamor das Nações",
+    "radiosId": 276150,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-clamor-das-nacoes/276150",
+    "title": "Rádio Clamor das Nações",
+    "streamUrl": null
+  },
+  "AL|Maceió|Classic & Now": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Classic & Now",
+    "radiosId": 291703,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-classic-now/291703",
+    "title": "Rádio Classic & Now",
+    "streamUrl": null
+  },
+  "AL|Maceió|Clube FM Vergel": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Clube FM Vergel",
+    "radiosId": 283188,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-clube-fm-vergel/283188",
+    "title": "Rádio Clube FM Vergel",
+    "streamUrl": null
+  },
+  "AL|Satuba|Clube Recantos": {
+    "estado": "AL",
+    "municipio": "Satuba",
+    "nome": "Clube Recantos",
+    "radiosId": 171305,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-clube-recantos/171305",
+    "title": "Rádio Clube Recantos",
+    "streamUrl": null
+  },
+  "AL|Satuba|Clube Recantos (Recantos)": {
+    "estado": "AL",
+    "municipio": "Satuba",
+    "nome": "Clube Recantos (Recantos)",
+    "radiosId": 291337,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-clube-recantos/291337",
+    "title": "Rádio Clube Recantos",
+    "streamUrl": null
+  },
+  "AL|Maceió|Clube/TMC": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Clube/TMC",
+    "radiosId": 153873,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-clube-tmc/153873",
+    "title": "Rádio Clube/TMC",
+    "streamUrl": null
+  },
+  "AL|Colônia Leopoldina|Colônia Leopoldina FM": {
+    "estado": "AL",
+    "municipio": "Colônia Leopoldina",
+    "nome": "Colônia Leopoldina FM",
+    "radiosId": 261709,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-colonia-leopoldina-fm/261709",
+    "title": "Rádio Colônia Leopoldina FM",
+    "streamUrl": "https://stm4.voxhd.com.br:7204/stream"
+  },
+  "AL|Coruripe|Colônia Pindorama": {
+    "estado": "AL",
+    "municipio": "Coruripe",
+    "nome": "Colônia Pindorama",
+    "radiosId": 273798,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-colonia-pindorama/273798",
+    "title": "Rádio Colônia Pindorama",
+    "streamUrl": null
+  },
+  "AL|Feira Grande|Comunidade FM": {
+    "estado": "AL",
+    "municipio": "Feira Grande",
+    "nome": "Comunidade FM",
+    "radiosId": 222041,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-comunidade-fm/222041",
+    "title": "Rádio Comunidade FM",
+    "streamUrl": null
+  },
+  "AL|Arapiraca|Conexão De Peso": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Conexão De Peso",
+    "radiosId": 277440,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-conexao-de-peso/277440",
+    "title": "Rádio Conexão De Peso",
+    "streamUrl": "https://stm21.xcast.com.br:10746/stream"
+  },
+  "AL|Craíbas|Conexão Folha Miúda": {
+    "estado": "AL",
+    "municipio": "Craíbas",
+    "nome": "Conexão Folha Miúda",
+    "radiosId": 273024,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-conexao-folha-miuda/273024",
+    "title": "Radio Conexão Folha Miúda",
+    "streamUrl": null
+  },
+  "AL|Estrela de Alagoas|Conexão Web": {
+    "estado": "AL",
+    "municipio": "Estrela de Alagoas",
+    "nome": "Conexão Web",
+    "radiosId": 202111,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-conexao-web/202111",
+    "title": "Rádio Conexão Web",
+    "streamUrl": null
+  },
+  "AL|Maceió|Cooperativa": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Cooperativa",
+    "radiosId": 245474,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-cooperativa/245474",
+    "title": "Rádio Cooperativa",
+    "streamUrl": null
+  },
+  "AL|Porto Real do Colégio|Correio": {
+    "estado": "AL",
+    "municipio": "Porto Real do Colégio",
+    "nome": "Correio",
+    "radiosId": 177753,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-correio-985-fm/177753",
+    "title": "Rádio Correio 98.5 FM",
+    "streamUrl": null
+  },
+  "AL|Coruripe|Coruripe": {
+    "estado": "AL",
+    "municipio": "Coruripe",
+    "nome": "Coruripe",
+    "radiosId": 244475,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-coruripe/244475",
+    "title": "Rádio Coruripe",
+    "streamUrl": null
+  },
+  "AL|Mata Grande|Craibas FM": {
+    "estado": "AL",
+    "municipio": "Mata Grande",
+    "nome": "Craibas FM",
+    "radiosId": 285343,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-craibas-fm/285343",
+    "title": "Rádio Craibas FM",
+    "streamUrl": "https://stm20.srvaudio.com.br:11510/stream"
+  },
+  "AL|Maceió|Cristal FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Cristal FM",
+    "radiosId": 106660,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-cristal-fm/106660",
+    "title": "Rádio Cristal FM",
+    "streamUrl": "https://s03.svrdedicado.org:7874/stream"
+  },
+  "AL|Maceió|Cultural Gente da Gente": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Cultural Gente da Gente",
+    "radiosId": 257056,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-cultural-gente-da-gente/257056",
+    "title": "Rádio Cultural Gente da Gente",
+    "streamUrl": "https://live3.livemus.com.br:27688/stream"
+  },
+  "AL|Maceió|Curió FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Curió FM",
+    "radiosId": 183288,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-curio-fm/183288",
+    "title": "Rádio Curió FM",
+    "streamUrl": "https://stm2.srvif.com:7958/stream"
+  },
+  "AL|São Brás|Dantas FM": {
+    "estado": "AL",
+    "municipio": "São Brás",
+    "nome": "Dantas FM",
+    "radiosId": 142928,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-dantas-fm/142928",
+    "title": "Rádio Dantas FM",
+    "streamUrl": "http://srv30.ipstm.net:60676/stream"
+  },
+  "AL|São Miguel dos Milagres|Diamante Web": {
+    "estado": "AL",
+    "municipio": "São Miguel dos Milagres",
+    "nome": "Diamante Web",
+    "radiosId": 219633,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-diamante-web/219633",
+    "title": "Rádio Diamante Web",
+    "streamUrl": "https://stm8.mestrestream.xyz:7074/stream"
+  },
+  "AL|Maceió|Digital Web": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Digital Web",
+    "radiosId": 194054,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-digital-web/194054",
+    "title": "Rádio Digital Web",
+    "streamUrl": "https://stream.zeno.fm/7y8hf7wv0uhvv"
+  },
+  "AL|Maceió|Divulgue": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Divulgue",
+    "radiosId": 204676,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-divulgue/204676",
+    "title": "Rádio Divulgue",
+    "streamUrl": "https://stm1.servslider.com.br:7074/;"
+  },
+  "AL|Maceió|DJ Rock": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "DJ Rock",
+    "radiosId": 282468,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-dj-rock/282468",
+    "title": "Rádio DJ Rock",
+    "streamUrl": "https://s01.svrdedicado.org:7578/stream"
+  },
+  "AL|Maceió|Dj Rock": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Dj Rock",
+    "radiosId": 205981,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-dj-rock/205981",
+    "title": "Rádio Dj Rock",
+    "streamUrl": null
+  },
+  "AL|Dois Riachos|Dois Riachos": {
+    "estado": "AL",
+    "municipio": "Dois Riachos",
+    "nome": "Dois Riachos",
+    "radiosId": 147788,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-dois-riachos-879-fm/147788",
+    "title": "Rádio Dois Riachos 87.9 FM",
+    "streamUrl": null
+  },
+  "AL|Carneiros|DRG FM": {
+    "estado": "AL",
+    "municipio": "Carneiros",
+    "nome": "DRG FM",
+    "radiosId": 261298,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-drg-fm/261298",
+    "title": "Rádio DRG FM",
+    "streamUrl": null
+  },
+  "AL|Maceió|Eclipse FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Eclipse FM",
+    "radiosId": 273387,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-eclipse-fm/273387",
+    "title": "Rádio Eclipse FM",
+    "streamUrl": null
+  },
+  "AL|Arapiraca|Eclipse FM": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Eclipse FM",
+    "radiosId": 115619,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-eclipse-fm/115619",
+    "title": "Rádio Eclipse FM",
+    "streamUrl": "https://stm8.xcast.com.br:12004/stream"
+  },
+  "AL|Delmiro Gouveia|Educativa": {
+    "estado": "AL",
+    "municipio": "Delmiro Gouveia",
+    "nome": "Educativa",
+    "radiosId": 25646,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-educativa-1047/25646",
+    "title": "Rádio Educativa 104.7",
+    "streamUrl": null
+  },
+  "AL|Arapiraca|Efatá Arapiraca": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Efatá Arapiraca",
+    "radiosId": 172001,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-efata-arapiraca/172001",
+    "title": "Rádio Efatá Arapiraca",
+    "streamUrl": "https://stm21.voxhd.com.br:11750/stream"
+  },
+  "AL|Arapiraca|Eldorado Arapiraca": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Eldorado Arapiraca",
+    "radiosId": 234680,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-eldorado-arapiraca/234680",
+    "title": "Rádio Eldorado Arapiraca",
+    "streamUrl": "http://stm19.xcast.com.br:10172/stream"
+  },
+  "AL|Delmiro Gouveia|Eldorado FM": {
+    "estado": "AL",
+    "municipio": "Delmiro Gouveia",
+    "nome": "Eldorado FM",
+    "radiosId": 179286,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-eldorado-fm/179286",
+    "title": "Rádio Eldorado FM",
+    "streamUrl": "http://stream.zeno.fm/1p1p8zymys8uv"
+  },
+  "AL|Olho d'Água do Casado|Eloyn": {
+    "estado": "AL",
+    "municipio": "Olho d'Água do Casado",
+    "nome": "Eloyn",
+    "radiosId": 233504,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-eloyn/233504",
+    "title": "Rádio Eloyn",
+    "streamUrl": "https://stm8.conectastreaming.com:6796/stream"
+  },
+  "AL|Maceió|Encare os Fatos": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Encare os Fatos",
+    "radiosId": 207173,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-encare-os-fatos/207173",
+    "title": "Rádio Encare os Fatos",
+    "streamUrl": "https://stm5.conectastreaming.com:7050/stream"
+  },
+  "AL|Santana do Ipanema|Entre Rio FM": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "Entre Rio FM",
+    "radiosId": 273903,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-entre-rio-fm/273903",
+    "title": "Rádio Entre Rio FM",
+    "streamUrl": "https://stm7.voxhd.com.br:12832/stream"
+  },
+  "AL|Maceió|Escola": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Escola",
+    "radiosId": 207791,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-escola/207791",
+    "title": "Rádio Escola",
+    "streamUrl": "https://stm1.srvif.com:7484/stream"
+  },
+  "AL|Maceió|Escuta Na Web": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Escuta Na Web",
+    "radiosId": 121824,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-escuta-na-web/121824",
+    "title": "Rádio Escuta Na Web",
+    "streamUrl": "http://s03.svrdedicado.org:7632/stream"
+  },
+  "AL|Maceió|Esperança AL": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Esperança AL",
+    "radiosId": 285667,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-esperanca-al/285667",
+    "title": "Rádio Esperança AL",
+    "streamUrl": "http://stm1.colossocastpro.com.br:7138/stream"
+  },
+  "AL|Maceió|Esperança FM Alagoas": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Esperança FM Alagoas",
+    "radiosId": 99245,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-esperanca-fm-alagoas/99245",
+    "title": "Rádio Esperança FM Alagoas",
+    "streamUrl": "http://stream.zeno.fm/vvdeab1ygkhvv"
+  },
+  "AL|Murici|Estação Gospel Murici": {
+    "estado": "AL",
+    "municipio": "Murici",
+    "nome": "Estação Gospel Murici",
+    "radiosId": 213212,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-estacao-gospel-murici/213212",
+    "title": "Rádio Estação Gospel Murici",
+    "streamUrl": "https://stm15.xcast.com.br:12380/stream"
+  },
+  "AL|Palmeira dos Índios|Estadão Alagoas": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Estadão Alagoas",
+    "radiosId": 73261,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-estadao-alagoas/73261",
+    "title": "Rádio Estadão Alagoas",
+    "streamUrl": "https://live8.livemus.com.br:27812/stream"
+  },
+  "AL|Maceió|Eumavi": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Eumavi",
+    "radiosId": 233306,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-eumavi/233306",
+    "title": "Rádio Eumavi",
+    "streamUrl": "https://stm24.xcast.com.br:10634/stream"
+  },
+  "AL|Viçosa|Evangélica Pai Eterno": {
+    "estado": "AL",
+    "municipio": "Viçosa",
+    "nome": "Evangélica Pai Eterno",
+    "radiosId": 118039,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-evangelica-pai-eterno/118039",
+    "title": "Rádio Evangélica Pai Eterno",
+    "streamUrl": "http://stm2.mycast.com.br:7660/;"
+  },
+  "AL|Arapiraca|Familia Formacão da Sociedade": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Familia Formacão da Sociedade",
+    "radiosId": 263498,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-familia-formacao-da-sociedade/263498",
+    "title": "Rádio Familia Formacão da Sociedade",
+    "streamUrl": null
+  },
+  "AL|Maceió|Fenomenal FM Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Fenomenal FM Maceió",
+    "radiosId": 210499,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-fenomenal-fm-maceio/210499",
+    "title": "Rádio Fenomenal FM Maceió",
+    "streamUrl": "https://stream.zeno.fm/m18vxm98up8uv"
+  },
+  "AL|Viçosa|Five": {
+    "estado": "AL",
+    "municipio": "Viçosa",
+    "nome": "Five",
+    "radiosId": 141263,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-five/141263",
+    "title": "Rádio Five",
+    "streamUrl": "http://stm1.ifantasy.com.br:7610/stream"
+  },
+  "AL|Maceió|Flash back Gospel": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Flash back Gospel",
+    "radiosId": 40973,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-flash-back-gospel/40973",
+    "title": "Rádio Flash back Gospel",
+    "streamUrl": null
+  },
+  "AL|Marechal Deodoro|Flash P FM": {
+    "estado": "AL",
+    "municipio": "Marechal Deodoro",
+    "nome": "Flash P FM",
+    "radiosId": 204544,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-flash-p-fm/204544",
+    "title": "Rádio Flash P FM",
+    "streamUrl": null
+  },
+  "AL|Maceió|Flex": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Flex",
+    "radiosId": 284169,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-flex/284169",
+    "title": "Rádio Flex",
+    "streamUrl": "https://stm9.voxhd.com.br:12596/stream"
+  },
+  "AL|Maceió|Folha FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Folha FM",
+    "radiosId": 263648,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-folha-fm/263648",
+    "title": "Rádio Folha FM",
+    "streamUrl": "https://stm4.conectastreaming.com:7118/stream"
+  },
+  "AL|Olivença|Forró Brasil": {
+    "estado": "AL",
+    "municipio": "Olivença",
+    "nome": "Forró Brasil",
+    "radiosId": 231596,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-forro-brasil/231596",
+    "title": "Rádio Forró Brasil",
+    "streamUrl": "https://stream.zeno.fm/qnlr8annsqkvv"
+  },
+  "AL|Maceió|Freestyle Miami Bass Brasil": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Freestyle Miami Bass Brasil",
+    "radiosId": 117969,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-freestyle-miami-bass-brasil/117969",
+    "title": "Rádio Freestyle Miami Bass Brasil",
+    "streamUrl": "https://stream.zeno.fm/gt18pfh7b48uv"
+  },
+  "AL|Maceió|Gael": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Gael",
+    "radiosId": 240103,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-gael/240103",
+    "title": "Rádio Gael",
+    "streamUrl": "http://directradios.net:8044/stream"
+  },
+  "AL|Maceió|Gazeta Classic": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Gazeta Classic",
+    "radiosId": 262390,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-gazeta-classic/262390",
+    "title": "Rádio Gazeta Classic",
+    "streamUrl": "https://virtues.live:2020/stream/gazeta-classic"
+  },
+  "AL|Maceió|Gênesis Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Gênesis Maceió",
+    "radiosId": 182991,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-genesis-maceio/182991",
+    "title": "Rádio Gênesis Maceió",
+    "streamUrl": "https://03.painelstreaming.com.br:27060/stream"
+  },
+  "AL|Maceió|Geração": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Geração",
+    "radiosId": 192257,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-geracao/192257",
+    "title": "Rádio Geração",
+    "streamUrl": "https://stream.zeno.fm/u2fpkg2usg0uv"
+  },
+  "AL|Estrela de Alagoas|Girassóis": {
+    "estado": "AL",
+    "municipio": "Estrela de Alagoas",
+    "nome": "Girassóis",
+    "radiosId": 183333,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-girassois/183333",
+    "title": "Rádio Girassóis",
+    "streamUrl": "http://stm20.srvaudio.com.br:9044/stream"
+  },
+  "AL|São José da Tapera|Girassol": {
+    "estado": "AL",
+    "municipio": "São José da Tapera",
+    "nome": "Girassol",
+    "radiosId": 204301,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-girassol/204301",
+    "title": "Rádio Girassol",
+    "streamUrl": "http://stm21.srvaudio.com.br:10030/stream"
+  },
+  "AL|Maceió|GK Gospel": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "GK Gospel",
+    "radiosId": 111856,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-gk-gospel/111856",
+    "title": "Rádio GK Gospel",
+    "streamUrl": "http://stream.zeno.fm/d4ap53ywxxquv"
+  },
+  "AL|Porto Calvo|Gospel Leodino": {
+    "estado": "AL",
+    "municipio": "Porto Calvo",
+    "nome": "Gospel Leodino",
+    "radiosId": 226442,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-gospel-leodino/226442",
+    "title": "Rádio Gospel Leodino",
+    "streamUrl": "https://stream.zeno.fm/3a6kzrv0grhvv"
+  },
+  "AL|Maceió|Gospel Oasis": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Gospel Oasis",
+    "radiosId": 116064,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-gospel-oasis/116064",
+    "title": "Rádio Gospel Oasis",
+    "streamUrl": "https://radiosnet.site/stream/radiogospeloasis"
+  },
+  "AL|Maceió|Gospel Só Louvor": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Gospel Só Louvor",
+    "radiosId": 203686,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-gospel-so-louvor/203686",
+    "title": "Rádio Gospel Só Louvor",
+    "streamUrl": "https://server16.srvsh.com.br:8582/;"
+  },
+  "AL|Maceió|Gospel Viva Vencendo": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Gospel Viva Vencendo",
+    "radiosId": 34715,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-gospel-viva-vencendo/34715",
+    "title": "Rádio Gospel Viva Vencendo",
+    "streamUrl": null
+  },
+  "AL|Estrela de Alagoas|Gospel Web": {
+    "estado": "AL",
+    "municipio": "Estrela de Alagoas",
+    "nome": "Gospel Web",
+    "radiosId": 285439,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-gospel-web/285439",
+    "title": "Rádio Gospel Web",
+    "streamUrl": null
+  },
+  "AL|Maceió|IBK Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "IBK Maceió",
+    "radiosId": 276165,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-ibk-maceio/276165",
+    "title": "Rádio IBK Maceió",
+    "streamUrl": "https://stm10.conectastreaming.com:6910/stream"
+  },
+  "AL|Arapiraca|ICPI Online": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "ICPI Online",
+    "radiosId": 191951,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-icpi-online/191951",
+    "title": "Rádio ICPI Online",
+    "streamUrl": "http://stm26.xcast.com.br:11650/stream"
+  },
+  "AL|Atalaia|IEB Atalaia": {
+    "estado": "AL",
+    "municipio": "Atalaia",
+    "nome": "IEB Atalaia",
+    "radiosId": 160180,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-ieb-atalaia/160180",
+    "title": "Rádio IEB Atalaia",
+    "streamUrl": "https://stm18.voxhd.com.br:12442/stream"
+  },
+  "AL|Maceió|Ikki": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Ikki",
+    "radiosId": 177210,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-ikki/177210",
+    "title": "Rádio Ikki",
+    "streamUrl": "https://s01.svrdedicado.org:6794/stream"
+  },
+  "AL|Maceió|Impacto Gospel": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Impacto Gospel",
+    "radiosId": 223616,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-impacto-gospel/223616",
+    "title": "Rádio Impacto Gospel",
+    "streamUrl": "https://stream.zeno.fm/8i3hbr4x8iguv"
+  },
+  "AL|São José da Laje|Inácio": {
+    "estado": "AL",
+    "municipio": "São José da Laje",
+    "nome": "Inácio",
+    "radiosId": 228887,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-inacio/228887",
+    "title": "Rádio Inácio",
+    "streamUrl": null
+  },
+  "AL|Inhapi|Inhapi Gospel": {
+    "estado": "AL",
+    "municipio": "Inhapi",
+    "nome": "Inhapi Gospel",
+    "radiosId": 143728,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-inhapi-gospel/143728",
+    "title": "Rádio Inhapi Gospel",
+    "streamUrl": null
+  },
+  "AL|Maceió|Intense Life": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Intense Life",
+    "radiosId": 204082,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-intense-life/204082",
+    "title": "Rádio Intense Life",
+    "streamUrl": null
+  },
+  "AL|Lagoa da Canoa|Interativa": {
+    "estado": "AL",
+    "municipio": "Lagoa da Canoa",
+    "nome": "Interativa",
+    "radiosId": 35596,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-interativa-98/35596",
+    "title": "Rádio Interativa 98",
+    "streamUrl": "https://stm1.voxplayer.com.br:7080/;"
+  },
+  "AL|Maceió|IPB Farol": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "IPB Farol",
+    "radiosId": 25972,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-ipb-farol/25972",
+    "title": "Rádio IPB Farol",
+    "streamUrl": null
+  },
+  "AL|Maceió|Itabira": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Itabira",
+    "radiosId": 190964,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-itabira/190964",
+    "title": "Rádio Itabira",
+    "streamUrl": null
+  },
+  "AL|Jacuípe|Jacutinga Jacuípe - AL": {
+    "estado": "AL",
+    "municipio": "Jacuípe",
+    "nome": "Jacutinga Jacuípe - AL",
+    "radiosId": 224525,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-jacutinga-jacuipe-al/224525",
+    "title": "Rádio Jacutinga Jacuípe - AL",
+    "streamUrl": null
+  },
+  "AL|Maceió|Jangadeiros De Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Jangadeiros De Maceió",
+    "radiosId": 189311,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-jangadeiros-de-maceio/189311",
+    "title": "Rádio Jangadeiros De Maceió",
+    "streamUrl": "http://hts05.kshost.com.br:12318/stream"
+  },
+  "AL|Maceió|JB FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "JB FM",
+    "radiosId": 273552,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-jb-fm/273552",
+    "title": "Rádio JB FM",
+    "streamUrl": "https://stm2.brasilcast.xyz:6736/stream"
+  },
+  "AL|União dos Palmares|JC FM Online": {
+    "estado": "AL",
+    "municipio": "União dos Palmares",
+    "nome": "JC FM Online",
+    "radiosId": 284010,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-jc-fm-online/284010",
+    "title": "Rádio JC FM Online",
+    "streamUrl": "https://server24.srvsh.com.br:8996/stream"
+  },
+  "AL|Maceió|JCAN Sat": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "JCAN Sat",
+    "radiosId": 165825,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-jcan-sat/165825",
+    "title": "Rádio JCAN Sat",
+    "streamUrl": "https://stream.zeno.fm/rr8rms1gys8uv"
+  },
+  "AL|Jequiá da Praia|Jequiá web": {
+    "estado": "AL",
+    "municipio": "Jequiá da Praia",
+    "nome": "Jequiá web",
+    "radiosId": 199064,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-jequia-web/199064",
+    "title": "Rádio Jequiá web",
+    "streamUrl": "https://stm1.voxplayer.com.br:6686/stream"
+  },
+  "AL|Teotônio Vilela|JF Web": {
+    "estado": "AL",
+    "municipio": "Teotônio Vilela",
+    "nome": "JF Web",
+    "radiosId": 290560,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-jf-web/290560",
+    "title": "Rádio JF Web",
+    "streamUrl": "http://192.99.79.240:8132/stream"
+  },
+  "AL|Junqueiro|Junqueiro Web": {
+    "estado": "AL",
+    "municipio": "Junqueiro",
+    "nome": "Junqueiro Web",
+    "radiosId": 34257,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-junqueiro-web/34257",
+    "title": "Rádio Junqueiro Web",
+    "streamUrl": "https://cc6.streammaximum.com:20013/stream"
+  },
+  "AL|Senador Rui Palmeira|Kandunga FM": {
+    "estado": "AL",
+    "municipio": "Senador Rui Palmeira",
+    "nome": "Kandunga FM",
+    "radiosId": 258652,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-kandunga-fm/258652",
+    "title": "Rádio Kandunga FM",
+    "streamUrl": "https://stm8.xcast.com.br:9564/stream"
+  },
+  "AL|Maceió|Kayan FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Kayan FM",
+    "radiosId": 194675,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-kayan-fm/194675",
+    "title": "Rádio Kayan FM",
+    "streamUrl": "http://stm2.mestrestream.xyz:7424/stream"
+  },
+  "AL|Palmeira dos Índios|Koinonia": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Koinonia",
+    "radiosId": 143768,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-koinonia/143768",
+    "title": "Rádio Koinonia",
+    "streamUrl": "http://stream.zeno.fm/m0vzpxyxnqzuv"
+  },
+  "AL|Pilar|L20": {
+    "estado": "AL",
+    "municipio": "Pilar",
+    "nome": "L20",
+    "radiosId": 37609,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-l20/37609",
+    "title": "Rádio L20",
+    "streamUrl": "https://stm4.conectastreaming.com:23844/stream"
+  },
+  "AL|Maceió|Lagonar FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Lagonar FM",
+    "radiosId": 213308,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-lagonar-fm/213308",
+    "title": "Rádio Lagonar FM",
+    "streamUrl": "http://stream.zeno.fm/bgw43zq90zqtv"
+  },
+  "AL|Maceió|Lamparina FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Lamparina FM",
+    "radiosId": 201338,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-lamparina-fm/201338",
+    "title": "Rádio Lamparina FM",
+    "streamUrl": "https://stream.zeno.fm/zt1uc9vsruhvv"
+  },
+  "AL|Maceió|Laura Bike": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Laura Bike",
+    "radiosId": 219546,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-laura-bike/219546",
+    "title": "Rádio Laura Bike",
+    "streamUrl": null
+  },
+  "AL|Maceió|Leve Classic": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Leve Classic",
+    "radiosId": 98910,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-leve-classic/98910",
+    "title": "Rádio Leve Classic",
+    "streamUrl": null
+  },
+  "AL|União dos Palmares|Liberdade União FM": {
+    "estado": "AL",
+    "municipio": "União dos Palmares",
+    "nome": "Liberdade União FM",
+    "radiosId": 199337,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-liberdade-uniao-fm/199337",
+    "title": "Rádio Liberdade União FM",
+    "streamUrl": null
+  },
+  "AL|Maravilha|Liderança": {
+    "estado": "AL",
+    "municipio": "Maravilha",
+    "nome": "Liderança",
+    "radiosId": 205069,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-lideranca-1043/205069",
+    "title": "Rádio Liderança 104,3",
+    "streamUrl": null
+  },
+  "AL|Arapiraca|Lig": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Lig",
+    "radiosId": 260551,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-lig/260551",
+    "title": "Rádio Lig",
+    "streamUrl": null
+  },
+  "AL|Marechal Deodoro|Lima Top": {
+    "estado": "AL",
+    "municipio": "Marechal Deodoro",
+    "nome": "Lima Top",
+    "radiosId": 245654,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-lima-top/245654",
+    "title": "Rádio Lima Top",
+    "streamUrl": null
+  },
+  "AL|Satuba|Lima Web": {
+    "estado": "AL",
+    "municipio": "Satuba",
+    "nome": "Lima Web",
+    "radiosId": 72731,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-lima-web/72731",
+    "title": "Rádio Lima Web",
+    "streamUrl": null
+  },
+  "AL|Maceió|Litoral FM Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Litoral FM Maceió",
+    "radiosId": 23412,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-litoral-fm-maceio/23412",
+    "title": "Rádio Litoral FM Maceió",
+    "streamUrl": "https://stream.zeno.fm/4uvjbdoq1yhvv"
+  },
+  "AL|Maceió|Litoral FM Maceió (Maceió)": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Litoral FM Maceió (Maceió)",
+    "radiosId": 233483,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-litoral-fm-maceio/233483",
+    "title": "Rádio Litoral FM Maceió",
+    "streamUrl": null
+  },
+  "AL|Penedo|Litorânea": {
+    "estado": "AL",
+    "municipio": "Penedo",
+    "nome": "Litorânea",
+    "radiosId": 279726,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-litoranea/279726",
+    "title": "Rádio Litorânea",
+    "streamUrl": null
+  },
+  "AL|Penedo|Lobo Web": {
+    "estado": "AL",
+    "municipio": "Penedo",
+    "nome": "Lobo Web",
+    "radiosId": 228029,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-lobo-web/228029",
+    "title": "Rádio Lobo Web",
+    "streamUrl": "http://stm21.srvaudio.com.br:9358/stream"
+  },
+  "AL|São Sebastião|Lótus Azul": {
+    "estado": "AL",
+    "municipio": "São Sebastião",
+    "nome": "Lótus Azul",
+    "radiosId": 282723,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-lotus-azul/282723",
+    "title": "Rádio Lótus Azul",
+    "streamUrl": null
+  },
+  "AL|Maceió|Louvores Do Campo": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Louvores Do Campo",
+    "radiosId": 250802,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-louvores-do-campo/250802",
+    "title": "Rádio Louvores Do Campo",
+    "streamUrl": null
+  },
+  "AL|Feira Grande|M": {
+    "estado": "AL",
+    "municipio": "Feira Grande",
+    "nome": "M",
+    "radiosId": 254557,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-m/254557",
+    "title": "Rádio M",
+    "streamUrl": "https://hts01.brascast.com:9508/live"
+  },
+  "AL|Maceió|Maceió Gospel": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Maceió Gospel",
+    "radiosId": 36319,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-maceio-gospel/36319",
+    "title": "Rádio Maceió Gospel",
+    "streamUrl": "http://stm3.mycast.com.br:7634/stream"
+  },
+  "AL|Maceió|Maceió Gospel (Gospel)": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Maceió Gospel (Gospel)",
+    "radiosId": 191024,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-maceio-gospel/191024",
+    "title": "Rádio Maceió Gospel",
+    "streamUrl": "https://sonicpanel.oficialserver.com/8318/stream"
+  },
+  "AL|Maceió|Maceió Music": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Maceió Music",
+    "radiosId": 272802,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-maceio-music/272802",
+    "title": "Rádio Maceió Music",
+    "streamUrl": "https://sv11.hdradios.net:8444/stream"
+  },
+  "AL|Maceió|Maceió Show": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Maceió Show",
+    "radiosId": 262405,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-maceio-show/262405",
+    "title": "Rádio Maceió Show",
+    "streamUrl": "https://stream.zeno.fm/h9wncs6nwy8uv"
+  },
+  "AL|São José da Tapera|Macena FM Web": {
+    "estado": "AL",
+    "municipio": "São José da Tapera",
+    "nome": "Macena FM Web",
+    "radiosId": 261532,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-macena-fm-web/261532",
+    "title": "Rádio Macena FM Web",
+    "streamUrl": "https://streaming.fox.srv.br:8264/stream"
+  },
+  "AL|Maceió|Mais Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Mais Maceió",
+    "radiosId": 265094,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-mais-maceio/265094",
+    "title": "Rádio Mais Maceió",
+    "streamUrl": "https://stm25.xcast.com.br:9660/stream"
+  },
+  "AL|Marechal Deodoro|Manguaba Net": {
+    "estado": "AL",
+    "municipio": "Marechal Deodoro",
+    "nome": "Manguaba Net",
+    "radiosId": 117349,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-manguaba-net/117349",
+    "title": "Rádio Manguaba Net",
+    "streamUrl": "https://stm.voxhd.com.br:11666/;"
+  },
+  "AL|Viçosa|Mania De Forrozeiro": {
+    "estado": "AL",
+    "municipio": "Viçosa",
+    "nome": "Mania De Forrozeiro",
+    "radiosId": 159155,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-mania-de-forrozeiro/159155",
+    "title": "Rádio Mania De Forrozeiro",
+    "streamUrl": "http://stm2.mycast.com.br:7366/stream"
+  },
+  "AL|Maragogi|Maragogi Católico": {
+    "estado": "AL",
+    "municipio": "Maragogi",
+    "nome": "Maragogi Católico",
+    "radiosId": 257500,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-maragogi-catolico/257500",
+    "title": "Rádio Maragogi Católico",
+    "streamUrl": "https://stm15.voxhd.com.br:9138/stream"
+  },
+  "AL|Maceió|Maralto FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Maralto FM",
+    "radiosId": 289525,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-maralto-fm/289525",
+    "title": "Rádio Maralto FM",
+    "streamUrl": "https://sv16.hdradios.net:8188/stream"
+  },
+  "AL|Palmeira dos Índios|Máxima FM": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Máxima FM",
+    "radiosId": 196466,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-maxima-fm/196466",
+    "title": "Rádio Máxima FM",
+    "streamUrl": "https://stm12.xcast.com.br:11074/stream"
+  },
+  "AL|Arapiraca|Mega FM": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Mega FM",
+    "radiosId": 244160,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-mega-fm/244160",
+    "title": "Rádio Mega FM",
+    "streamUrl": "https://stm1.voxplayer.com.br:7036/stream"
+  },
+  "AL|Maceió|Mega Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Mega Maceió",
+    "radiosId": 160160,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-mega-maceio/160160",
+    "title": "Rádio Mega Maceió",
+    "streamUrl": "http://192.95.23.89:5286/;"
+  },
+  "AL|Minador do Negrão|Minador FM": {
+    "estado": "AL",
+    "municipio": "Minador do Negrão",
+    "nome": "Minador FM",
+    "radiosId": 136335,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-minador-fm/136335",
+    "title": "Rádio Minador FM",
+    "streamUrl": "http://stm3.voxhd.com.br:7904/;"
+  },
+  "AL|Arapiraca|Ministério Betesda": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Ministério Betesda",
+    "radiosId": 251171,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-ministerio-betesda/251171",
+    "title": "Rádio Ministério Betesda",
+    "streamUrl": "http://stm11.painelcast.com:7520/stream"
+  },
+  "AL|Craíbas|Missão Plena": {
+    "estado": "AL",
+    "municipio": "Craíbas",
+    "nome": "Missão Plena",
+    "radiosId": 136880,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-missao-plena/136880",
+    "title": "Rádio Missão Plena",
+    "streamUrl": "https://casthttps1.suaradionanet.net/13181/stream"
+  },
+  "AL|Maceió|Missionários Da Verdade": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Missionários Da Verdade",
+    "radiosId": 141743,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-missionarios-da-verdade/141743",
+    "title": "Rádio Missionários Da Verdade",
+    "streamUrl": "https://cast4.hoost.com.br:20087/stream"
+  },
+  "AL|Maceió|Monte Moriah": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Monte Moriah",
+    "radiosId": 40600,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-monte-moriah/40600",
+    "title": "Rádio Monte Moriah",
+    "streamUrl": "https://s24.maxcast.com.br:8008/live"
+  },
+  "AL|Monteirópolis|Monteiro FM": {
+    "estado": "AL",
+    "municipio": "Monteirópolis",
+    "nome": "Monteiro FM",
+    "radiosId": 275505,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-monteiro-fm/275505",
+    "title": "Rádio Monteiro FM",
+    "streamUrl": "https://srv23.ipstm.net:56224/stream"
+  },
+  "AL|Coruripe|Moral Pindorama": {
+    "estado": "AL",
+    "municipio": "Coruripe",
+    "nome": "Moral Pindorama",
+    "radiosId": 187694,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-moral-pindorama-1049/187694",
+    "title": "Rádio Moral Pindorama 104,9",
+    "streamUrl": "https://centova3.transmissaodigital.com:20005/aac"
+  },
+  "AL|Traipu|Mumbaça": {
+    "estado": "AL",
+    "municipio": "Traipu",
+    "nome": "Mumbaça",
+    "radiosId": 140023,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-mumbaca-1049-fm/140023",
+    "title": "Rádio Mumbaça 104.9 FM",
+    "streamUrl": "https://stm1.voxplayer.com.br:7014/;"
+  },
+  "AL|Santana do Mundaú|Mundaú FM Santana do Mundaú": {
+    "estado": "AL",
+    "municipio": "Santana do Mundaú",
+    "nome": "Mundaú FM Santana do Mundaú",
+    "radiosId": 106870,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-mundau-fm-santana-do-mundau/106870",
+    "title": "Rádio Mundaú FM Santana do Mundaú",
+    "streamUrl": "https://stream.zeno.fm/bhb8n9a7iv3vv"
+  },
+  "AL|Maceió|Mundial Web Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Mundial Web Maceió",
+    "radiosId": 99525,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-mundial-web-maceio/99525",
+    "title": "Rádio Mundial Web Maceió",
+    "streamUrl": "https://stm12.voxhd.com.br:11126/live"
+  },
+  "AL|Porto Calvo|N.S da Apresentação": {
+    "estado": "AL",
+    "municipio": "Porto Calvo",
+    "nome": "N.S da Apresentação",
+    "radiosId": 142578,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-ns-da-apresentacao/142578",
+    "title": "Rádio N.S da Apresentação",
+    "streamUrl": "https://player.srvaudio.com.br/player-ssl/11256/;"
+  },
+  "AL|Arapiraca|Nativa FM Arapiraca": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Nativa FM Arapiraca",
+    "radiosId": 225110,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nativa-fm-arapiraca/225110",
+    "title": "Rádio Nativa FM Arapiraca",
+    "streamUrl": "https://stream.zeno.fm/f9yfn093ss8uv"
+  },
+  "AL|Igaci|New Wave FM": {
+    "estado": "AL",
+    "municipio": "Igaci",
+    "nome": "New Wave FM",
+    "radiosId": 199586,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-new-wave-fm/199586",
+    "title": "Rádio New Wave FM",
+    "streamUrl": "http://stm25.srvstm.com:7022/stream"
+  },
+  "AL|Maceió|Night Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Night Maceió",
+    "radiosId": 35258,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-night-maceio/35258",
+    "title": "Rádio Night Maceió",
+    "streamUrl": "http://server02.ouvir.radio.br:8060/stream"
+  },
+  "AL|Maceió|Night Maceió (Maceió)": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Night Maceió (Maceió)",
+    "radiosId": 35261,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-night-maceio/35261",
+    "title": "Rádio Night Maceió",
+    "streamUrl": "http://server02.ouvir.radio.br:8060/stream"
+  },
+  "AL|Arapiraca|NN": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "NN",
+    "radiosId": 251471,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nn-915-fm/251471",
+    "title": "Rádio NN 91.5 FM",
+    "streamUrl": "https://radio01.kingcast.com.br:7092/stream"
+  },
+  "AL|Poço das Trincheiras|Nordestina FM": {
+    "estado": "AL",
+    "municipio": "Poço das Trincheiras",
+    "nome": "Nordestina FM",
+    "radiosId": 267408,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nordestina-fm/267408",
+    "title": "Rádio Nordestina FM",
+    "streamUrl": "https://server24.srvsh.com.br:6908/stream"
+  },
+  "AL|Maceió|Norte FM Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Norte FM Maceió",
+    "radiosId": 200885,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-norte-fm-maceio/200885",
+    "title": "Rádio Norte FM Maceió",
+    "streamUrl": "https://stm23.srvaudio.com.br:11288/;"
+  },
+  "AL|Santana do Ipanema|Norte FM Santana do Ipanema": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "Norte FM Santana do Ipanema",
+    "radiosId": 247532,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-norte-fm-santana-do-ipanema/247532",
+    "title": "Rádio Norte FM Santana do Ipanema",
+    "streamUrl": "https://stm25.srvaudio.com.br:11916/stream"
+  },
+  "AL|Palmeira dos Índios|Nova Esperança": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Nova Esperança",
+    "radiosId": 198284,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nova-esperanca/198284",
+    "title": "Rádio Nova Esperança",
+    "streamUrl": "http://stm2.voxhd.com.br:8400/stream"
+  },
+  "AL|Santana do Ipanema|Nova Esperança FM": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "Nova Esperança FM",
+    "radiosId": 198845,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nova-esperanca-fm/198845",
+    "title": "Rádio Nova Esperança FM",
+    "streamUrl": "https://stm3.painelcast.com:7008/stream"
+  },
+  "AL|Maceió|Nova Maceió Web": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Nova Maceió Web",
+    "radiosId": 185621,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nova-maceio-web/185621",
+    "title": "Rádio Nova Maceió Web",
+    "streamUrl": "https://hts05.kshost.com.br:13550/live"
+  },
+  "AL|Senador Rui Palmeira|Nova Onda FM": {
+    "estado": "AL",
+    "municipio": "Senador Rui Palmeira",
+    "nome": "Nova Onda FM",
+    "radiosId": 257071,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nova-onda-fm/257071",
+    "title": "Rádio Nova Onda FM",
+    "streamUrl": "https://stm3.xcast.com.br:6758/stream"
+  },
+  "AL|Maceió|Nova Onda FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Nova Onda FM",
+    "radiosId": 110386,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nova-onda-fm/110386",
+    "title": "Rádio Nova Onda FM",
+    "streamUrl": "http://stream.zeno.fm/zkuw6erqg48uv"
+  },
+  "AL|Rio Largo|Nova Rio Web": {
+    "estado": "AL",
+    "municipio": "Rio Largo",
+    "nome": "Nova Rio Web",
+    "radiosId": 279489,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nova-rio-web/279489",
+    "title": "Rádio Nova Rio Web",
+    "streamUrl": "https://srv21.ipstm.net:57724/stream"
+  },
+  "AL|Satuba|Nova Satuba Web": {
+    "estado": "AL",
+    "municipio": "Satuba",
+    "nome": "Nova Satuba Web",
+    "radiosId": 155794,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nova-satuba-web/155794",
+    "title": "Rádio Nova Satuba Web",
+    "streamUrl": "https://stream.zeno.fm/z2wyd8mz4yzuv"
+  },
+  "AL|Campo Grande|Nova Vida FM": {
+    "estado": "AL",
+    "municipio": "Campo Grande",
+    "nome": "Nova Vida FM",
+    "radiosId": 194657,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nova-vida-fm/194657",
+    "title": "Rádio Nova Vida FM",
+    "streamUrl": "http://stm20.srvaudio.com.br:11836/stream"
+  },
+  "AL|Feira Grande|Nova Visão Web": {
+    "estado": "AL",
+    "municipio": "Feira Grande",
+    "nome": "Nova Visão Web",
+    "radiosId": 198662,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nova-visao-web/198662",
+    "title": "Rádio Nova Visão Web",
+    "streamUrl": "https://srv23.ipstm.net:63526/stream"
+  },
+  "AL|Teotônio Vilela|Nova Web": {
+    "estado": "AL",
+    "municipio": "Teotônio Vilela",
+    "nome": "Nova Web",
+    "radiosId": 136460,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-nova-web/136460",
+    "title": "Rádio Nova Web",
+    "streamUrl": "http://stm8.conectastreaming.com:9202/stream"
+  },
+  "AL|Maceió|Novo Foco": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Novo Foco",
+    "radiosId": 145608,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-novo-foco/145608",
+    "title": "Rádio Novo Foco",
+    "streamUrl": "https://stm19.voxhd.com.br:7472/;"
+  },
+  "AL|Maceió|Novo Horizonte FM Gospel": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Novo Horizonte FM Gospel",
+    "radiosId": 157404,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-novo-horizonte-fm-gospel/157404",
+    "title": "Rádio Novo Horizonte FM Gospel",
+    "streamUrl": "http://srv1.voxon.top:7126/stream"
+  },
+  "AL|Olho d'Água das Flores|Olho D'água News Web": {
+    "estado": "AL",
+    "municipio": "Olho d'Água das Flores",
+    "nome": "Olho D'água News Web",
+    "radiosId": 108320,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-olho-dagua-news-web/108320",
+    "title": "Rádio Olho D'água News Web",
+    "streamUrl": "http://stm2.matutos.com.br:10416/stream"
+  },
+  "AL|Olho d'Água das Flores|Olho FM": {
+    "estado": "AL",
+    "municipio": "Olho d'Água das Flores",
+    "nome": "Olho FM",
+    "radiosId": 266697,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-olho-fm/266697",
+    "title": "Rádio Olho FM",
+    "streamUrl": "https://s03.taaqui.org:8414/live"
+  },
+  "AL|Arapiraca|Oss Digital": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Oss Digital",
+    "radiosId": 229061,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-oss-digital/229061",
+    "title": "Rádio Oss Digital",
+    "streamUrl": "https://01.megadinamica.com:7262/stream"
+  },
+  "AL|Ouro Branco|Ouro News": {
+    "estado": "AL",
+    "municipio": "Ouro Branco",
+    "nome": "Ouro News",
+    "radiosId": 254452,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-ouro-news/254452",
+    "title": "Rádio Ouro News",
+    "streamUrl": "https://s02.svrdedicado.org:7530/stream"
+  },
+  "AL|Maceió|Pagode Gospel": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Pagode Gospel",
+    "radiosId": 79070,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-pagode-gospel/79070",
+    "title": "Rádio Pagode Gospel",
+    "streamUrl": "https://stm.roxcast.com.br:7122/;"
+  },
+  "AL|Maceió|Painel Alagoas": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Painel Alagoas",
+    "radiosId": 211842,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-painel-alagoas/211842",
+    "title": "Rádio Painel Alagoas",
+    "streamUrl": "http://directradios.net:8056/stream"
+  },
+  "AL|Pão de Açúcar|Parada De Sucesso": {
+    "estado": "AL",
+    "municipio": "Pão de Açúcar",
+    "nome": "Parada De Sucesso",
+    "radiosId": 223304,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-parada-de-sucesso/223304",
+    "title": "Rádio Parada De Sucesso",
+    "streamUrl": "https://stream.zeno.fm/wycjevexxwjvv"
+  },
+  "AL|Maceió|Paradão Sertanejo FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Paradão Sertanejo FM",
+    "radiosId": 193034,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-paradao-sertanejo-fm/193034",
+    "title": "Rádio Paradão Sertanejo FM",
+    "streamUrl": "https://stm12.voxhd.com.br:11124/live"
+  },
+  "AL|Lagoa da Canoa|Paraíso FM": {
+    "estado": "AL",
+    "municipio": "Lagoa da Canoa",
+    "nome": "Paraíso FM",
+    "radiosId": 194786,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-paraiso-fm/194786",
+    "title": "Rádio Paraíso FM",
+    "streamUrl": null
+  },
+  "AL|Maceió|Parceira da Gente": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Parceira da Gente",
+    "radiosId": 245399,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-parceira-da-gente/245399",
+    "title": "Rádio Parceira da Gente",
+    "streamUrl": null
+  },
+  "AL|São José da Tapera|Pé de Serra FM": {
+    "estado": "AL",
+    "municipio": "São José da Tapera",
+    "nome": "Pé de Serra FM",
+    "radiosId": 208253,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-pe-de-serra-fm/208253",
+    "title": "Rádio Pé de Serra FM",
+    "streamUrl": null
+  },
+  "AL|Delmiro Gouveia|Pedra Velha": {
+    "estado": "AL",
+    "municipio": "Delmiro Gouveia",
+    "nome": "Pedra Velha",
+    "radiosId": 75835,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-pedra-velha-1069/75835",
+    "title": "Rádio Pedra Velha 106,9",
+    "streamUrl": null
+  },
+  "AL|Delmiro Gouveia|Pela Fé Web": {
+    "estado": "AL",
+    "municipio": "Delmiro Gouveia",
+    "nome": "Pela Fé Web",
+    "radiosId": 166660,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-pela-fe-web/166660",
+    "title": "Rádio Pela Fé Web",
+    "streamUrl": null
+  },
+  "AL|Maceió|PIB Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "PIB Maceió",
+    "radiosId": 154018,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-pib-maceio/154018",
+    "title": "Rádio PIB Maceió",
+    "streamUrl": null
+  },
+  "AL|Pindoba|Pindoba SAT": {
+    "estado": "AL",
+    "municipio": "Pindoba",
+    "nome": "Pindoba SAT",
+    "radiosId": 156474,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-pindoba-sat/156474",
+    "title": "Rádio Pindoba SAT",
+    "streamUrl": null
+  },
+  "AL|Maceió|Planalto FM Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Planalto FM Maceió",
+    "radiosId": 118219,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-planalto-fm-maceio/118219",
+    "title": "Rádio Planalto FM Maceió",
+    "streamUrl": null
+  },
+  "AL|Maceió|Plech": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Plech",
+    "radiosId": 243476,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-plech/243476",
+    "title": "Rádio Plech",
+    "streamUrl": null
+  },
+  "AL|Santana do Ipanema|Popular FM": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "Popular FM",
+    "radiosId": 144443,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-popular-fm/144443",
+    "title": "Rádio Popular FM",
+    "streamUrl": null
+  },
+  "AL|Santana do Ipanema|Portal Sertão em Tempo Real": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "Portal Sertão em Tempo Real",
+    "radiosId": 202471,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-portal-sertao-em-tempo-real/202471",
+    "title": "Rádio Portal Sertão em Tempo Real",
+    "streamUrl": null
+  },
+  "AL|Belém|Portal Web": {
+    "estado": "AL",
+    "municipio": "Belém",
+    "nome": "Portal Web",
+    "radiosId": 285754,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-portal-web/285754",
+    "title": "Rádio Portal Web",
+    "streamUrl": null
+  },
+  "AL|Palmeira dos Índios|Portal Web": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Portal Web",
+    "radiosId": 265929,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-portal-web/265929",
+    "title": "Rádio Portal Web",
+    "streamUrl": null
+  },
+  "AL|Porto Calvo|Porto Calvo": {
+    "estado": "AL",
+    "municipio": "Porto Calvo",
+    "nome": "Porto Calvo",
+    "radiosId": 222623,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-porto-calvo/222623",
+    "title": "Rádio Porto Calvo",
+    "streamUrl": null
+  },
+  "AL|Murici|Pregação Murici Alagoas": {
+    "estado": "AL",
+    "municipio": "Murici",
+    "nome": "Pregação Murici Alagoas",
+    "radiosId": 284151,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-pregacao-murici-alagoas/284151",
+    "title": "Rádio Pregação Murici Alagoas",
+    "streamUrl": null
+  },
+  "AL|Maceió|Premier Online": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Premier Online",
+    "radiosId": 218435,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-premier-online/218435",
+    "title": "Rádio Premier Online",
+    "streamUrl": null
+  },
+  "AL|Arapiraca|Primavera Web": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Primavera Web",
+    "radiosId": 282435,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-primavera-web/282435",
+    "title": "Rádio Primavera Web",
+    "streamUrl": null
+  },
+  "AL|Maceió|PS Musical": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "PS Musical",
+    "radiosId": 191963,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-ps-musical/191963",
+    "title": "Rádio PS Musical",
+    "streamUrl": null
+  },
+  "AL|Arapiraca|Pulso do Nordeste": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Pulso do Nordeste",
+    "radiosId": 288826,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-pulso-do-nordeste/288826",
+    "title": "Rádio Pulso do Nordeste",
+    "streamUrl": null
+  },
+  "AL|São Luís do Quitunde|Quitunde FM": {
+    "estado": "AL",
+    "municipio": "São Luís do Quitunde",
+    "nome": "Quitunde FM",
+    "radiosId": 278670,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-quitunde-fm/278670",
+    "title": "Rádio Quitunde FM",
+    "streamUrl": null
+  },
+  "AL|Santana do Ipanema|RC Web": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "RC Web",
+    "radiosId": 124204,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-rc-web/124204",
+    "title": "Rádio RC Web",
+    "streamUrl": null
+  },
+  "AL|Rio Largo|Realidade FM": {
+    "estado": "AL",
+    "municipio": "Rio Largo",
+    "nome": "Realidade FM",
+    "radiosId": 148693,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-realidade-fm/148693",
+    "title": "Rádio Realidade FM",
+    "streamUrl": null
+  },
+  "AL|Arapiraca|Restauração FM Arapiraca": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Restauração FM Arapiraca",
+    "radiosId": 184928,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-restauracao-fm-arapiraca/184928",
+    "title": "Rádio Restauração FM Arapiraca",
+    "streamUrl": null
+  },
+  "AL|Maceió|Rock Web": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Rock Web",
+    "radiosId": 269361,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-rock-web/269361",
+    "title": "Rádio Rock Web",
+    "streamUrl": null
+  },
+  "AL|Maceió|Rota Do Mar FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Rota Do Mar FM",
+    "radiosId": 199847,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-rota-do-mar-fm/199847",
+    "title": "Rádio Rota Do Mar FM",
+    "streamUrl": null
+  },
+  "AL|São José da Tapera|Rural FM Web": {
+    "estado": "AL",
+    "municipio": "São José da Tapera",
+    "nome": "Rural FM Web",
+    "radiosId": 194606,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-rural-fm-web/194606",
+    "title": "Rádio Rural FM Web",
+    "streamUrl": null
+  },
+  "AL|São Sebastião|Salomé FM": {
+    "estado": "AL",
+    "municipio": "São Sebastião",
+    "nome": "Salomé FM",
+    "radiosId": 251795,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-salome-fm/251795",
+    "title": "Rádio Salomé FM",
+    "streamUrl": null
+  },
+  "AL|Flexeiras|Salve Web": {
+    "estado": "AL",
+    "municipio": "Flexeiras",
+    "nome": "Salve Web",
+    "radiosId": 251966,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-salve-web/251966",
+    "title": "Rádio Salve Web",
+    "streamUrl": null
+  },
+  "AL|Santana do Ipanema|Santana": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "Santana",
+    "radiosId": 119559,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-santana/119559",
+    "title": "Rádio Santana",
+    "streamUrl": null
+  },
+  "AL|Santana do Ipanema|Santana FM": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "Santana FM",
+    "radiosId": 104834,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-santana-fm/104834",
+    "title": "Rádio Santana FM",
+    "streamUrl": null
+  },
+  "AL|Penedo|São Francisco Web": {
+    "estado": "AL",
+    "municipio": "Penedo",
+    "nome": "São Francisco Web",
+    "radiosId": 180618,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-sao-francisco-web/180618",
+    "title": "Rádio São Francisco Web",
+    "streamUrl": null
+  },
+  "AL|Passo de Camaragibe|Semear": {
+    "estado": "AL",
+    "municipio": "Passo de Camaragibe",
+    "nome": "Semear",
+    "radiosId": 274578,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-semear/274578",
+    "title": "Rádio Semear",
+    "streamUrl": null
+  },
+  "AL|Maceió|Sempre Viva": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Sempre Viva",
+    "radiosId": 38468,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-sempre-viva/38468",
+    "title": "Rádio Sempre Viva",
+    "streamUrl": null
+  },
+  "AL|São José da Tapera|Serrinha FM": {
+    "estado": "AL",
+    "municipio": "São José da Tapera",
+    "nome": "Serrinha FM",
+    "radiosId": 204733,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-serrinha-fm/204733",
+    "title": "Rádio Serrinha FM",
+    "streamUrl": null
+  },
+  "AL|Inhapi|Sertão Gospel": {
+    "estado": "AL",
+    "municipio": "Inhapi",
+    "nome": "Sertão Gospel",
+    "radiosId": 220566,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-sertao-gospel/220566",
+    "title": "Rádio Sertão Gospel",
+    "streamUrl": null
+  },
+  "AL|Major Isidoro|Sertãozinho": {
+    "estado": "AL",
+    "municipio": "Major Isidoro",
+    "nome": "Sertãozinho",
+    "radiosId": 44539,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-sertaozinho/44539",
+    "title": "Rádio Sertãozinho",
+    "streamUrl": null
+  },
+  "AL|Maceió|Som Da Terra": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Som Da Terra",
+    "radiosId": 223622,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-som-da-terra/223622",
+    "title": "Rádio Som Da Terra",
+    "streamUrl": "https://stream.zeno.fm/vfbs1z3omaotv"
+  },
+  "AL|Maceió|Som Master": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Som Master",
+    "radiosId": 138323,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-som-master/138323",
+    "title": "Rádio Som Master",
+    "streamUrl": null
+  },
+  "AL|Santana do Ipanema|Som Mix": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "Som Mix",
+    "radiosId": 289672,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-som-mix/289672",
+    "title": "Rádio Som Mix",
+    "streamUrl": null
+  },
+  "AL|Maceió|StarWeb": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "StarWeb",
+    "radiosId": 206320,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-starweb/206320",
+    "title": "Rádio StarWeb",
+    "streamUrl": null
+  },
+  "AL|Poço das Trincheiras|Tamanduá FM": {
+    "estado": "AL",
+    "municipio": "Poço das Trincheiras",
+    "nome": "Tamanduá FM",
+    "radiosId": 208744,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-tamandua-fm/208744",
+    "title": "Rádio Tamanduá FM",
+    "streamUrl": "https://server04.srvsh.com.br:8192/stream"
+  },
+  "AL|Taquarana|Taquarana FM": {
+    "estado": "AL",
+    "municipio": "Taquarana",
+    "nome": "Taquarana FM",
+    "radiosId": 45022,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-taquarana-fm/45022",
+    "title": "Rádio Taquarana FM",
+    "streamUrl": null
+  },
+  "AL|Teotônio Vilela|Teotônio Web": {
+    "estado": "AL",
+    "municipio": "Teotônio Vilela",
+    "nome": "Teotônio Web",
+    "radiosId": 147098,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-teotonio-web/147098",
+    "title": "Rádio Teotônio Web",
+    "streamUrl": null
+  },
+  "AL|Arapiraca|Terra Nordeste": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Terra Nordeste",
+    "radiosId": 289993,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-terra-nordeste/289993",
+    "title": "Rádio Terra Nordeste",
+    "streamUrl": "https://srv23.ipstm.net:1598/stream"
+  },
+  "AL|Olho d'Água das Flores|Território FM": {
+    "estado": "AL",
+    "municipio": "Olho d'Água das Flores",
+    "nome": "Território FM",
+    "radiosId": 213578,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-territorio-fm/213578",
+    "title": "Rádio Território FM",
+    "streamUrl": "https://10.stmip.in:27106/;"
+  },
+  "AL|Arapiraca|Top Gospel": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Top Gospel",
+    "radiosId": 249833,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-top-gospel/249833",
+    "title": "Rádio Top Gospel",
+    "streamUrl": "https://stm7.painelvox.com:8090/stream"
+  },
+  "AL|São José da Tapera|Top Sucesso": {
+    "estado": "AL",
+    "municipio": "São José da Tapera",
+    "nome": "Top Sucesso",
+    "radiosId": 209692,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-top-sucesso/209692",
+    "title": "Rádio Top Sucesso",
+    "streamUrl": "https://stream.zeno.fm/6zdlhjl6b6ovv"
+  },
+  "AL|Maceió|Toque do Coração": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Toque do Coração",
+    "radiosId": 67779,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-toque-do-coracao/67779",
+    "title": "Rádio Toque do Coração",
+    "streamUrl": null
+  },
+  "AL|Maceió|Tribuna Do Biu": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Tribuna Do Biu",
+    "radiosId": 256828,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-tribuna-do-biu/256828",
+    "title": "Rádio Tribuna Do Biu",
+    "streamUrl": "https://cc6.streammaximum.com:20045/stream"
+  },
+  "AL|São Miguel dos Campos|Trilha Web": {
+    "estado": "AL",
+    "municipio": "São Miguel dos Campos",
+    "nome": "Trilha Web",
+    "radiosId": 205807,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-trilha-web/205807",
+    "title": "Rádio Trilha Web",
+    "streamUrl": "https://stream.zeno.fm/cd1dtf3skxhvv"
+  },
+  "AL|Arapiraca|Tropical Arapiraca": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Tropical Arapiraca",
+    "radiosId": 218832,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-tropical-arapiraca/218832",
+    "title": "Rádio Tropical Arapiraca",
+    "streamUrl": "https://stm20.xcast.com.br:7856/stream"
+  },
+  "AL|Palmeira dos Índios|Tropical Web": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Tropical Web",
+    "radiosId": 119199,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-tropical-web/119199",
+    "title": "Rádio Tropical Web",
+    "streamUrl": "http://stm12.xcast.com.br:11056/stream"
+  },
+  "AL|Maceió|Tv Web Jv Online": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Tv Web Jv Online",
+    "radiosId": 147578,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-tv-web-jv-online/147578",
+    "title": "Rádio Tv Web Jv Online",
+    "streamUrl": "https://player.srvaudio.com.br/player-ssl/11430"
+  },
+  "AL|Maceió|UFAL": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "UFAL",
+    "radiosId": 100660,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-ufal/100660",
+    "title": "Rádio UFAL",
+    "streamUrl": "http://directradios.net:8048/stream"
+  },
+  "AL|Murici|Vale Murici": {
+    "estado": "AL",
+    "municipio": "Murici",
+    "nome": "Vale Murici",
+    "radiosId": 68735,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-vale-murici/68735",
+    "title": "Radio Vale Murici",
+    "streamUrl": "https://server10.srvsh.com.br:8220/stream"
+  },
+  "AL|Maceió|Vale Noticia Gospel": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Vale Noticia Gospel",
+    "radiosId": 61357,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-vale-noticia-gospel/61357",
+    "title": "Radio Vale Noticia Gospel",
+    "streamUrl": "https://stm4.srvvox.com.br:7314/stream"
+  },
+  "AL|Maceió|Vale Noticia Gospel (Gospel)": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Vale Noticia Gospel (Gospel)",
+    "radiosId": 217631,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-vale-noticia-gospel/217631",
+    "title": "Rádio Vale Noticia Gospel",
+    "streamUrl": null
+  },
+  "AL|Quebrangulo|Vila São Francisco": {
+    "estado": "AL",
+    "municipio": "Quebrangulo",
+    "nome": "Vila São Francisco",
+    "radiosId": 163250,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-vila-sao-francisco/163250",
+    "title": "Rádio Vila São Francisco",
+    "streamUrl": null
+  },
+  "AL|Maceió|Village FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Village FM",
+    "radiosId": 212969,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-village-fm/212969",
+    "title": "Rádio Village FM",
+    "streamUrl": null
+  },
+  "AL|Maceió|Virgem dos Pobres": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Virgem dos Pobres",
+    "radiosId": 283170,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-virgem-dos-pobres/283170",
+    "title": "Rádio Virgem dos Pobres",
+    "streamUrl": "https://stream.zeno.fm/jcyuqzwq7zktv"
+  },
+  "AL|Maceió|Vitorino Mulungu": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Vitorino Mulungu",
+    "radiosId": 118629,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-vitorino-mulungu/118629",
+    "title": "Rádio Vitorino Mulungu",
+    "streamUrl": "http://stream.zeno.fm/31hbhb9gceruv"
+  },
+  "AL|Estrela de Alagoas|Viva FM Web": {
+    "estado": "AL",
+    "municipio": "Estrela de Alagoas",
+    "nome": "Viva FM Web",
+    "radiosId": 246119,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-viva-fm-web/246119",
+    "title": "Rádio Viva FM Web",
+    "streamUrl": "https://stm1.srvif.com:8148/stream"
+  },
+  "AL|Palmeira dos Índios|Web Agreste": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Web Agreste",
+    "radiosId": 221897,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-agreste/221897",
+    "title": "Rádio Web Agreste",
+    "streamUrl": "https://stream.zeno.fm/ljuqawdc57mvv"
+  },
+  "AL|Maceió|Web Alvorada": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Alvorada",
+    "radiosId": 153128,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-alvorada/153128",
+    "title": "Rádio Web Alvorada",
+    "streamUrl": "http://stm1.uniservstm.stream:6748/stream"
+  },
+  "AL|Santana do Ipanema|Web Areias": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "Web Areias",
+    "radiosId": 279138,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-areias/279138",
+    "title": "Rádio Web Areias",
+    "streamUrl": "http://stm.voxhd.com.br:6810/stream"
+  },
+  "AL|Maceió|Web AVTA": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web AVTA",
+    "radiosId": 215972,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-avta/215972",
+    "title": "Rádio Web AVTA",
+    "streamUrl": "https://server13.srvsh.com.br:7322/stream"
+  },
+  "AL|Delmiro Gouveia|Web Canyons": {
+    "estado": "AL",
+    "municipio": "Delmiro Gouveia",
+    "nome": "Web Canyons",
+    "radiosId": 263952,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-canyons/263952",
+    "title": "Rádio Web Canyons",
+    "streamUrl": "https://s02.taaqui.org:9398/stream"
+  },
+  "AL|Maceió|Web Cidade FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Cidade FM",
+    "radiosId": 212604,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-cidade-fm/212604",
+    "title": "Rádio Web Cidade FM",
+    "streamUrl": null
+  },
+  "AL|Olivença|Web Clima Bom": {
+    "estado": "AL",
+    "municipio": "Olivença",
+    "nome": "Web Clima Bom",
+    "radiosId": 43427,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-clima-bom/43427",
+    "title": "Rádio Web Clima Bom",
+    "streamUrl": "https://stm8.voxhd.com.br:11898/stream"
+  },
+  "AL|Maceió|Web Conexão News": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Conexão News",
+    "radiosId": 247421,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-conexao-news/247421",
+    "title": "Rádio Web Conexão News",
+    "streamUrl": "https://stm9.conectastreaming.com:6862/stream"
+  },
+  "AL|São Brás|Web Dantas": {
+    "estado": "AL",
+    "municipio": "São Brás",
+    "nome": "Web Dantas",
+    "radiosId": 286213,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-dantas/286213",
+    "title": "Rádio Web Dantas",
+    "streamUrl": "https://srv15.ipstm.net:64720/stream"
+  },
+  "AL|Arapiraca|Web Em Sintonia Com Meu Deus": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Web Em Sintonia Com Meu Deus",
+    "radiosId": 120592,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-em-sintonia-com-meu-deus/120592",
+    "title": "Rádio Web Em Sintonia Com Meu Deus",
+    "streamUrl": "http://stm17.painelcast.com:7430/stream"
+  },
+  "AL|Maceió|Web Esperança FM Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Esperança FM Maceió",
+    "radiosId": 154374,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-esperanca-fm-maceio/154374",
+    "title": "Rádio Web Esperança FM Maceió",
+    "streamUrl": "https://stream.zeno.fm/z36hrdgw1nhvv"
+  },
+  "AL|Maceió|Web Fé": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Fé",
+    "radiosId": 214715,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-fe/214715",
+    "title": "Rádio Web Fé",
+    "streamUrl": "https://stm5.voxhd.com.br:8486/stream"
+  },
+  "AL|Maceió|Web Fé Inabalável": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Fé Inabalável",
+    "radiosId": 279825,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-fe-inabalavel/279825",
+    "title": "Rádio Web Fé Inabalável",
+    "streamUrl": "https://stm1.colossocastpro.com.br:7100/stram"
+  },
+  "AL|Inhapi|Web FM": {
+    "estado": "AL",
+    "municipio": "Inhapi",
+    "nome": "Web FM",
+    "radiosId": 114789,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-fm/114789",
+    "title": "Rádio Web FM",
+    "streamUrl": "https://stream.zeno.fm/gz26zxw3u8quv"
+  },
+  "AL|Maceió|Web Gogó Da Ema": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Gogó Da Ema",
+    "radiosId": 172988,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-gogo-da-ema/172988",
+    "title": "Rádio Web Gogó Da Ema",
+    "streamUrl": "http://hts07.kshost.com.br:10146/stream"
+  },
+  "AL|Maceió|Web IPUE": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web IPUE",
+    "radiosId": 292108,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-ipue/292108",
+    "title": "Rádio Web IPUE",
+    "streamUrl": "https://server05.srvsh.com.br:7658/stream"
+  },
+  "AL|Penedo|Web Jornal de Penedo": {
+    "estado": "AL",
+    "municipio": "Penedo",
+    "nome": "Web Jornal de Penedo",
+    "radiosId": 29336,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-jornal-de-penedo/29336",
+    "title": "Rádio Web Jornal de Penedo",
+    "streamUrl": "https://09.stmip.net:2380/stream"
+  },
+  "AL|São José da Tapera|Web Mídia": {
+    "estado": "AL",
+    "municipio": "São José da Tapera",
+    "nome": "Web Mídia",
+    "radiosId": 281637,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-midia/281637",
+    "title": "Rádio Web Mídia",
+    "streamUrl": "https://srv21.ipstm.net:49684/stream"
+  },
+  "AL|Maravilha|Web Nativa": {
+    "estado": "AL",
+    "municipio": "Maravilha",
+    "nome": "Web Nativa",
+    "radiosId": 285700,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-nativa/285700",
+    "title": "Rádio Web Nativa",
+    "streamUrl": "https://stm.voxhd.com.br:12868/stream"
+  },
+  "AL|Maceió|Web Nosso Lar": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Nosso Lar",
+    "radiosId": 242917,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-nosso-lar/242917",
+    "title": "Rádio Web Nosso Lar",
+    "streamUrl": "http://directradios.net:8052/stream"
+  },
+  "AL|Jacuípe|Web Nova Jacuípe": {
+    "estado": "AL",
+    "municipio": "Jacuípe",
+    "nome": "Web Nova Jacuípe",
+    "radiosId": 196277,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-nova-jacuipe/196277",
+    "title": "Rádio Web Nova Jacuípe",
+    "streamUrl": "http://stm4.server2.redehostlider.com.br:7844/stream"
+  },
+  "AL|Maceió|Web Novo Nascer": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Novo Nascer",
+    "radiosId": 202459,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-novo-nascer/202459",
+    "title": "Rádio Web Novo Nascer",
+    "streamUrl": "https://stm9.voxhd.com.br:7002/stream"
+  },
+  "AL|Palestina|Web Palestina": {
+    "estado": "AL",
+    "municipio": "Palestina",
+    "nome": "Web Palestina",
+    "radiosId": 198083,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-palestina/198083",
+    "title": "Rádio Web Palestina",
+    "streamUrl": "https://10.stmip.net:8128/;"
+  },
+  "AL|Palestina|Web Palestina Alagoas Publicidade": {
+    "estado": "AL",
+    "municipio": "Palestina",
+    "nome": "Web Palestina Alagoas Publicidade",
+    "radiosId": 191756,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-palestina-alagoas-publicidade/191756",
+    "title": "Rádio Web Palestina Alagoas Publicidade",
+    "streamUrl": "https://stm19.voxhd.com.br:9894/stream"
+  },
+  "AL|Palmeira dos Índios|Web Palmeira De Fora": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Web Palmeira De Fora",
+    "radiosId": 272682,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-palmeira-de-fora/272682",
+    "title": "Rádio Web Palmeira De Fora",
+    "streamUrl": "https://stm6.voxhd.com.br:12998/stream"
+  },
+  "AL|Maceió|Web Professor Nogueira": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Professor Nogueira",
+    "radiosId": 227993,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-professor-nogueira/227993",
+    "title": "Rádio Web Professor Nogueira",
+    "streamUrl": "https://stm14.voxhd.com.br:8772/stream"
+  },
+  "AL|Coité do Nóia|Web Recantos da Serra": {
+    "estado": "AL",
+    "municipio": "Coité do Nóia",
+    "nome": "Web Recantos da Serra",
+    "radiosId": 185339,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-recantos-da-serra/185339",
+    "title": "Rádio Web Recantos da Serra",
+    "streamUrl": "https://stream.zeno.fm/iouczqx6tfhuv"
+  },
+  "AL|Maceió|Web Redenção FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Redenção FM",
+    "radiosId": 266892,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-redencao-fm/266892",
+    "title": "Rádio Web Redenção FM",
+    "streamUrl": "https://stream.zeno.fm/vl0dhqrpym7tv"
+  },
+  "AL|Senador Rui Palmeira|Web Riacho Grande AL": {
+    "estado": "AL",
+    "municipio": "Senador Rui Palmeira",
+    "nome": "Web Riacho Grande AL",
+    "radiosId": 176325,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-riacho-grande-al/176325",
+    "title": "Rádio Web Riacho Grande AL",
+    "streamUrl": null
+  },
+  "AL|Rio Largo|Web Rio Largo": {
+    "estado": "AL",
+    "municipio": "Rio Largo",
+    "nome": "Web Rio Largo",
+    "radiosId": 292120,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-rio-largo/292120",
+    "title": "Rádio Web Rio Largo",
+    "streamUrl": "https://srv26.ipstm.net:63586/stream"
+  },
+  "AL|Maceió|Web Rompendo Em Fé": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Rompendo Em Fé",
+    "radiosId": 227381,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-rompendo-em-fe/227381",
+    "title": "Rádio Web Rompendo Em Fé",
+    "streamUrl": "https://stream.zeno.fm/mggqbcomptsuv"
+  },
+  "AL|São Brás|Web São Brás": {
+    "estado": "AL",
+    "municipio": "São Brás",
+    "nome": "Web São Brás",
+    "radiosId": 182175,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-sao-bras/182175",
+    "title": "Rádio Web São Brás",
+    "streamUrl": "http://suaradio1.dyndns.ws:13527/stream"
+  },
+  "AL|Maceió|Web Trovão Sports": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Trovão Sports",
+    "radiosId": 259882,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-trovao-sports/259882",
+    "title": "Rádio Web Trovão Sports",
+    "streamUrl": "https://servidor28-5.brlogic.com:7038/live"
+  },
+  "AL|União dos Palmares|Web UP Brasil": {
+    "estado": "AL",
+    "municipio": "União dos Palmares",
+    "nome": "Web UP Brasil",
+    "radiosId": 225758,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-up-brasil/225758",
+    "title": "Rádio Web UP Brasil",
+    "streamUrl": "https://servidor13.brlogic.com:7646/live"
+  },
+  "AL|Maceió|Webka": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Webka",
+    "radiosId": 240100,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-webka/240100",
+    "title": "Rádio Webka",
+    "streamUrl": "https://stm7.voxhd.com.br:9644/stream"
+  },
+  "AL|Penedo|WF Noticias": {
+    "estado": "AL",
+    "municipio": "Penedo",
+    "nome": "WF Noticias",
+    "radiosId": 239293,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-wf-noticias/239293",
+    "title": "Rádio WF Noticias",
+    "streamUrl": "https://stm31.srvstm.com:7384/stream"
+  },
+  "AL|Major Isidoro|Xamêgo Do Sertão": {
+    "estado": "AL",
+    "municipio": "Major Isidoro",
+    "nome": "Xamêgo Do Sertão",
+    "radiosId": 215567,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-xamego-do-sertao/215567",
+    "title": "Rádio Xamêgo Do Sertão",
+    "streamUrl": "https://sv10.hdradios.net:8728/stream"
+  },
+  "AL|Joaquim Gomes|Radiosa Web Rádio": {
+    "estado": "AL",
+    "municipio": "Joaquim Gomes",
+    "nome": "Radiosa Web Rádio",
+    "radiosId": 287809,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radiosa-web-radio/287809",
+    "title": "Radiosa Web Rádio",
+    "streamUrl": "https://stm8.conectastreaming.com:6882/stream"
+  },
+  "AL|São Luís do Quitunde|Rede de Rádio Diamante Arrocha, Brega, Sertanejo Brasil": {
+    "estado": "AL",
+    "municipio": "São Luís do Quitunde",
+    "nome": "Rede de Rádio Diamante Arrocha, Brega, Sertanejo Brasil",
+    "radiosId": 268044,
+    "radiosUrl": "https://www.radios.com.br/aovivo/rede-de-radio-diamante-arrocha-brega-sertanejo-brasil/268044",
+    "title": "Rede de Rádio Diamante Arrocha, Brega, Sertanejo Brasil",
+    "streamUrl": "https://stm12.voxhd.com.br:8866/stream"
+  },
+  "AL|São Luís do Quitunde|Rede de Rádios Diamante - Só Gospel": {
+    "estado": "AL",
+    "municipio": "São Luís do Quitunde",
+    "nome": "Rede de Rádios Diamante - Só Gospel",
+    "radiosId": 260863,
+    "radiosUrl": "https://www.radios.com.br/aovivo/rede-de-radios-diamante-so-gospel/260863",
+    "title": "Rede de Rádios Diamante - Só Gospel",
+    "streamUrl": "https://stm18.voxhd.com.br:7698/stream"
+  },
+  "AL|Maceió|Rede de Rádios Diamante - Só Vaquejada Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Rede de Rádios Diamante - Só Vaquejada Maceió",
+    "radiosId": 211329,
+    "radiosUrl": "https://www.radios.com.br/aovivo/rede-de-radios-diamante-so-vaquejada-maceio/211329",
+    "title": "Rede de Rádios Diamante - Só Vaquejada Maceió",
+    "streamUrl": "https://stm6.voxhd.com.br:10962/stream"
+  },
+  "AL|São Luís do Quitunde|Rede de Rádios Diamante - Só Vaquejada São Luís": {
+    "estado": "AL",
+    "municipio": "São Luís do Quitunde",
+    "nome": "Rede de Rádios Diamante - Só Vaquejada São Luís",
+    "radiosId": 194051,
+    "radiosUrl": "https://www.radios.com.br/aovivo/rede-de-radios-diamante-so-vaquejada-sao-luis/194051",
+    "title": "Rede de Rádios Diamante - Só Vaquejada São Luís",
+    "streamUrl": "https://stm6.voxhd.com.br:10782/stream"
+  },
+  "AL|Palmeira dos Índios|Rede de Rádios Web Agreste": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Rede de Rádios Web Agreste",
+    "radiosId": 253840,
+    "radiosUrl": "https://www.radios.com.br/aovivo/rede-de-radios-web-agreste/253840",
+    "title": "Rede de Rádios Web Agreste",
+    "streamUrl": "https://stream.zeno.fm/ikya2xylu0nvv"
+  },
+  "AL|Maceió|Rede Fam Gospel Maceió - AL": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Rede Fam Gospel Maceió - AL",
+    "radiosId": 179895,
+    "radiosUrl": "https://www.radios.com.br/aovivo/rede-fam-gospel-maceio-al/179895",
+    "title": "Rede Fam Gospel Maceió - AL",
+    "streamUrl": "http://stm3.mestrestream.xyz:7604/stream"
+  },
+  "AL|Palmeira dos Índios|Saudade Web Rádio": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Saudade Web Rádio",
+    "radiosId": 176271,
+    "radiosUrl": "https://www.radios.com.br/aovivo/saudade-web-radio/176271",
+    "title": "Saudade Web Rádio",
+    "streamUrl": "https://stm4.voxhd.com.br:8916/stream"
+  },
+  "AL|Palmeira dos Índios|Sertão Web Rádio": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Sertão Web Rádio",
+    "radiosId": 268737,
+    "radiosUrl": "https://www.radios.com.br/aovivo/sertao-web-radio/268737",
+    "title": "Sertão Web Rádio",
+    "streamUrl": "https://stm1.voxhd.com.br:12438/stream"
+  },
+  "AL|União dos Palmares|Siló Rádio Cristã": {
+    "estado": "AL",
+    "municipio": "União dos Palmares",
+    "nome": "Siló Rádio Cristã",
+    "radiosId": 221837,
+    "radiosUrl": "https://www.radios.com.br/aovivo/silo-radio-crista/221837",
+    "title": "Siló Rádio Cristã",
+    "streamUrl": "https://stm.srvvox.com.br:7034/stream"
+  },
+  "AL|Maceió|Sindradio Web": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Sindradio Web",
+    "radiosId": 81565,
+    "radiosUrl": "https://www.radios.com.br/aovivo/sindradio-web/81565",
+    "title": "Sindradio Web",
+    "streamUrl": "https://s07.maxcast.com.br:8690/live"
+  },
+  "AL|Palmeira dos Índios|Sintonia Web Rádio": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Sintonia Web Rádio",
+    "radiosId": 102149,
+    "radiosUrl": "https://www.radios.com.br/aovivo/sintonia-web-radio/102149",
+    "title": "Sintonia Web Rádio",
+    "streamUrl": "https://stm14.voxhd.com.br:8562/stream"
+  },
+  "AL|Teotônio Vilela|Studio Bala": {
+    "estado": "AL",
+    "municipio": "Teotônio Vilela",
+    "nome": "Studio Bala",
+    "radiosId": 105799,
+    "radiosUrl": "https://www.radios.com.br/aovivo/studio-bala/105799",
+    "title": "Studio Bala",
+    "streamUrl": null
+  },
+  "AL|Maceió|Tabuleiro Rádio Web": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Tabuleiro Rádio Web",
+    "radiosId": 218150,
+    "radiosUrl": "https://www.radios.com.br/aovivo/tabuleiro-radio-web/218150",
+    "title": "Tabuleiro Rádio Web",
+    "streamUrl": "https://stm9.xcast.com.br:6978/stream"
+  },
+  "AL|Poço das Trincheiras|Trincheiras Web Rádio": {
+    "estado": "AL",
+    "municipio": "Poço das Trincheiras",
+    "nome": "Trincheiras Web Rádio",
+    "radiosId": 255388,
+    "radiosUrl": "https://www.radios.com.br/aovivo/trincheiras-web-radio/255388",
+    "title": "Trincheiras Web Rádio",
+    "streamUrl": "https://hts01.brascast.com:7256/live"
+  },
+  "AL|Maceió|Tropical Rádio Fm": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Tropical Rádio Fm",
+    "radiosId": 156874,
+    "radiosUrl": "https://www.radios.com.br/aovivo/tropical-radio-fm/156874",
+    "title": "Tropical Rádio Fm",
+    "streamUrl": "http://stream.zeno.fm/hnwhpkg647zuv"
+  },
+  "AL|Arapiraca|Universitária Rádio Web": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Universitária Rádio Web",
+    "radiosId": 28040,
+    "radiosUrl": "https://www.radios.com.br/aovivo/universitaria-radio-web/28040",
+    "title": "Universitária Rádio Web",
+    "streamUrl": "https://s39.maxcast.com.br:8787/live"
+  },
+  "AL|São Miguel dos Milagres|Verçosa Rádio Web": {
+    "estado": "AL",
+    "municipio": "São Miguel dos Milagres",
+    "nome": "Verçosa Rádio Web",
+    "radiosId": 149858,
+    "radiosUrl": "https://www.radios.com.br/aovivo/vercosa-radio-web/149858",
+    "title": "Verçosa Rádio Web",
+    "streamUrl": "http://sv13.hdradios.net:7838/stream"
+  },
+  "AL|Maceió|VoxPlay Web Rádio": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "VoxPlay Web Rádio",
+    "radiosId": 238210,
+    "radiosUrl": "https://www.radios.com.br/aovivo/voxplay-web-radio/238210",
+    "title": "VoxPlay Web Rádio",
+    "streamUrl": "https://sv15.hdradios.net:6924/stream"
+  },
+  "AL|Maceió|Web Rádio 7 Mares": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Rádio 7 Mares",
+    "radiosId": 186500,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-7-mares/186500",
+    "title": "Web Rádio 7 Mares",
+    "streamUrl": "https://stm1.streaminghd.net.br:7274/stream"
+  },
+  "AL|Penedo|Web Rádio A Voz da Cidade Penedo Alagoas": {
+    "estado": "AL",
+    "municipio": "Penedo",
+    "nome": "Web Rádio A Voz da Cidade Penedo Alagoas",
+    "radiosId": 276306,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-a-voz-da-cidade-penedo-alagoas/276306",
+    "title": "Web Rádio A Voz da Cidade Penedo Alagoas",
+    "streamUrl": "http://stm1.srvif.com:7894/stream"
+  },
+  "AL|Estrela de Alagoas|Web Rádio A Voz Da Mulher": {
+    "estado": "AL",
+    "municipio": "Estrela de Alagoas",
+    "nome": "Web Rádio A Voz Da Mulher",
+    "radiosId": 216824,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-a-voz-da-mulher/216824",
+    "title": "Web Rádio A Voz Da Mulher",
+    "streamUrl": "https://servidor17.brlogic.com:7180/live"
+  },
+  "AL|Maceió|Web Rádio Abba Pai": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Rádio Abba Pai",
+    "radiosId": 287839,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-abba-pai/287839",
+    "title": "Web Rádio Abba Pai",
+    "streamUrl": "https://hts04.brascast.com:7612/stream"
+  },
+  "AL|Pão de Açúcar|Web Rádio Alô Comércio": {
+    "estado": "AL",
+    "municipio": "Pão de Açúcar",
+    "nome": "Web Rádio Alô Comércio",
+    "radiosId": 148488,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-alo-comercio/148488",
+    "title": "Web Rádio Alô Comércio",
+    "streamUrl": "https://stm1.hoststreaming.com.br:7068/stream"
+  },
+  "AL|Marechal Deodoro|Web Rádio Antônio Baiano": {
+    "estado": "AL",
+    "municipio": "Marechal Deodoro",
+    "nome": "Web Rádio Antônio Baiano",
+    "radiosId": 181227,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-antonio-baiano/181227",
+    "title": "Web Rádio Antônio Baiano",
+    "streamUrl": "http://stm2.srvif.com:7754/stream"
+  },
+  "AL|Arapiraca|Web Rádio Arapiraca": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Web Rádio Arapiraca",
+    "radiosId": 278316,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-arapiraca/278316",
+    "title": "Web Rádio Arapiraca",
+    "streamUrl": "https://stm21.srvaudio.com.br:11820/;"
+  },
+  "AL|Arapiraca|Web Rádio Arapiraca KSA": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Web Rádio Arapiraca KSA",
+    "radiosId": 214739,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-arapiraca-ksa/214739",
+    "title": "Web Rádio Arapiraca KSA",
+    "streamUrl": "https://tgaurl.com.br/arapiraca"
+  },
+  "AL|Senador Rui Palmeira|Web Rádio Ativa": {
+    "estado": "AL",
+    "municipio": "Senador Rui Palmeira",
+    "nome": "Web Rádio Ativa",
+    "radiosId": 259894,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-ativa/259894",
+    "title": "Web Rádio Ativa",
+    "streamUrl": "https://stm14.xcast.com.br:9968/stream"
+  },
+  "AL|Rio Largo|Web Rádio Canarinho": {
+    "estado": "AL",
+    "municipio": "Rio Largo",
+    "nome": "Web Rádio Canarinho",
+    "radiosId": 211428,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-canarinho/211428",
+    "title": "Web Rádio Canarinho",
+    "streamUrl": "https://stm6.conectastreaming.com:7190/stream"
+  },
+  "AL|Capela|Web Rádio Capela Hits": {
+    "estado": "AL",
+    "municipio": "Capela",
+    "nome": "Web Rádio Capela Hits",
+    "radiosId": 176712,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-capela-hits/176712",
+    "title": "Web Rádio Capela Hits",
+    "streamUrl": "https://ssl.xcast.com.br:8662/stream"
+  },
+  "AL|Maceió|Web Rádio Capital": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Rádio Capital",
+    "radiosId": 201417,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-capital/201417",
+    "title": "Web Rádio Capital",
+    "streamUrl": "https://www.appradio.app:8194/live"
+  },
+  "AL|Maceió|Web Rádio Central da Amizade": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Rádio Central da Amizade",
+    "radiosId": 153243,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-central-da-amizade/153243",
+    "title": "Web Rádio Central da Amizade",
+    "streamUrl": "http://stm1.painelcast.com:7186/stream"
+  },
+  "AL|Coité do Nóia|Web Rádio Coité": {
+    "estado": "AL",
+    "municipio": "Coité do Nóia",
+    "nome": "Web Rádio Coité",
+    "radiosId": 231938,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-coite/231938",
+    "title": "Web Rádio Coité",
+    "streamUrl": "https://stm2.xcast.com.br:11186/stream"
+  },
+  "AL|Maceió|Web Rádio Conexão": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Rádio Conexão",
+    "radiosId": 226976,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-conexao/226976",
+    "title": "Web Rádio Conexão",
+    "streamUrl": "https://stream.zeno.fm/rzm9tef1qpjuv"
+  },
+  "AL|Junqueiro|Web Rádio Conexão FM": {
+    "estado": "AL",
+    "municipio": "Junqueiro",
+    "nome": "Web Rádio Conexão FM",
+    "radiosId": 32102,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-conexao-fm/32102",
+    "title": "Web Rádio Conexão FM",
+    "streamUrl": "http://server02.ouvir.radio.br:8060/stream"
+  },
+  "AL|Penedo|Web Radio Correio do São Francisco": {
+    "estado": "AL",
+    "municipio": "Penedo",
+    "nome": "Web Radio Correio do São Francisco",
+    "radiosId": 276315,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-correio-do-sao-francisco/276315",
+    "title": "Web Radio Correio do São Francisco",
+    "streamUrl": "http://stm1.srvif.com:7898/stream"
+  },
+  "AL|Santana do Ipanema|Web Rádio Craibeira": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "Web Rádio Craibeira",
+    "radiosId": 58666,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-craibeira/58666",
+    "title": "Web Rádio Craibeira",
+    "streamUrl": "https://s02.brascast.com:7872/live"
+  },
+  "AL|Arapiraca|Web Rádio Destak Hits Coração Sertanejo": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Web Rádio Destak Hits Coração Sertanejo",
+    "radiosId": 261964,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-destak-hits-coracao-sertanejo/261964",
+    "title": "Web Rádio Destak Hits Coração Sertanejo",
+    "streamUrl": "http://stm14.srvvox.com.br:7926/stream"
+  },
+  "AL|Maceió|Web Rádio Deus Conosco": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Rádio Deus Conosco",
+    "radiosId": 45481,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-deus-conosco/45481",
+    "title": "Web Rádio Deus Conosco",
+    "streamUrl": "http://streaming28.hstbr.net:8060/live"
+  },
+  "AL|Maribondo|Web Rádio Duque de Caxias": {
+    "estado": "AL",
+    "municipio": "Maribondo",
+    "nome": "Web Rádio Duque de Caxias",
+    "radiosId": 29420,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-duque-de-caxias/29420",
+    "title": "Web Rádio Duque de Caxias",
+    "streamUrl": null
+  },
+  "AL|Maragogi|Web Rádio Estação Musical": {
+    "estado": "AL",
+    "municipio": "Maragogi",
+    "nome": "Web Rádio Estação Musical",
+    "radiosId": 203092,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-estacao-musical/203092",
+    "title": "Web Rádio Estação Musical",
+    "streamUrl": "https://stm2.srvif.com:8126/stream"
+  },
+  "AL|Palmeira dos Índios|Web Rádio Estação Sol": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Web Rádio Estação Sol",
+    "radiosId": 276939,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-estacao-sol/276939",
+    "title": "Web Rádio Estação Sol",
+    "streamUrl": null
+  },
+  "AL|Jacuípe|Web Rádio Fabio Galafassi": {
+    "estado": "AL",
+    "municipio": "Jacuípe",
+    "nome": "Web Rádio Fabio Galafassi",
+    "radiosId": 217355,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-fabio-galafassi/217355",
+    "title": "Web Rádio Fabio Galafassi",
+    "streamUrl": "https://stream.zeno.fm/gui7nvwtbozvv"
+  },
+  "AL|Pilar|Web Rádio Farinha Quebradinha": {
+    "estado": "AL",
+    "municipio": "Pilar",
+    "nome": "Web Rádio Farinha Quebradinha",
+    "radiosId": 216812,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-farinha-quebradinha/216812",
+    "title": "Web Rádio Farinha Quebradinha",
+    "streamUrl": null
+  },
+  "AL|Viçosa|Web Rádio Franciscana": {
+    "estado": "AL",
+    "municipio": "Viçosa",
+    "nome": "Web Rádio Franciscana",
+    "radiosId": 36141,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-franciscana/36141",
+    "title": "Web Rádio Franciscana",
+    "streamUrl": "https://ssl.xcast.com.br:10436/;"
+  },
+  "AL|Arapiraca|Web Rádio IEV": {
+    "estado": "AL",
+    "municipio": "Arapiraca",
+    "nome": "Web Rádio IEV",
+    "radiosId": 209056,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-iev/209056",
+    "title": "Web Rádio IEV",
+    "streamUrl": "https://c20.radioboss.fm:8579/stream"
+  },
+  "AL|Inhapi|Web Rádio Inhapinews": {
+    "estado": "AL",
+    "municipio": "Inhapi",
+    "nome": "Web Rádio Inhapinews",
+    "radiosId": 275532,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-inhapinews/275532",
+    "title": "Web Rádio Inhapinews",
+    "streamUrl": "http://192.95.18.87:21012/stream"
+  },
+  "AL|São José da Laje|Web Rádio JF": {
+    "estado": "AL",
+    "municipio": "São José da Laje",
+    "nome": "Web Rádio JF",
+    "radiosId": 216548,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-jf/216548",
+    "title": "Web Rádio JF",
+    "streamUrl": "https://hts02.kshost.com.br:10984/live"
+  },
+  "AL|Marechal Deodoro|Web Rádio Juventude": {
+    "estado": "AL",
+    "municipio": "Marechal Deodoro",
+    "nome": "Web Rádio Juventude",
+    "radiosId": 110646,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-juventude/110646",
+    "title": "Web Rádio Juventude",
+    "streamUrl": "http://stm1.ifantasy.com.br:7062/;"
+  },
+  "AL|Delmiro Gouveia|Web Rádio Koqueluche": {
+    "estado": "AL",
+    "municipio": "Delmiro Gouveia",
+    "nome": "Web Rádio Koqueluche",
+    "radiosId": 188174,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-koqueluche/188174",
+    "title": "Web Rádio Koqueluche",
+    "streamUrl": "https://10.stmip.net:8052/stream"
+  },
+  "AL|Branquinha|Web Rádio Lagoa Naza": {
+    "estado": "AL",
+    "municipio": "Branquinha",
+    "nome": "Web Rádio Lagoa Naza",
+    "radiosId": 272616,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-lagoa-naza/272616",
+    "title": "Web Rádio Lagoa Naza",
+    "streamUrl": "https://stm24.xcast.com.br:9754/stream"
+  },
+  "AL|Colônia Leopoldina|Web Rádio Leolpoldina": {
+    "estado": "AL",
+    "municipio": "Colônia Leopoldina",
+    "nome": "Web Rádio Leolpoldina",
+    "radiosId": 292543,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-leolpoldina/292543",
+    "title": "Web Rádio Leolpoldina",
+    "streamUrl": "https://stm.servidordosdeuses.com:6714/stream"
+  },
+  "AL|Monteirópolis|Web Rádio Monteiropolis": {
+    "estado": "AL",
+    "municipio": "Monteirópolis",
+    "nome": "Web Rádio Monteiropolis",
+    "radiosId": 220038,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-monteiropolis/220038",
+    "title": "Web Rádio Monteiropolis",
+    "streamUrl": "http://stm3.hoststreaming.com.br:7046/stream"
+  },
+  "AL|Palmeira dos Índios|Web Rádio Nacional": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Web Rádio Nacional",
+    "radiosId": 194831,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-nacional/194831",
+    "title": "Web Rádio Nacional",
+    "streamUrl": "https://s03.svrdedicado.org:7582/stream"
+  },
+  "AL|Boca da Mata|Web Rádio Novas de Alegria": {
+    "estado": "AL",
+    "municipio": "Boca da Mata",
+    "nome": "Web Rádio Novas de Alegria",
+    "radiosId": 277941,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-novas-de-alegria/277941",
+    "title": "Web Rádio Novas de Alegria",
+    "streamUrl": "http://s01.svrdedicado.org:7378/stream"
+  },
+  "AL|Palmeira dos Índios|Web Radio Palmeira": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Web Radio Palmeira",
+    "radiosId": 101584,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-palmeira/101584",
+    "title": "Web Radio Palmeira",
+    "streamUrl": "https://live9.livemus.com.br:27582/stream"
+  },
+  "AL|Paripueira|Web Rádio Paripueira FM": {
+    "estado": "AL",
+    "municipio": "Paripueira",
+    "nome": "Web Rádio Paripueira FM",
+    "radiosId": 152968,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-paripueira-fm/152968",
+    "title": "Web Rádio Paripueira FM",
+    "streamUrl": "https://stm2.painelaudiocast.com.br:7468/stream"
+  },
+  "AL|Maceió|Web Rádio Paz Com Deus": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Rádio Paz Com Deus",
+    "radiosId": 292321,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-paz-com-deus/292321",
+    "title": "Web Rádio Paz Com Deus",
+    "streamUrl": "https://trocoradios.shop/listen/web_r%C3%A1dio_paz_com_deus/radio.mp3"
+  },
+  "AL|Palmeira dos Índios|Web Rádio Princesa do Sertão": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Web Rádio Princesa do Sertão",
+    "radiosId": 101190,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-princesa-do-sertao/101190",
+    "title": "Web Rádio Princesa do Sertão",
+    "streamUrl": "https://stream.zeno.fm/inygd0n9yypvv"
+  },
+  "AL|Colônia Leopoldina|Web Rádio Princesa Leopoldina": {
+    "estado": "AL",
+    "municipio": "Colônia Leopoldina",
+    "nome": "Web Rádio Princesa Leopoldina",
+    "radiosId": 250835,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-princesa-leopoldina/250835",
+    "title": "Web Rádio Princesa Leopoldina",
+    "streamUrl": "http://stm.servidordosdeuses.com:6714/stream"
+  },
+  "AL|Maceió|Web Rádio RGB Maceió AL": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Rádio RGB Maceió AL",
+    "radiosId": 163365,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-rgb-maceio-al/163365",
+    "title": "Web Rádio RGB Maceió AL",
+    "streamUrl": null
+  },
+  "AL|Paripueira|Web Rádio RS": {
+    "estado": "AL",
+    "municipio": "Paripueira",
+    "nome": "Web Rádio RS",
+    "radiosId": 44845,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-rs/44845",
+    "title": "Web Rádio RS",
+    "streamUrl": null
+  },
+  "AL|Santana do Ipanema|Web Rádio São José": {
+    "estado": "AL",
+    "municipio": "Santana do Ipanema",
+    "nome": "Web Rádio São José",
+    "radiosId": 240454,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-sao-jose/240454",
+    "title": "Web Rádio São José",
+    "streamUrl": null
+  },
+  "AL|Palmeira dos Índios|Web Rádio São Vicente De Paulo Do Pdi": {
+    "estado": "AL",
+    "municipio": "Palmeira dos Índios",
+    "nome": "Web Rádio São Vicente De Paulo Do Pdi",
+    "radiosId": 184404,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-sao-vicente-de-paulo-do-pdi/184404",
+    "title": "Web Rádio São Vicente De Paulo Do Pdi",
+    "streamUrl": null
+  },
+  "AL|Delmiro Gouveia|Web Rádio Sertão Católico": {
+    "estado": "AL",
+    "municipio": "Delmiro Gouveia",
+    "nome": "Web Rádio Sertão Católico",
+    "radiosId": 278898,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-sertao-catolico/278898",
+    "title": "Web Rádio Sertão Católico",
+    "streamUrl": null
+  },
+  "AL|São Miguel dos Campos|Web Rádio Som do Reino": {
+    "estado": "AL",
+    "municipio": "São Miguel dos Campos",
+    "nome": "Web Rádio Som do Reino",
+    "radiosId": 65353,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-som-do-reino/65353",
+    "title": "Web Rádio Som do Reino",
+    "streamUrl": null
+  },
+  "AL|Senador Rui Palmeira|Web Rádio SRP": {
+    "estado": "AL",
+    "municipio": "Senador Rui Palmeira",
+    "nome": "Web Rádio SRP",
+    "radiosId": 262363,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-srp/262363",
+    "title": "Web Rádio SRP",
+    "streamUrl": null
+  },
+  "AL|Maceió|Web Rádio Talismã": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Rádio Talismã",
+    "radiosId": 116199,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-talisma/116199",
+    "title": "Web Rádio Talismã",
+    "streamUrl": null
+  },
+  "AL|Mata Grande|Web Rádio Terra Nova FM": {
+    "estado": "AL",
+    "municipio": "Mata Grande",
+    "nome": "Web Rádio Terra Nova FM",
+    "radiosId": 272400,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-terra-nova-fm/272400",
+    "title": "Web Rádio Terra Nova FM",
+    "streamUrl": null
+  },
+  "AL|Maceió|Web Rádio Tesouras": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Web Rádio Tesouras",
+    "radiosId": 61125,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-tesouras/61125",
+    "title": "Web Rádio Tesouras",
+    "streamUrl": null
+  },
+  "AL|Barra de Santo Antônio|Web Rádio Tropical": {
+    "estado": "AL",
+    "municipio": "Barra de Santo Antônio",
+    "nome": "Web Rádio Tropical",
+    "radiosId": 280830,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-tropical/280830",
+    "title": "Web Rádio Tropical",
+    "streamUrl": null
+  },
+  "AL|Paripueira|Web Rádio Verdes Mares Paripueira": {
+    "estado": "AL",
+    "municipio": "Paripueira",
+    "nome": "Web Rádio Verdes Mares Paripueira",
+    "radiosId": 190394,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-verdes-mares-paripueira/190394",
+    "title": "Web Rádio Verdes Mares Paripueira",
+    "streamUrl": null
+  },
+  "AL|Atalaia|Web Rádio Xodó": {
+    "estado": "AL",
+    "municipio": "Atalaia",
+    "nome": "Web Rádio Xodó",
+    "radiosId": 236045,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-xodo/236045",
+    "title": "Web Rádio Xodó",
+    "streamUrl": null
+  },
+  "AL|Maceió|WebRadio Maceió": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "WebRadio Maceió",
+    "radiosId": 40138,
+    "radiosUrl": "https://www.radios.com.br/aovivo/webradio-maceio/40138",
+    "title": "WebRadio Maceió",
+    "streamUrl": null
+  },
+  "AL|Maceió|A Melhor Estação": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "A Melhor Estação",
+    "radiosId": 135010,
+    "radiosUrl": "https://www.radios.com.br/aovivo/a-melhor-estacao/135010",
+    "title": "A Melhor Estação",
+    "streamUrl": null
+  },
+  "AL|Maceió|Category FM": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Category FM",
+    "radiosId": 44614,
+    "radiosUrl": "https://www.radios.com.br/aovivo/category-fm/44614",
+    "title": "Category FM",
+    "streamUrl": null
+  },
+  "AL|Maceió|Frequência Hits Nordeste": {
+    "estado": "AL",
+    "municipio": "Maceió",
+    "nome": "Frequência Hits Nordeste",
+    "radiosId": 246851,
+    "radiosUrl": "https://www.radios.com.br/aovivo/frequencia-hits-nordeste/246851",
+    "title": "Frequência Hits Nordeste",
+    "streamUrl": null
+  },
+  "AL|São José da Laje|Comércio Lajense": {
+    "estado": "AL",
+    "municipio": "São José da Laje",
+    "nome": "Comércio Lajense",
+    "radiosId": 275283,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-comercio-lajense/275283",
+    "title": "Rádio Comércio Lajense",
+    "streamUrl": null
+  },
+  "AL|Delmiro Gouveia|Jovem FM Bossa Nova": {
+    "estado": "AL",
+    "municipio": "Delmiro Gouveia",
+    "nome": "Jovem FM Bossa Nova",
+    "radiosId": 51226,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-jovem-fm-bossa-nova/51226",
+    "title": "Rádio Jovem FM Bossa Nova",
+    "streamUrl": null
+  },
+  "AL|Rio Largo|Mundaú Web": {
+    "estado": "AL",
+    "municipio": "Rio Largo",
+    "nome": "Mundaú Web",
+    "radiosId": 250691,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-mundau-web/250691",
+    "title": "Rádio Mundaú Web",
+    "streamUrl": null
+  },
+  "AL|Porto Real do Colégio|Web Real": {
+    "estado": "AL",
+    "municipio": "Porto Real do Colégio",
+    "nome": "Web Real",
+    "radiosId": 269661,
+    "radiosUrl": "https://www.radios.com.br/aovivo/radio-web-real/269661",
+    "title": "Rádio Web Real",
+    "streamUrl": null
+  },
+  "AL|Jundiá|Web Rádio M Studio": {
+    "estado": "AL",
+    "municipio": "Jundiá",
+    "nome": "Web Rádio M Studio",
+    "radiosId": 51816,
+    "radiosUrl": "https://www.radios.com.br/aovivo/web-radio-m-studio/51816",
+    "title": "Web Rádio M Studio",
+    "streamUrl": null
   }
 }

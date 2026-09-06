@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { geoMercator, geoPath, type GeoPermissibleObjects } from "d3-geo";
+import { getMunicipioData, nomeMunicipioExibicao } from "@/lib/estados";
 import { getRegiaoCor } from "@/lib/regioes";
 import type { EmissorasData, GeoCollection } from "@/types";
 
@@ -59,7 +60,7 @@ export default function MapaEstado({
 
     const generated: PathItem[] = geo.features.map((feature) => {
       const name = feature.properties.name;
-      const dados = emissorasEstado[name];
+      const dados = getMunicipioData(emissorasEstado, name, estado)?.dados;
       const centroid = pathGenerator.centroid(feature as GeoPermissibleObjects);
       const regiao = dados?.regiao ?? null;
       return {
@@ -81,13 +82,13 @@ export default function MapaEstado({
     const topPorRadios = [...generated]
       .filter((p) => p.hasRadios && !p.isCapital)
       .sort((a, b) => b.radiosCount - a.radiosCount)
-      .slice(0, estado === "BA" ? 6 : 3);
+      .slice(0, estado === "BA" ? 6 : estado === "AL" ? 4 : 3);
 
     const labelNames = new Set([
       ...capital.map((p) => p.name),
       ...topPorRadios.map((p) => p.name),
     ]);
-    if (municipioSelecionado) labelNames.add(municipioSelecionado);
+    if (municipioSelecionado) labelNames.add(nomeMunicipioExibicao(municipioSelecionado));
 
     const labels = generated.filter((p) => labelNames.has(p.name) && p.hasRadios);
 
@@ -117,6 +118,11 @@ export default function MapaEstado({
     );
   }
 
+  const tooltipNome = municipioSelecionado ?? hovered ?? "";
+  const tooltipRegiao = tooltipNome
+    ? getMunicipioData(emissorasEstado, tooltipNome, estado)?.dados.regiao
+    : undefined;
+
   return (
     <div className="relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 via-emerald-50/30 to-amber-50/20 p-4 shadow-sm">
       <svg
@@ -126,7 +132,7 @@ export default function MapaEstado({
         aria-label={`Mapa interativo dos municípios — ${estado}`}
       >
         {paths.map(({ name, d, hasRadios, regiao, isCapital }) => {
-          const isSelected = municipioSelecionado === name;
+          const isSelected = nomeMunicipioExibicao(municipioSelecionado ?? "") === name;
           const isHovered = hovered === name;
           const inFilter = !regiaoFiltro || (hasRadios && regiao === regiaoFiltro);
 
@@ -150,7 +156,7 @@ export default function MapaEstado({
 
         {labels.map(({ name, cx, cy, isCapital, radiosCount }) => {
           if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
-          const isSelected = municipioSelecionado === name;
+          const isSelected = nomeMunicipioExibicao(municipioSelecionado ?? "") === name;
           return (
             <g
               key={`label-${name}`}
@@ -190,11 +196,9 @@ export default function MapaEstado({
 
       {(hovered || municipioSelecionado) && (
         <div className="pointer-events-none absolute bottom-4 left-4 rounded-lg bg-slate-900/85 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur">
-          {municipioSelecionado ?? hovered}
-          {emissorasEstado[municipioSelecionado ?? hovered ?? ""] && (
-            <span className="ml-2 text-emerald-300">
-              · {emissorasEstado[municipioSelecionado ?? hovered ?? ""]?.regiao}
-            </span>
+          {nomeMunicipioExibicao(tooltipNome)}
+          {tooltipRegiao && (
+            <span className="ml-2 text-emerald-300">· {tooltipRegiao}</span>
           )}
         </div>
       )}

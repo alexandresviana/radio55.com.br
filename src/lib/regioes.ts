@@ -18,6 +18,11 @@ export const REGIOES_SUGERIDAS = [
   "Nordeste Baiano",
   "Sul Baiano",
   "Vale São-Franciscano da Bahia",
+  "Capital Maceió",
+  "Agreste Alagoano",
+  "Leste Alagoano",
+  "Região Metropolitana de Maceió",
+  "Sertão Alagoano",
 ] as const;
 
 export function getRegioesFromData(data: EmissorasData): string[] {
@@ -48,8 +53,14 @@ export const REGIAO_CORES: Record<string, string> = {
   "Nordeste Baiano": "#0891b2",
   "Sul Baiano": "#ca8a04",
   "Vale São-Franciscano da Bahia": "#db2777",
+  "Capital Maceió": "#059669",
+  "Agreste Alagoano": "#0284c7",
+  "Leste Alagoano": "#0891b2",
+  "Região Metropolitana de Maceió": "#7c3aed",
+  "Sertão Alagoano": "#d97706",
   BA: "#0d9488",
   SE: "#059669",
+  AL: "#0ea5e9",
 };
 
 export function getRegiaoCor(regiao: string): string {

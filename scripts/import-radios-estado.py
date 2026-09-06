@@ -16,8 +16,9 @@ import cloudscraper
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_UF = "bahia"
 UF_META = {
-    "bahia": {"sigla": "BA", "geo": ROOT / "public/data/bahia-mun.json"},
-    "sergipe": {"sigla": "SE", "geo": ROOT / "public/data/sergipe-mun.json"},
+    "bahia": {"sigla": "BA", "id": 5, "geo": ROOT / "public/data/bahia-mun.json"},
+    "sergipe": {"sigla": "SE", "id": 26, "geo": ROOT / "public/data/sergipe-mun.json"},
+    "alagoas": {"sigla": "AL", "id": 2, "geo": ROOT / "public/data/alagoas-mun.json"},
 }
 
 scraper = cloudscraper.create_scraper(
@@ -98,14 +99,14 @@ def parse_listing(html: str, uf_sigla: str) -> list[dict]:
     return items
 
 
-def scrape_state_radios(uf_slug: str, uf_sigla: str) -> list[dict]:
+def scrape_state_radios(uf_slug: str, uf_sigla: str, uf_id: int) -> list[dict]:
     all_radios: dict[int, dict] = {}
     for kind in ("fm", "am", "web"):
         pg = 0
         empty = 0
         while pg < 120:
             suffix = f"?pg={pg}" if pg else ""
-            url = f"https://www.radios.com.br/radio/uf/{uf_slug}/5/{kind}{suffix}"
+            url = f"https://www.radios.com.br/radio/uf/{uf_slug}/{uf_id}/{kind}{suffix}"
             html = fetch(url)
             items = parse_listing(html, uf_sigla)
             new = 0
@@ -125,8 +126,8 @@ def scrape_state_radios(uf_slug: str, uf_sigla: str) -> list[dict]:
     return list(all_radios.values())
 
 
-def scrape_city_regions(uf_slug: str, uf_sigla: str) -> dict[str, str]:
-    html = fetch(f"https://www.radios.com.br/lista/uf/{uf_slug}/5")
+def scrape_city_regions(uf_slug: str, uf_sigla: str, uf_id: int) -> dict[str, str]:
+    html = fetch(f"https://www.radios.com.br/lista/uf/{uf_slug}/{uf_id}")
     regions = re.findall(
         r'href="(https://www\.radios\.com\.br/lista/regiao/[^"]+)"[^>]*>\s*([^<]+?)\s*</a>',
         html,
@@ -269,11 +270,11 @@ def main() -> None:
         radios = json.loads(cache_path.read_text(encoding="utf-8"))
         print(f"cache: {len(radios)} rádios")
     else:
-        radios = scrape_state_radios(args.uf, uf_sigla)
+        radios = scrape_state_radios(args.uf, uf_sigla, meta["id"])
         cache_path.parent.mkdir(parents=True, exist_ok=True)
         cache_path.write_text(json.dumps(radios, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    city_regions = scrape_city_regions(args.uf, uf_sigla) if uf_sigla == "BA" else {}
+    city_regions = scrape_city_regions(args.uf, uf_sigla, meta["id"]) if uf_sigla in {"BA", "AL"} else {}
     print(f"regiões/cidades: {len(city_regions)}")
 
     streams = fetch_streams(radios, workers=args.workers)

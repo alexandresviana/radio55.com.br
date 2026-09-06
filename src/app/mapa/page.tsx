@@ -6,7 +6,7 @@ import FiltroRegiao from "@/components/FiltroRegiao";
 import Header from "@/components/Header";
 import MapaEstado from "@/components/MapaEstado";
 import PainelRadios from "@/components/PainelRadios";
-import { ESTADOS, UF_PADRAO, type Uf } from "@/lib/estados";
+import { ESTADOS, UF_PADRAO, getMunicipioData, type Uf } from "@/lib/estados";
 import { getRegioesFromData } from "@/lib/regioes";
 import type { EmissorasData } from "@/types";
 
@@ -50,7 +50,7 @@ export default function MapaPage() {
   function handleRegiaoChange(regiao: string | null) {
     setRegiaoFiltro(regiao);
     if (municipioSelecionado && regiao) {
-      const dados = emissorasEstado[municipioSelecionado];
+      const dados = getMunicipioData(emissorasEstado, municipioSelecionado, estado)?.dados;
       if (dados && dados.regiao !== regiao) setMunicipioSelecionado(null);
     }
   }
