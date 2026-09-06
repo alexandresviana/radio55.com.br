@@ -97,6 +97,14 @@ export class WhisperWorker {
     this.kill();
   }
 
+  isAlive(): boolean {
+    return Boolean(this.proc && !this.proc.killed && this.proc.exitCode == null);
+  }
+
+  pid(): number | null {
+    return this.proc?.pid && this.proc.exitCode == null ? this.proc.pid : null;
+  }
+
   private async ensure(): Promise<void> {
     if (this.proc && this.ready && !this.proc.killed) return;
     if (this.starting) {

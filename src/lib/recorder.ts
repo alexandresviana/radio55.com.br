@@ -87,6 +87,8 @@ interface ActiveRecording {
   nome: string;
   filePath: string;
   bytesPerSecond: number;
+  copy: boolean;
+  codec: string | null;
   intentionalStop: boolean;
   stopReason?: StopReason;
   rotateTimer: NodeJS.Timeout;
@@ -105,7 +107,25 @@ export interface RecordingStatus {
   ultimoArquivo: string | null;
   arquivoAtual: string | null;
   tamanhoAtualBytes: number | null;
+  encode: "copy" | "lame" | null;
+  codec: string | null;
   erro: string | null;
+}
+
+export interface ActiveRecordingDiagnosticoItem {
+  key: string;
+  municipio: string;
+  nome: string;
+  encode: "copy" | "lame";
+  codec: string | null;
+}
+
+export interface ActiveRecordingDiagnostico {
+  marcadas: number;
+  gravando: number;
+  copy: number;
+  lame: number;
+  itens: ActiveRecordingDiagnosticoItem[];
 }
 
 type RecorderGlobal = typeof globalThis & {
@@ -158,6 +178,7 @@ class RecorderService {
   private shuttingDown = false;
   private syncing = false;
   private syncAgain = false;
+  private radiosMarcadas = 0;
 
   async start(): Promise<void> {
     if (this.started) return;
@@ -209,6 +230,23 @@ class RecorderService {
     return new Set([...this.recordings.values()].map((item) => item.filePath));
   }
 
+  getDiagnostico(): ActiveRecordingDiagnostico {
+    const itens = [...this.recordings.entries()].map(([key, recording]) => ({
+      key,
+      municipio: recording.municipio,
+      nome: recording.nome,
+      encode: (recording.copy ? "copy" : "lame") as "copy" | "lame",
+      codec: recording.codec,
+    }));
+    return {
+      marcadas: this.radiosMarcadas,
+      gravando: itens.length,
+      copy: itens.filter((item) => item.encode === "copy").length,
+      lame: itens.filter((item) => item.encode === "lame").length,
+      itens,
+    };
+  }
+
   bytesPerSecondFor(filePath: string): number {
     for (const recording of this.recordings.values()) {
       if (recording.filePath === filePath) return recording.bytesPerSecond;
@@ -243,9 +281,11 @@ class RecorderService {
     try {
       const emissoras = await readEmissoras();
       const desired = new Set<string>();
+      let marcadas = 0;
 
       for (const [municipio, data] of Object.entries(emissoras)) {
         for (const radio of data.radios) {
+          if (radio.gravar) marcadas += 1;
           if (!radioDeveGravarAgora(radio)) continue;
 
           const key = makeStreamKey(municipio, radio.nome);
@@ -256,6 +296,8 @@ class RecorderService {
           }
         }
       }
+
+      this.radiosMarcadas = marcadas;
 
       for (const key of this.recordings.keys()) {
         if (!desired.has(key)) {
@@ -393,11 +435,18 @@ class RecorderService {
       nome,
       filePath: outputFile,
       bytesPerSecond: output.bytesPerSecond,
+      copy: output.copy,
+      codec: probe.codec,
       intentionalStop: false,
       rotateTimer,
     };
 
     this.recordings.set(key, recording);
+    if (process.env.WHISPER_ENABLED !== "false") {
+      void import("@/lib/transcription").then((mod) => {
+        void mod.startTranscriptionService();
+      });
+    }
 
     proc.stderr?.on("data", (chunk: Buffer) => {
       const message = chunk.toString().trim();
@@ -598,6 +647,8 @@ class RecorderService {
           ultimoArquivo: arquivoAtual ?? files.at(-1) ?? null,
           arquivoAtual,
           tamanhoAtualBytes,
+          encode: recording ? (recording.copy ? "copy" : "lame") : null,
+          codec: recording?.codec ?? null,
           erro: dentroDaFaixa
             ? erroAtivo
             : erroAtivo ?? `Fora da faixa (${rotuloFaixaGravacao(radio) ?? "—"})`,
@@ -651,6 +702,10 @@ export async function getRecordingStatus(): Promise<RecordingStatus[]> {
 
 export function getActiveRecordingPaths(): Set<string> {
   return getService().getActivePaths();
+}
+
+export function getActiveRecordingDiagnostico(): ActiveRecordingDiagnostico {
+  return getService().getDiagnostico();
 }
 
 export function getRecordingBytesPerSecond(filePath: string): number {

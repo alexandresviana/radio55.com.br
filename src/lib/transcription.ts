@@ -52,6 +52,11 @@ class TranscriptionService {
       return;
     }
 
+    if (getActiveRecordingPaths().size === 0) {
+      console.info("[transcription] sem rádios gravando — Whisper não iniciado");
+      return;
+    }
+
     if (!tryAcquireWhisperLeadership()) {
       this.scheduleLeadershipRetry();
       return;
@@ -101,6 +106,8 @@ class TranscriptionService {
     return {
       ativo: this.started,
       ocupado: this.busy,
+      workerVivo: this.worker.isAlive(),
+      workerPid: this.worker.pid(),
       whisperDisponivel: this.whisperReady,
       erro: this.lastError,
     };
@@ -110,7 +117,13 @@ class TranscriptionService {
     if (this.busy || !isDatabaseConfigured()) return;
 
     const activePaths = [...getActiveRecordingPaths()];
-    if (activePaths.length === 0) return;
+    if (activePaths.length === 0) {
+      if (this.worker.isAlive()) {
+        this.worker.stop();
+        console.info("[transcription] sem rádios gravando — Whisper encerrado");
+      }
+      return;
+    }
 
     this.busy = true;
     try {

@@ -15,7 +15,24 @@ interface RecordingStatusItem {
   arquivos: number;
   arquivoAtual: string | null;
   tamanhoAtualBytes: number | null;
+  encode?: "copy" | "lame" | null;
+  codec?: string | null;
   erro: string | null;
+}
+
+interface DiagnosticoCpu {
+  whisper_habilitado: boolean;
+  whisper_modelo: string;
+  whisper_threads: number;
+  whisper_ativo: boolean;
+  whisper_ocupado: boolean;
+  whisper_worker_vivo: boolean;
+  whisper_processos: number;
+  ffmpeg_copy: number;
+  ffmpeg_lame: number;
+  radios_marcadas: number;
+  radios_gravando: number;
+  alerta: string | null;
 }
 
 interface DeteccaoItem {
@@ -66,14 +83,16 @@ export default function GravacoesAtivas() {
   const [totalDeteccoes, setTotalDeteccoes] = useState(0);
   const [statusErro, setStatusErro] = useState("");
   const [statusCarregando, setStatusCarregando] = useState(true);
+  const [diagnostico, setDiagnostico] = useState<DiagnosticoCpu | null>(null);
 
   const carregar = useCallback(async () => {
-    const [statusRes, deteccoesRes, transcricoesRes] = await Promise.all([
+    const [statusRes, deteccoesRes, transcricoesRes, diagnosticoRes] = await Promise.all([
       fetch("/api/gravacoes/status"),
       fetch(
         `/api/deteccoes?ao_vivo=1&limite=${POR_PAGINA_ADMIN}&offset=${paginaDeteccoes * POR_PAGINA_ADMIN}`,
       ),
       fetch("/api/transcricoes?ao_vivo=1"),
+      fetch("/api/diagnostico"),
     ]);
 
     if (statusRes.ok) {
@@ -108,6 +127,10 @@ export default function GravacoesAtivas() {
       };
       setPreviews(data.previews ?? []);
       setTranscricaoAtiva((prev) => prev || Boolean(data.transcricao?.ativo));
+    }
+
+    if (diagnosticoRes.ok) {
+      setDiagnostico((await diagnosticoRes.json()) as DiagnosticoCpu);
     }
   }, [paginaDeteccoes]);
 
@@ -182,11 +205,19 @@ export default function GravacoesAtivas() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {transcricaoAtiva && (
+            {diagnostico?.whisper_worker_vivo ? (
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                Whisper {diagnostico.whisper_ocupado ? "ocupado" : "vivo"}
+              </span>
+            ) : transcricaoAtiva ? (
               <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
                 Transcrição ativa
               </span>
-            )}
+            ) : diagnostico && !diagnostico.whisper_habilitado ? (
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                Whisper desligado
+              </span>
+            ) : null}
             {gravacoes.length > 0 && (
               <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
                 {gravando}/{gravacoes.length} gravando
@@ -202,6 +233,24 @@ export default function GravacoesAtivas() {
             </button>
           </div>
         </div>
+
+        {diagnostico && (
+          <p className="mt-3 text-xs text-amber-900">
+            CPU · {diagnostico.radios_gravando}/{diagnostico.radios_marcadas} gravando · ffmpeg{" "}
+            {diagnostico.ffmpeg_copy} copy / {diagnostico.ffmpeg_lame} lame · Whisper{" "}
+            {diagnostico.whisper_habilitado
+              ? `${diagnostico.whisper_modelo} · ${diagnostico.whisper_threads} thread · ${
+                  diagnostico.whisper_worker_vivo ? "processo vivo" : "parado"
+                }`
+              : "desligado neste tenant"}
+            {diagnostico.whisper_processos > 1
+              ? ` · ${diagnostico.whisper_processos} workers`
+              : ""}
+          </p>
+        )}
+        {diagnostico?.alerta && (
+          <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{diagnostico.alerta}</p>
+        )}
 
         {statusErro && (
           <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{statusErro}</p>
@@ -243,6 +292,18 @@ export default function GravacoesAtivas() {
                       ? "Fora da faixa"
                       : "Parado"}
                 </span>
+                {item.ativo && item.encode && (
+                  <span
+                    className={`rounded-full px-2 py-0.5 font-medium ${
+                      item.encode === "lame"
+                        ? "bg-orange-100 text-orange-800"
+                        : "bg-slate-100 text-slate-600"
+                    }`}
+                    title={item.codec ? `fonte ${item.codec}` : undefined}
+                  >
+                    {item.encode === "lame" ? `lame (${item.codec ?? "?"})` : `copy ${item.codec ?? "mp3"}`}
+                  </span>
+                )}
                 <span className="text-slate-500">{item.arquivos} arquivo(s)</span>
                 {item.tamanhoAtualBytes != null && (
                   <span className="font-medium text-emerald-700">
