@@ -6,6 +6,7 @@ export interface MetaAdsPalavraDeteccao {
   palavra_chave_id: number | null;
   ad_db_id: number;
   termo: string;
+  ancora_termo: string;
   contexto: string;
   detectado_em: string;
   ad_url: string;
@@ -20,6 +21,7 @@ export async function registrarDeteccaoMetaAds(input: {
   adDbId: number;
   termo: string;
   contexto: string;
+  ancoraTermo?: string | null;
 }): Promise<MetaAdsPalavraDeteccao | null> {
   if (!isDatabaseConfigured()) return null;
 
@@ -36,10 +38,16 @@ export async function registrarDeteccaoMetaAds(input: {
   }
 
   const result = await getPool().query<{ id: number }>(
-    `INSERT INTO meta_ads_palavra_deteccoes (palavra_chave_id, ad_db_id, termo, contexto)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO meta_ads_palavra_deteccoes (palavra_chave_id, ad_db_id, termo, contexto, ancora_termo)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING id`,
-    [input.palavraChaveId, input.adDbId, input.termo, input.contexto],
+    [
+      input.palavraChaveId,
+      input.adDbId,
+      input.termo,
+      input.contexto,
+      input.ancoraTermo?.trim() || "",
+    ],
   );
 
   const id = result.rows[0]?.id;
@@ -58,6 +66,7 @@ export async function obterDeteccaoMetaAdsPorId(
        d.palavra_chave_id,
        d.ad_db_id,
        d.termo,
+       COALESCE(d.ancora_termo, '') AS ancora_termo,
        d.contexto,
        d.detectado_em,
        ads.url AS ad_url,
@@ -124,6 +133,7 @@ export async function buscarDeteccoesMetaAds(params: {
        d.palavra_chave_id,
        d.ad_db_id,
        d.termo,
+       COALESCE(d.ancora_termo, '') AS ancora_termo,
        d.contexto,
        d.detectado_em,
        ads.url AS ad_url,

@@ -2,6 +2,11 @@ import {
   listarMetaAdsBuscasAtivas,
   obterMetaAdPorId,
 } from "@/lib/meta-ads-db";
+import {
+  contextoComAncora,
+  filtrarMatchesPorAncora,
+  resolverAncoraNoTexto,
+} from "@/lib/assunto-papel";
 import { registrarDeteccaoMetaAds } from "@/lib/meta-ads-deteccoes-db";
 import { listarPalavrasChaveAtivas, type PalavraChave } from "@/lib/palavras-chave-db";
 import { encontrarPalavrasNoTexto, normalizeText } from "@/lib/text-normalize";
@@ -56,11 +61,16 @@ export async function listarTermosDeteccaoMetaAds(
 export async function registrarDeteccaoDeBuscaMetaAds(
   adDbId: number,
   termo: string,
+  palavrasCache?: PalavraChave[],
 ): Promise<void> {
   const ad = await obterMetaAdPorId(adDbId);
   if (!ad) return;
 
   const texto = textoDoAnuncio(ad);
+  const palavras = palavrasCache ?? (await listarPalavrasChaveAtivas());
+  const ancora = resolverAncoraNoTexto(texto, termo, palavras);
+  if (!ancora.ok) return;
+
   const textoNormalizado = normalizeText(texto);
   const termoNormalizado = normalizeText(termo);
   const posicao = textoNormalizado.indexOf(termoNormalizado);
@@ -75,7 +85,8 @@ export async function registrarDeteccaoDeBuscaMetaAds(
     palavraChaveId: null,
     adDbId,
     termo,
-    contexto,
+    contexto: contextoComAncora(contexto, ancora.ancoraTermo),
+    ancoraTermo: ancora.ancoraTermo,
   });
 }
 
@@ -89,32 +100,32 @@ export async function escanearDeteccoesMetaAd(
   const texto = textoDoAnuncio(ad);
   if (!texto.trim()) return 0;
 
-  const termos = await listarTermosDeteccaoMetaAds(palavrasCache);
+  const palavras = palavrasCache ?? (await listarPalavrasChaveAtivas());
+  const termos = await listarTermosDeteccaoMetaAds(palavras);
   if (termos.length === 0) return 0;
 
   const textoNormalizado = normalizeText(texto);
-  const matches = encontrarPalavrasNoTexto(
-    texto,
-    termos.map((t) => t.termo),
+  const matches = filtrarMatchesPorAncora(
+    encontrarPalavrasNoTexto(
+      texto,
+      termos.map((t) => t.termo),
+    ),
+    palavras,
   );
 
   let total = 0;
-  const termosVistos = new Set<string>();
 
-  for (const match of matches) {
-    if (termosVistos.has(match.termo)) continue;
-    termosVistos.add(match.termo);
-
+  for (const { match, ancoraTermo } of matches) {
     const meta = termos.find((t) => t.termo === match.termo);
     const registrada = await registrarDeteccaoMetaAds({
       palavraChaveId: meta?.palavraChaveId ?? null,
       adDbId,
       termo: match.termo,
-      contexto: montarContexto(
-        textoNormalizado,
-        match.posicao,
-        normalizeText(match.termo),
+      contexto: contextoComAncora(
+        montarContexto(textoNormalizado, match.posicao, normalizeText(match.termo)),
+        ancoraTermo,
       ),
+      ancoraTermo,
     });
 
     if (registrada) total += 1;

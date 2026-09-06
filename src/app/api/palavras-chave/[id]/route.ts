@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { parsePapel } from "@/lib/assunto-papel";
 import { isDatabaseConfigured } from "@/lib/db";
 import {
   atualizarPalavraChave,
@@ -33,6 +34,8 @@ export async function PATCH(
     coletarInstagram?: boolean;
     coletarX?: boolean;
     coletarMetaAds?: boolean;
+    papel?: string | null;
+    requerPapel?: string | null;
   };
   try {
     body = (await request.json()) as {
@@ -40,19 +43,24 @@ export async function PATCH(
       coletarInstagram?: boolean;
       coletarX?: boolean;
       coletarMetaAds?: boolean;
+      papel?: string | null;
+      requerPapel?: string | null;
     };
   } catch {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
+  const papelInformado = "papel" in body || "requerPapel" in body;
+
   if (
     typeof body.ativo !== "boolean" &&
     typeof body.coletarInstagram !== "boolean" &&
     typeof body.coletarX !== "boolean" &&
-    typeof body.coletarMetaAds !== "boolean"
+    typeof body.coletarMetaAds !== "boolean" &&
+    !papelInformado
   ) {
     return NextResponse.json(
-      { error: "Informe ativo, coletarInstagram, coletarX e/ou coletarMetaAds" },
+      { error: "Informe ativo, coleta ou papel do assunto" },
       { status: 400 },
     );
   }
@@ -64,6 +72,12 @@ export async function PATCH(
     coletarX: typeof body.coletarX === "boolean" ? body.coletarX : undefined,
     coletarMetaAds:
       typeof body.coletarMetaAds === "boolean" ? body.coletarMetaAds : undefined,
+    ...(papelInformado
+      ? {
+          papel: parsePapel(body.papel),
+          requerPapel: parsePapel(body.requerPapel),
+        }
+      : {}),
   });
 
   if (!palavra) {

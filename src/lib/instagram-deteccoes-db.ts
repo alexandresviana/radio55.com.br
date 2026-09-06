@@ -7,6 +7,7 @@ export interface InstagramPalavraDeteccao {
   post_db_id: number;
   comentario_db_id: number | null;
   termo: string;
+  ancora_termo: string;
   contexto: string;
   detectado_em: string;
   post_url: string;
@@ -24,6 +25,7 @@ export async function registrarDeteccaoInstagram(input: {
   comentarioDbId?: number | null;
   termo: string;
   contexto: string;
+  ancoraTermo?: string | null;
 }): Promise<InstagramPalavraDeteccao | null> {
   if (!isDatabaseConfigured()) return null;
 
@@ -45,11 +47,18 @@ export async function registrarDeteccaoInstagram(input: {
 
   const result = await getPool().query<{ id: number }>(
     `INSERT INTO instagram_palavra_deteccoes (
-       palavra_chave_id, post_db_id, comentario_db_id, termo, contexto
+       palavra_chave_id, post_db_id, comentario_db_id, termo, contexto, ancora_termo
      )
-     VALUES ($1, $2, $3, $4, $5)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING id`,
-    [input.palavraChaveId, input.postDbId, comentarioDbId, input.termo, input.contexto],
+    [
+      input.palavraChaveId,
+      input.postDbId,
+      comentarioDbId,
+      input.termo,
+      input.contexto,
+      input.ancoraTermo?.trim() || "",
+    ],
   );
 
   const id = result.rows[0]?.id;
@@ -70,6 +79,7 @@ export async function obterDeteccaoInstagramPorId(
        d.post_db_id,
        d.comentario_db_id,
        d.termo,
+       COALESCE(d.ancora_termo, '') AS ancora_termo,
        d.contexto,
        d.detectado_em,
        posts.url AS post_url,
@@ -150,6 +160,7 @@ export async function buscarDeteccoesInstagram(params: {
        d.post_db_id,
        d.comentario_db_id,
        d.termo,
+       COALESCE(d.ancora_termo, '') AS ancora_termo,
        d.contexto,
        d.detectado_em,
        posts.url AS post_url,

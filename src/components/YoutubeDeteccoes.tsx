@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import SeloTermoDeteccao from "@/components/SeloTermoDeteccao";
 import { formatMinutagem } from "@/lib/text-normalize";
 import { youtubeThumbnailUrl } from "@/lib/youtube-thumbnail";
 
 interface DeteccaoItem {
   id: number;
   termo: string;
+  ancora_termo?: string;
   inicio_segundos: number;
   contexto: string;
   detectado_em: string;
@@ -178,7 +180,9 @@ export default function YoutubeDeteccoes() {
                       </a>
                     </td>
                     <td className="px-2 py-3 text-slate-600">{formatDateTime(item.detectado_em)}</td>
-                    <td className="px-2 py-3 font-medium text-slate-900">{item.termo}</td>
+                    <td className="px-2 py-3 font-medium text-slate-900">
+                      <SeloTermoDeteccao termo={item.termo} ancora={item.ancora_termo} />
+                    </td>
                     <td className="px-2 py-3">
                       <div className="font-medium text-slate-800">{item.canal_titulo}</div>
                       <div className="text-xs text-slate-500">{item.video_titulo}</div>

@@ -10,7 +10,8 @@ import {
 import { isDatabaseConfigured, isPgUniqueViolation } from "@/lib/db";
 import { extractMp3Clip, extractWavSegment } from "@/lib/ffmpeg-audio";
 import { obterGravacaoPorCaminho } from "@/lib/gravacoes-db";
-import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
+import { contextoComAncora, filtrarMatchesPorAncora } from "@/lib/assunto-papel";
+import { listarPalavrasChaveAtivas, type PalavraChave } from "@/lib/palavras-chave-db";
 import { salvarSegmentosTranscricao } from "@/lib/transcricoes-db";
 import { getActiveRecordingPaths, getRecordingBytesPerSecond } from "@/lib/recorder";
 import { encontrarPalavrasNoTexto, normalizeText } from "@/lib/text-normalize";
@@ -27,6 +28,7 @@ const OVERLAP_SECONDS = 2;
 const MIN_NEW_SECONDS = 18;
 const LIVE_EDGE_MARGIN_SEC = 12;
 const BYTES_PER_SECOND_PADRAO = 12_000;
+const JANELA_ANCORA_SEGUNDOS = 30;
 
 type TranscriptionGlobal = typeof globalThis & {
   __radio55Transcription?: TranscriptionService;
@@ -128,7 +130,7 @@ class TranscriptionService {
 
   private async processFile(
     filePath: string,
-    keywords: { id: number; termo: string }[],
+    keywords: PalavraChave[],
   ): Promise<void> {
     let fileStat;
     try {
@@ -220,23 +222,36 @@ class TranscriptionService {
     chunkStart: number;
     gravacaoId: number;
     filePath: string;
-    keywords: { id: number; termo: string }[];
+    keywords: PalavraChave[];
   }): Promise<void> {
     const termos = input.keywords.map((item) => item.termo);
     const termoPorNormalizado = new Map(
       input.keywords.map((item) => [normalizeText(item.termo), item]),
     );
 
-    for (const segment of input.segments) {
-      const texto = segment.text.trim();
-      if (!texto) continue;
+    for (let index = 0; index < input.segments.length; index += 1) {
+      const segment = input.segments[index];
+      const textoBase = segment.text.trim();
+      if (!textoBase) continue;
+
+      const janela = segmentosNaJanela(input.segments, index);
+      const textoJanela = janela.map((item) => item.text.trim()).filter(Boolean).join(" ");
+      const matches = filtrarMatchesPorAncora(
+        encontrarPalavrasNoTexto(textoJanela, termos),
+        input.keywords,
+      );
+      const noBase = new Set(
+        encontrarPalavrasNoTexto(textoBase, termos).map((item) => normalizeText(item.termo)),
+      );
 
       const absStart = input.chunkStart + segment.start;
       const absEnd = input.chunkStart + segment.end;
-      const matches = encontrarPalavrasNoTexto(texto, termos);
 
-      for (const match of matches) {
-        const keyword = termoPorNormalizado.get(normalizeText(match.termo));
+      for (const { match, ancoraTermo } of matches) {
+        const chave = normalizeText(match.termo);
+        if (!noBase.has(chave)) continue;
+
+        const keyword = termoPorNormalizado.get(chave);
         if (!keyword) continue;
 
         const deteccao = await registrarDeteccao({
@@ -245,7 +260,8 @@ class TranscriptionService {
           termo: keyword.termo,
           inicioSegundos: absStart,
           fimSegundos: absEnd,
-          contexto: texto,
+          contexto: contextoComAncora(textoBase, ancoraTermo),
+          ancoraTermo,
         });
 
         if (!deteccao) continue;
@@ -260,6 +276,23 @@ class TranscriptionService {
       }
     }
   }
+}
+
+function segmentosNaJanela(segments: WhisperSegment[], index: number): WhisperSegment[] {
+  const base = segments[index];
+  const janela = [base];
+
+  for (let j = index - 1; j >= 0; j -= 1) {
+    if (base.end - segments[j].start > JANELA_ANCORA_SEGUNDOS) break;
+    janela.unshift(segments[j]);
+  }
+
+  for (let j = index + 1; j < segments.length; j += 1) {
+    if (segments[j].end - base.start > JANELA_ANCORA_SEGUNDOS) break;
+    janela.push(segments[j]);
+  }
+
+  return janela;
 }
 
 function getService(): TranscriptionService {

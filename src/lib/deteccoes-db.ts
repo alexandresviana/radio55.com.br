@@ -5,6 +5,7 @@ export interface PalavraDeteccao {
   palavra_chave_id: number | null;
   gravacao_id: number;
   termo: string;
+  ancora_termo: string;
   inicio_segundos: number;
   fim_segundos: number;
   contexto: string;
@@ -60,6 +61,7 @@ export async function registrarDeteccao(input: {
   inicioSegundos: number;
   fimSegundos: number;
   contexto: string;
+  ancoraTermo?: string | null;
   trechoCaminho?: string | null;
 }): Promise<PalavraDeteccao | null> {
   if (!isDatabaseConfigured()) return null;
@@ -80,9 +82,9 @@ export async function registrarDeteccao(input: {
 
   const result = await getPool().query<{ id: number }>(
     `INSERT INTO palavra_deteccoes (
-       palavra_chave_id, gravacao_id, termo, inicio_segundos, fim_segundos, contexto, trecho_caminho
+       palavra_chave_id, gravacao_id, termo, inicio_segundos, fim_segundos, contexto, trecho_caminho, ancora_termo
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING id`,
     [
       input.palavraChaveId,
@@ -92,6 +94,7 @@ export async function registrarDeteccao(input: {
       input.fimSegundos,
       input.contexto,
       input.trechoCaminho ?? null,
+      input.ancoraTermo?.trim() || "",
     ],
   );
 
@@ -110,6 +113,7 @@ export async function obterDeteccaoPorId(id: number): Promise<PalavraDeteccao | 
        d.palavra_chave_id,
        d.gravacao_id,
        d.termo,
+       COALESCE(d.ancora_termo, '') AS ancora_termo,
        d.inicio_segundos,
        d.fim_segundos,
        d.contexto,
@@ -145,6 +149,7 @@ export async function buscarDeteccoes(
        d.palavra_chave_id,
        d.gravacao_id,
        d.termo,
+       COALESCE(d.ancora_termo, '') AS ancora_termo,
        d.inicio_segundos,
        d.fim_segundos,
        d.contexto,

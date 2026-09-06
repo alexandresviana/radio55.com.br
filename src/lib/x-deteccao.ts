@@ -1,4 +1,9 @@
 import { listarXBuscasAtivas, obterXPostPorId } from "@/lib/x-db";
+import {
+  contextoComAncora,
+  filtrarMatchesPorAncora,
+  resolverAncoraNoTexto,
+} from "@/lib/assunto-papel";
 import { registrarDeteccaoX } from "@/lib/x-deteccoes-db";
 import { listarPalavrasChaveAtivas, type PalavraChave } from "@/lib/palavras-chave-db";
 import { encontrarPalavrasNoTexto, normalizeText } from "@/lib/text-normalize";
@@ -48,9 +53,17 @@ export async function listarTermosDeteccaoX(
 }
 
 /** Post encontrado por uma busca monitorada conta como detecção do próprio termo. */
-export async function registrarDeteccaoDeBuscaX(postDbId: number, termo: string): Promise<void> {
+export async function registrarDeteccaoDeBuscaX(
+  postDbId: number,
+  termo: string,
+  palavrasCache?: PalavraChave[],
+): Promise<void> {
   const post = await obterXPostPorId(postDbId);
   if (!post) return;
+
+  const palavras = palavrasCache ?? (await listarPalavrasChaveAtivas());
+  const ancora = resolverAncoraNoTexto(post.texto, termo, palavras);
+  if (!ancora.ok) return;
 
   const textoNormalizado = normalizeText(post.texto);
   const termoNormalizado = normalizeText(termo);
@@ -66,7 +79,8 @@ export async function registrarDeteccaoDeBuscaX(postDbId: number, termo: string)
     palavraChaveId: null,
     postDbId,
     termo,
-    contexto,
+    contexto: contextoComAncora(contexto, ancora.ancoraTermo),
+    ancoraTermo: ancora.ancoraTermo,
   });
 }
 
@@ -77,32 +91,32 @@ export async function escanearDeteccoesPostX(
   const post = await obterXPostPorId(postDbId);
   if (!post || !post.texto.trim()) return 0;
 
-  const termos = await listarTermosDeteccaoX(palavrasCache);
+  const palavras = palavrasCache ?? (await listarPalavrasChaveAtivas());
+  const termos = await listarTermosDeteccaoX(palavras);
   if (termos.length === 0) return 0;
 
   const textoNormalizado = normalizeText(post.texto);
-  const matches = encontrarPalavrasNoTexto(
-    post.texto,
-    termos.map((t) => t.termo),
+  const matches = filtrarMatchesPorAncora(
+    encontrarPalavrasNoTexto(
+      post.texto,
+      termos.map((t) => t.termo),
+    ),
+    palavras,
   );
 
   let total = 0;
-  const termosVistos = new Set<string>();
 
-  for (const match of matches) {
-    if (termosVistos.has(match.termo)) continue;
-    termosVistos.add(match.termo);
-
+  for (const { match, ancoraTermo } of matches) {
     const meta = termos.find((t) => t.termo === match.termo);
     const registrada = await registrarDeteccaoX({
       palavraChaveId: meta?.palavraChaveId ?? null,
       postDbId,
       termo: match.termo,
-      contexto: montarContexto(
-        textoNormalizado,
-        match.posicao,
-        normalizeText(match.termo),
+      contexto: contextoComAncora(
+        montarContexto(textoNormalizado, match.posicao, normalizeText(match.termo)),
+        ancoraTermo,
       ),
+      ancoraTermo,
     });
 
     if (registrada) total += 1;

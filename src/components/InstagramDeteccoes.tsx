@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import SeloTermoDeteccao from "@/components/SeloTermoDeteccao";
 
 interface DeteccaoItem {
   id: number;
   termo: string;
+  ancora_termo?: string;
   contexto: string;
   detectado_em: string;
   post_url: string;
@@ -159,7 +161,11 @@ export default function InstagramDeteccoes() {
                       {formatDateTime(item.detectado_em)}
                     </td>
                     <td className="px-2 py-3">
-                      <div className="font-medium text-slate-900">{item.termo}</div>
+                      <SeloTermoDeteccao
+                        termo={item.termo}
+                        ancora={item.ancora_termo}
+                        className="rounded-full bg-slate-900 px-2 py-0.5 text-xs font-semibold text-white"
+                      />
                       {item.comentario_db_id ? (
                         <span className="mt-1 inline-block rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">
                           Comentário{item.comentario_autor ? ` · @${item.comentario_autor}` : ""}

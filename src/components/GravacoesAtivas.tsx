@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatMinutagem } from "@/lib/text-normalize";
 import PaginacaoLista, { POR_PAGINA_ADMIN } from "@/components/PaginacaoLista";
+import SeloTermoDeteccao from "@/components/SeloTermoDeteccao";
 
 interface RecordingStatusItem {
   key: string;
@@ -21,6 +22,7 @@ interface DeteccaoItem {
   id: number;
   gravacao_id: number;
   termo: string;
+  ancora_termo?: string;
   inicio_segundos: number;
   contexto: string;
   municipio: string;
@@ -393,9 +395,7 @@ export default function GravacoesAtivas() {
                   className="rounded-lg border border-rose-100 bg-white/90 px-3 py-3 text-sm"
                 >
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-800">
-                      {item.termo}
-                    </span>
+                    <SeloTermoDeteccao termo={item.termo} ancora={item.ancora_termo} />
                     <span className="font-medium text-slate-800">
                       {item.radio_nome} · {item.municipio}
                     </span>

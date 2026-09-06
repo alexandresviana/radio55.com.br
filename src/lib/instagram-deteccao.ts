@@ -1,5 +1,10 @@
 import { obterComentarioInstagramPorId } from "@/lib/instagram-comentarios-db";
 import { listarInstagramBuscasAtivas, obterInstagramPostPorId } from "@/lib/instagram-db";
+import {
+  contextoComAncora,
+  filtrarMatchesPorAncora,
+  resolverAncoraNoTexto,
+} from "@/lib/assunto-papel";
 import { registrarDeteccaoInstagram } from "@/lib/instagram-deteccoes-db";
 import { listarPalavrasChaveAtivas, type PalavraChave } from "@/lib/palavras-chave-db";
 import { encontrarPalavrasNoTexto, normalizeText } from "@/lib/text-normalize";
@@ -57,9 +62,14 @@ export async function listarTermosDeteccaoInstagram(
 export async function registrarDeteccaoDeBusca(
   postDbId: number,
   termo: string,
+  palavrasCache?: PalavraChave[],
 ): Promise<void> {
   const post = await obterInstagramPostPorId(postDbId);
   if (!post) return;
+
+  const palavras = palavrasCache ?? (await listarPalavrasChaveAtivas());
+  const ancora = resolverAncoraNoTexto(post.legenda, termo, palavras);
+  if (!ancora.ok) return;
 
   const legendaNormalizada = normalizeText(post.legenda);
   const termoNormalizado = normalizeText(termo);
@@ -76,41 +86,42 @@ export async function registrarDeteccaoDeBusca(
     palavraChaveId: null,
     postDbId,
     termo: rotulo,
-    contexto,
+    contexto: contextoComAncora(contexto, ancora.ancoraTermo),
+    ancoraTermo: ancora.ancoraTermo,
   });
 }
 
 async function registrarMatches(
   texto: string,
   termos: TermoDeteccao[],
+  palavras: PalavraChave[],
   opts: { postDbId: number; comentarioDbId?: number },
 ): Promise<number> {
   if (!texto.trim() || termos.length === 0) return 0;
 
   const textoNormalizado = normalizeText(texto);
-  const matches = encontrarPalavrasNoTexto(
-    texto,
-    termos.map((t) => t.termo),
+  const matches = filtrarMatchesPorAncora(
+    encontrarPalavrasNoTexto(
+      texto,
+      termos.map((t) => t.termo),
+    ),
+    palavras,
   );
 
   let total = 0;
-  const termosVistos = new Set<string>();
 
-  for (const match of matches) {
-    if (termosVistos.has(match.termo)) continue;
-    termosVistos.add(match.termo);
-
+  for (const { match, ancoraTermo } of matches) {
     const meta = termos.find((t) => t.termo === match.termo);
     const registrada = await registrarDeteccaoInstagram({
       palavraChaveId: meta?.palavraChaveId ?? null,
       postDbId: opts.postDbId,
       comentarioDbId: opts.comentarioDbId,
       termo: match.termo,
-      contexto: montarContexto(
-        textoNormalizado,
-        match.posicao,
-        normalizeText(match.termo),
+      contexto: contextoComAncora(
+        montarContexto(textoNormalizado, match.posicao, normalizeText(match.termo)),
+        ancoraTermo,
       ),
+      ancoraTermo,
     });
 
     if (registrada) total += 1;
@@ -127,8 +138,9 @@ export async function escanearDeteccoesPostInstagram(
   const post = await obterInstagramPostPorId(postDbId);
   if (!post || !post.legenda.trim()) return 0;
 
-  const termos = await listarTermosDeteccaoInstagram(palavrasCache);
-  return registrarMatches(post.legenda, termos, { postDbId });
+  const palavras = palavrasCache ?? (await listarPalavrasChaveAtivas());
+  const termos = await listarTermosDeteccaoInstagram(palavras);
+  return registrarMatches(post.legenda, termos, palavras, { postDbId });
 }
 
 /** Varre o texto de um comentário. Retorna nº de detecções registradas. */
@@ -139,8 +151,9 @@ export async function escanearDeteccoesComentarioInstagram(
   const comentario = await obterComentarioInstagramPorId(comentarioDbId);
   if (!comentario || !comentario.texto.trim()) return 0;
 
-  const termos = await listarTermosDeteccaoInstagram(palavrasCache);
-  return registrarMatches(comentario.texto, termos, {
+  const palavras = palavrasCache ?? (await listarPalavrasChaveAtivas());
+  const termos = await listarTermosDeteccaoInstagram(palavras);
+  return registrarMatches(comentario.texto, termos, palavras, {
     postDbId: comentario.post_db_id,
     comentarioDbId,
   });

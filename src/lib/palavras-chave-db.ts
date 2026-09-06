@@ -1,3 +1,8 @@
+import {
+  normalizarPapeis,
+  parsePapel,
+  type PapelAssunto,
+} from "@/lib/assunto-papel";
 import { getPool, isDatabaseConfigured } from "@/lib/db";
 
 export interface PalavraChave {
@@ -7,6 +12,8 @@ export interface PalavraChave {
   coletar_instagram: boolean;
   coletar_x: boolean;
   coletar_meta_ads: boolean;
+  papel: PapelAssunto | null;
+  requer_papel: PapelAssunto | null;
   criado_em: string;
 }
 
@@ -15,7 +22,12 @@ export interface PalavraChaveInput {
   coletarInstagram?: boolean;
   coletarX?: boolean;
   coletarMetaAds?: boolean;
+  papel?: PapelAssunto | null;
+  requerPapel?: PapelAssunto | null;
 }
+
+const COLUNAS_PALAVRA =
+  "id, termo, ativo, coletar_instagram, coletar_x, coletar_meta_ads, papel, requer_papel, criado_em";
 
 function mapPalavra(row: {
   id: number;
@@ -24,6 +36,8 @@ function mapPalavra(row: {
   coletar_instagram?: boolean;
   coletar_x?: boolean;
   coletar_meta_ads?: boolean;
+  papel?: string | null;
+  requer_papel?: string | null;
   criado_em: string | Date;
 }): PalavraChave {
   return {
@@ -33,6 +47,8 @@ function mapPalavra(row: {
     coletar_instagram: Boolean(row.coletar_instagram),
     coletar_x: Boolean(row.coletar_x),
     coletar_meta_ads: Boolean(row.coletar_meta_ads),
+    papel: parsePapel(row.papel),
+    requer_papel: parsePapel(row.requer_papel),
     criado_em: new Date(row.criado_em).toISOString(),
   };
 }
@@ -152,16 +168,8 @@ export async function listarPalavrasChave(): Promise<PalavraChave[]> {
 
   await importarBuscasComoPalavras();
 
-  const result = await getPool().query<{
-    id: number;
-    termo: string;
-    ativo: boolean;
-    coletar_instagram: boolean;
-    coletar_x: boolean;
-    coletar_meta_ads: boolean;
-    criado_em: Date;
-  }>(
-    `SELECT id, termo, ativo, coletar_instagram, coletar_x, coletar_meta_ads, criado_em
+  const result = await getPool().query(
+    `SELECT ${COLUNAS_PALAVRA}
      FROM palavras_chave
      ORDER BY termo ASC`,
   );
@@ -172,16 +180,8 @@ export async function listarPalavrasChave(): Promise<PalavraChave[]> {
 export async function listarPalavrasChaveAtivas(): Promise<PalavraChave[]> {
   if (!isDatabaseConfigured()) return [];
 
-  const result = await getPool().query<{
-    id: number;
-    termo: string;
-    ativo: boolean;
-    coletar_instagram: boolean;
-    coletar_x: boolean;
-    coletar_meta_ads: boolean;
-    criado_em: Date;
-  }>(
-    `SELECT id, termo, ativo, coletar_instagram, coletar_x, coletar_meta_ads, criado_em
+  const result = await getPool().query(
+    `SELECT ${COLUNAS_PALAVRA}
      FROM palavras_chave
      WHERE ativo = TRUE
      ORDER BY termo ASC`,
@@ -203,25 +203,25 @@ export async function criarPalavraChave(input: PalavraChaveInput): Promise<Palav
   const coletarInstagram = Boolean(input.coletarInstagram);
   const coletarX = Boolean(input.coletarX);
   const coletarMetaAds = Boolean(input.coletarMetaAds);
+  const papeis = normalizarPapeis({
+    papel: input.papel,
+    requerPapel: input.requerPapel,
+  });
 
-  const result = await getPool().query<{
-    id: number;
-    termo: string;
-    ativo: boolean;
-    coletar_instagram: boolean;
-    coletar_x: boolean;
-    coletar_meta_ads: boolean;
-    criado_em: Date;
-  }>(
-    `INSERT INTO palavras_chave (termo, ativo, coletar_instagram, coletar_x, coletar_meta_ads)
-     VALUES ($1, TRUE, $2, $3, $4)
+  const result = await getPool().query(
+    `INSERT INTO palavras_chave (
+       termo, ativo, coletar_instagram, coletar_x, coletar_meta_ads, papel, requer_papel
+     )
+     VALUES ($1, TRUE, $2, $3, $4, $5, $6)
      ON CONFLICT (termo) DO UPDATE SET
        ativo = TRUE,
        coletar_instagram = EXCLUDED.coletar_instagram,
        coletar_x = EXCLUDED.coletar_x,
-       coletar_meta_ads = EXCLUDED.coletar_meta_ads
-     RETURNING id, termo, ativo, coletar_instagram, coletar_x, coletar_meta_ads, criado_em`,
-    [termo, coletarInstagram, coletarX, coletarMetaAds],
+       coletar_meta_ads = EXCLUDED.coletar_meta_ads,
+       papel = EXCLUDED.papel,
+       requer_papel = EXCLUDED.requer_papel
+     RETURNING ${COLUNAS_PALAVRA}`,
+    [termo, coletarInstagram, coletarX, coletarMetaAds, papeis.papel, papeis.requerPapel],
   );
 
   const palavra = mapPalavra(result.rows[0]);
@@ -236,33 +236,37 @@ export async function atualizarPalavraChave(
     coletarInstagram?: boolean;
     coletarX?: boolean;
     coletarMetaAds?: boolean;
+    papel?: PapelAssunto | null;
+    requerPapel?: PapelAssunto | null;
   },
 ): Promise<PalavraChave | null> {
   if (!isDatabaseConfigured()) return null;
 
-  const result = await getPool().query<{
-    id: number;
-    termo: string;
-    ativo: boolean;
-    coletar_instagram: boolean;
-    coletar_x: boolean;
-    coletar_meta_ads: boolean;
-    criado_em: Date;
-  }>(
+  const papeisInformados = patch.papel !== undefined || patch.requerPapel !== undefined;
+  const papeis = papeisInformados
+    ? normalizarPapeis({ papel: patch.papel, requerPapel: patch.requerPapel })
+    : null;
+
+  const result = await getPool().query(
     `UPDATE palavras_chave
      SET
        ativo = COALESCE($2, ativo),
        coletar_instagram = COALESCE($3, coletar_instagram),
        coletar_x = COALESCE($4, coletar_x),
-       coletar_meta_ads = COALESCE($5, coletar_meta_ads)
+       coletar_meta_ads = COALESCE($5, coletar_meta_ads),
+       papel = CASE WHEN $6 THEN $7 ELSE papel END,
+       requer_papel = CASE WHEN $6 THEN $8 ELSE requer_papel END
      WHERE id = $1
-     RETURNING id, termo, ativo, coletar_instagram, coletar_x, coletar_meta_ads, criado_em`,
+     RETURNING ${COLUNAS_PALAVRA}`,
     [
       id,
       patch.ativo ?? null,
       patch.coletarInstagram ?? null,
       patch.coletarX ?? null,
       patch.coletarMetaAds ?? null,
+      papeisInformados,
+      papeis?.papel ?? null,
+      papeis?.requerPapel ?? null,
     ],
   );
 

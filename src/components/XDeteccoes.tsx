@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import SeloTermoDeteccao from "@/components/SeloTermoDeteccao";
 
 interface DeteccaoItem {
   id: number;
   termo: string;
+  ancora_termo?: string;
   contexto: string;
   detectado_em: string;
   post_url: string;
@@ -123,9 +125,11 @@ export default function XDeteccoes() {
           {deteccoes.map((item) => (
             <li key={item.id} className="py-3">
               <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                <span className="rounded-full bg-sky-50 px-2 py-0.5 font-semibold text-sky-800">
-                  {item.termo}
-                </span>
+                <SeloTermoDeteccao
+                  termo={item.termo}
+                  ancora={item.ancora_termo}
+                  className="rounded-full bg-sky-50 px-2 py-0.5 font-semibold text-sky-800"
+                />
                 <span>@{item.autor_username || "?"}</span>
                 <span>{formatDateTime(item.detectado_em)}</span>
               </div>

@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { formatMinutagem } from "@/lib/text-normalize";
 import PaginacaoLista, { POR_PAGINA_ADMIN } from "@/components/PaginacaoLista";
+import SeloTermoDeteccao from "@/components/SeloTermoDeteccao";
 
 interface DeteccaoItem {
   id: number;
   gravacao_id: number;
   termo: string;
+  ancora_termo?: string;
   inicio_segundos: number;
   contexto: string;
   municipio: string;
@@ -178,9 +180,7 @@ export default function PainelDeteccoes() {
                       {formatDateTime(item.detectado_em)}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-800">
-                        {item.termo}
-                      </span>
+                      <SeloTermoDeteccao termo={item.termo} ancora={item.ancora_termo} />
                     </td>
                     <td className="px-4 py-3">
                       <div className="font-medium text-slate-800">{item.radio_nome}</div>

@@ -1,5 +1,6 @@
+import { contextoComAncora, filtrarMatchesPorAncora } from "@/lib/assunto-papel";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
-import { encontrarPalavrasNoTexto } from "@/lib/text-normalize";
+import { encontrarPalavrasNoTexto, normalizeText } from "@/lib/text-normalize";
 import { registrarDeteccaoYoutube } from "@/lib/youtube-deteccoes-db";
 import { listarSegmentosYoutube } from "@/lib/youtube-transcricoes-db";
 
@@ -28,16 +29,26 @@ export async function detectarPalavrasEmSegmentosYoutube(
   let registradas = 0;
 
   for (let index = 0; index < segmentos.length; index += 1) {
-    const janela = segmentos.slice(index, index + JANELA_SEGMENTOS);
+    const janela = segmentos.slice(Math.max(0, index - 2), index + JANELA_SEGMENTOS);
     const textoJanela = janela.map((item) => item.texto.trim()).filter(Boolean).join(" ");
     if (!textoJanela) continue;
 
     const segmentoBase = segmentos[index];
-    const matches = encontrarPalavrasNoTexto(textoJanela, termos);
+    const matches = filtrarMatchesPorAncora(
+      encontrarPalavrasNoTexto(textoJanela, termos),
+      palavras,
+    );
+    const noBase = new Set(
+      encontrarPalavrasNoTexto(segmentoBase.texto, termos).map((item) =>
+        normalizeText(item.termo),
+      ),
+    );
 
-    for (const match of matches) {
+    for (const { match, ancoraTermo } of matches) {
+      if (!noBase.has(normalizeText(match.termo))) continue;
+
       const palavra = palavras.find(
-        (item) => item.termo.toLowerCase() === match.termo.toLowerCase(),
+        (item) => normalizeText(item.termo) === normalizeText(match.termo),
       );
 
       const deteccao = await registrarDeteccaoYoutube({
@@ -46,7 +57,11 @@ export async function detectarPalavrasEmSegmentosYoutube(
         termo: match.termo,
         inicioSegundos: segmentoBase.inicioSegundos,
         fimSegundos: segmentoBase.fimSegundos,
-        contexto: extrairContexto(textoJanela, match.posicao, match.termo),
+        contexto: contextoComAncora(
+          extrairContexto(textoJanela, match.posicao, match.termo),
+          ancoraTermo,
+        ),
+        ancoraTermo,
       });
 
       if (deteccao) registradas += 1;

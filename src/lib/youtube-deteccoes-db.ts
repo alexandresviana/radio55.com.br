@@ -6,6 +6,7 @@ export interface YoutubePalavraDeteccao {
   palavra_chave_id: number | null;
   video_db_id: number;
   termo: string;
+  ancora_termo: string;
   inicio_segundos: number;
   fim_segundos: number;
   contexto: string;
@@ -22,6 +23,7 @@ export async function registrarDeteccaoYoutube(input: {
   inicioSegundos: number;
   fimSegundos: number;
   contexto: string;
+  ancoraTermo?: string | null;
 }): Promise<YoutubePalavraDeteccao | null> {
   if (!isDatabaseConfigured()) return null;
 
@@ -41,9 +43,9 @@ export async function registrarDeteccaoYoutube(input: {
 
   const result = await getPool().query<{ id: number }>(
     `INSERT INTO youtube_palavra_deteccoes (
-       palavra_chave_id, video_db_id, termo, inicio_segundos, fim_segundos, contexto
+       palavra_chave_id, video_db_id, termo, inicio_segundos, fim_segundos, contexto, ancora_termo
      )
-     VALUES ($1, $2, $3, $4, $5, $6)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING id`,
     [
       input.palavraChaveId,
@@ -52,6 +54,7 @@ export async function registrarDeteccaoYoutube(input: {
       input.inicioSegundos,
       input.fimSegundos,
       input.contexto,
+      input.ancoraTermo?.trim() || "",
     ],
   );
 
@@ -72,6 +75,7 @@ export async function obterDeteccaoYoutubePorId(
        d.palavra_chave_id,
        d.video_db_id,
        d.termo,
+       COALESCE(d.ancora_termo, '') AS ancora_termo,
        d.inicio_segundos,
        d.fim_segundos,
        d.contexto,
@@ -152,6 +156,7 @@ export async function buscarDeteccoesYoutube(params: {
        d.palavra_chave_id,
        d.video_db_id,
        d.termo,
+       COALESCE(d.ancora_termo, '') AS ancora_termo,
        d.inicio_segundos,
        d.fim_segundos,
        d.contexto,

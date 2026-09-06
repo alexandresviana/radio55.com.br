@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { parsePapel } from "@/lib/assunto-papel";
 import { isDatabaseConfigured } from "@/lib/db";
 import {
   criarPalavraChave,
@@ -36,6 +37,8 @@ export async function POST(request: NextRequest) {
     coletarInstagram?: boolean;
     coletarX?: boolean;
     coletarMetaAds?: boolean;
+    papel?: string | null;
+    requerPapel?: string | null;
   };
   try {
     body = (await request.json()) as {
@@ -43,6 +46,8 @@ export async function POST(request: NextRequest) {
       coletarInstagram?: boolean;
       coletarX?: boolean;
       coletarMetaAds?: boolean;
+      papel?: string | null;
+      requerPapel?: string | null;
     };
   } catch {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
@@ -59,6 +64,8 @@ export async function POST(request: NextRequest) {
       coletarInstagram: body.coletarInstagram,
       coletarX: body.coletarX,
       coletarMetaAds: body.coletarMetaAds,
+      papel: parsePapel(body.papel),
+      requerPapel: parsePapel(body.requerPapel),
     });
 
     if (palavra.coletar_instagram) agendarSyncInstagramPerfis();

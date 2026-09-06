@@ -151,6 +151,12 @@ export async function initDatabase(): Promise<void> {
       ALTER TABLE palavras_chave
         ADD COLUMN IF NOT EXISTS coletar_meta_ads BOOLEAN NOT NULL DEFAULT FALSE;
 
+      ALTER TABLE palavras_chave
+        ADD COLUMN IF NOT EXISTS papel TEXT;
+
+      ALTER TABLE palavras_chave
+        ADD COLUMN IF NOT EXISTS requer_papel TEXT;
+
       CREATE TABLE IF NOT EXISTS transcricao_progresso (
         caminho TEXT PRIMARY KEY,
         gravacao_id INTEGER REFERENCES gravacao_arquivos(id) ON DELETE CASCADE,
@@ -176,6 +182,9 @@ export async function initDatabase(): Promise<void> {
 
       CREATE INDEX IF NOT EXISTS idx_palavra_deteccoes_gravacao
         ON palavra_deteccoes (gravacao_id, inicio_segundos);
+
+      ALTER TABLE palavra_deteccoes
+        ADD COLUMN IF NOT EXISTS ancora_termo TEXT NOT NULL DEFAULT '';
 
       CREATE TABLE IF NOT EXISTS transcricao_segmentos (
         id SERIAL PRIMARY KEY,
@@ -254,6 +263,9 @@ export async function initDatabase(): Promise<void> {
 
       CREATE INDEX IF NOT EXISTS idx_youtube_deteccoes_detectado_em
         ON youtube_palavra_deteccoes (detectado_em DESC);
+
+      ALTER TABLE youtube_palavra_deteccoes
+        ADD COLUMN IF NOT EXISTS ancora_termo TEXT NOT NULL DEFAULT '';
 
       CREATE TABLE IF NOT EXISTS instagram_perfis (
         id SERIAL PRIMARY KEY,
@@ -349,6 +361,9 @@ export async function initDatabase(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_instagram_deteccoes_detectado_em
         ON instagram_palavra_deteccoes (detectado_em DESC);
 
+      ALTER TABLE instagram_palavra_deteccoes
+        ADD COLUMN IF NOT EXISTS ancora_termo TEXT NOT NULL DEFAULT '';
+
       CREATE TABLE IF NOT EXISTS x_buscas (
         id SERIAL PRIMARY KEY,
         termo TEXT NOT NULL UNIQUE,
@@ -393,6 +408,9 @@ export async function initDatabase(): Promise<void> {
 
       CREATE INDEX IF NOT EXISTS idx_x_deteccoes_detectado_em
         ON x_palavra_deteccoes (detectado_em DESC);
+
+      ALTER TABLE x_palavra_deteccoes
+        ADD COLUMN IF NOT EXISTS ancora_termo TEXT NOT NULL DEFAULT '';
 
       CREATE TABLE IF NOT EXISTS meta_ads_paginas (
         id SERIAL PRIMARY KEY,
@@ -459,6 +477,9 @@ export async function initDatabase(): Promise<void> {
 
       CREATE INDEX IF NOT EXISTS idx_meta_ads_deteccoes_detectado_em
         ON meta_ads_palavra_deteccoes (detectado_em DESC);
+
+      ALTER TABLE meta_ads_palavra_deteccoes
+        ADD COLUMN IF NOT EXISTS ancora_termo TEXT NOT NULL DEFAULT '';
 
       CREATE TABLE IF NOT EXISTS emissoras_config (
         id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),

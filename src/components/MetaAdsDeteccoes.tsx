@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import SeloTermoDeteccao from "@/components/SeloTermoDeteccao";
 
 interface DeteccaoItem {
   id: number;
   termo: string;
+  ancora_termo?: string;
   contexto: string;
   detectado_em: string;
   ad_url: string;
@@ -117,9 +119,11 @@ export default function MetaAdsDeteccoes() {
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <p className="font-medium text-slate-900">
-                    <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-emerald-800">
-                      {item.termo}
-                    </span>{" "}
+                    <SeloTermoDeteccao
+                      termo={item.termo}
+                      ancora={item.ancora_termo}
+                      className="rounded bg-emerald-50 px-1.5 py-0.5 text-emerald-800"
+                    />{" "}
                     · {item.page_name || "Anunciante"}
                   </p>
                   <p className="text-xs text-slate-500">{formatDateTime(item.detectado_em)}</p>

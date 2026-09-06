@@ -6,6 +6,7 @@ export interface XPalavraDeteccao {
   palavra_chave_id: number | null;
   post_db_id: number;
   termo: string;
+  ancora_termo: string;
   contexto: string;
   detectado_em: string;
   post_url: string;
@@ -19,6 +20,7 @@ export async function registrarDeteccaoX(input: {
   postDbId: number;
   termo: string;
   contexto: string;
+  ancoraTermo?: string | null;
 }): Promise<XPalavraDeteccao | null> {
   if (!isDatabaseConfigured()) return null;
 
@@ -35,10 +37,16 @@ export async function registrarDeteccaoX(input: {
   }
 
   const result = await getPool().query<{ id: number }>(
-    `INSERT INTO x_palavra_deteccoes (palavra_chave_id, post_db_id, termo, contexto)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO x_palavra_deteccoes (palavra_chave_id, post_db_id, termo, contexto, ancora_termo)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING id`,
-    [input.palavraChaveId, input.postDbId, input.termo, input.contexto],
+    [
+      input.palavraChaveId,
+      input.postDbId,
+      input.termo,
+      input.contexto,
+      input.ancoraTermo?.trim() || "",
+    ],
   );
 
   const id = result.rows[0]?.id;
@@ -55,6 +63,7 @@ export async function obterDeteccaoXPorId(id: number): Promise<XPalavraDeteccao 
        d.palavra_chave_id,
        d.post_db_id,
        d.termo,
+       COALESCE(d.ancora_termo, '') AS ancora_termo,
        d.contexto,
        d.detectado_em,
        posts.url AS post_url,
@@ -120,6 +129,7 @@ export async function buscarDeteccoesX(params: {
        d.palavra_chave_id,
        d.post_db_id,
        d.termo,
+       COALESCE(d.ancora_termo, '') AS ancora_termo,
        d.contexto,
        d.detectado_em,
        posts.url AS post_url,
