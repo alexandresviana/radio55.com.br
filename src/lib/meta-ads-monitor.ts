@@ -18,10 +18,11 @@ import {
   urlPaginaFacebook,
 } from "@/lib/meta-ads-fetch";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
+import { fonteVencida } from "@/lib/apify-guard";
 
-// Pacote econômico Apify: intervalo maior e menos itens por ciclo.
-const SYNC_MINUTOS_PADRAO = 120;
-const ADS_POR_CICLO_PADRAO = 15;
+// Pacote econômico Apify: anúncio muda pouco — intervalo longo, poucos itens.
+const SYNC_MINUTOS_PADRAO = 720;
+const ADS_POR_CICLO_PADRAO = 5;
 const RESCAN_MS = 60_000;
 const RESCAN_LOTE = 15;
 const AGENDAR_SYNC_DEBOUNCE_MS = 60_000;
@@ -93,7 +94,7 @@ class MetaAdsMonitorService {
   }
 
   async forceSync(): Promise<void> {
-    await this.syncFontes();
+    await this.syncFontes({ forcar: true });
   }
 
   async forceRescan(limite = 40): Promise<void> {
@@ -104,7 +105,7 @@ class MetaAdsMonitorService {
     }
   }
 
-  private async syncFontes(): Promise<void> {
+  async syncFontes(opts?: { forcar?: boolean }): Promise<void> {
     if (this.syncing || !isDatabaseConfigured() || !isMetaAdsFetchConfigured()) return;
 
     this.syncing = true;
@@ -116,9 +117,23 @@ class MetaAdsMonitorService {
 
       if (buscas.length === 0 && paginas.length === 0) return;
 
+      const intervaloMs = getSyncMs();
+      const buscasDevidas = opts?.forcar
+        ? buscas
+        : buscas.filter((b) => fonteVencida(b.ultima_verificacao_em, intervaloMs));
+      const paginasDevidas = opts?.forcar
+        ? paginas
+        : paginas.filter((p) => fonteVencida(p.ultima_verificacao_em, intervaloMs));
+
+      if (buscasDevidas.length === 0 && paginasDevidas.length === 0) {
+        this.lastSyncAt = new Date().toISOString();
+        console.info("[meta-ads] sync pulado — fontes ainda dentro do intervalo");
+        return;
+      }
+
       const urls: string[] = [
-        ...buscas.map((b) => urlBuscaBibliotecaAds(b.termo)),
-        ...paginas.map((p) => p.url_entrada || urlPaginaFacebook(p.slug)),
+        ...buscasDevidas.map((b) => urlBuscaBibliotecaAds(b.termo)),
+        ...paginasDevidas.map((p) => p.url_entrada || urlPaginaFacebook(p.slug)),
       ];
 
       const anuncios = await coletarAnunciosMeta(urls, { limiteTotal: getAdsPorCiclo() });
@@ -189,11 +204,17 @@ class MetaAdsMonitorService {
         }
       }
 
+      const termosPedidos = new Set(buscasDevidas.map((b) => b.termo.toLowerCase()));
+      const slugsPedidos = new Set(paginasDevidas.map((p) => p.slug.toLowerCase()));
       for (const busca of buscasAtuais) {
-        await marcarMetaAdsBuscaVerificada(busca.id, null);
+        if (termosPedidos.has(busca.termo.toLowerCase())) {
+          await marcarMetaAdsBuscaVerificada(busca.id, null);
+        }
       }
       for (const pagina of paginasAtuais) {
-        await marcarMetaAdsPaginaVerificada(pagina.id, null);
+        if (slugsPedidos.has(pagina.slug.toLowerCase())) {
+          await marcarMetaAdsPaginaVerificada(pagina.id, null);
+        }
       }
 
       this.lastSyncAt = new Date().toISOString();
@@ -281,7 +302,7 @@ export function agendarSyncMetaAds(): void {
   }
   globalRef.__radio55MetaAdsSyncTimer = setTimeout(() => {
     globalRef.__radio55MetaAdsSyncTimer = undefined;
-    void syncMetaAdsAgora();
+    void getService().syncFontes();
   }, AGENDAR_SYNC_DEBOUNCE_MS);
 }
 

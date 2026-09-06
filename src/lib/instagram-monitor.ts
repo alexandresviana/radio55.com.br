@@ -30,15 +30,16 @@ import {
   urlPerfilInstagram,
 } from "@/lib/instagram-fetch";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
+import { fonteVencida } from "@/lib/apify-guard";
 
-// Pacote econômico: Apify cobra por item retornado — defaults conservadores.
-const SYNC_MINUTOS_PADRAO = 120;
+// Pacote econômico: Apify cobra por item — defaults longos para 3 projetos no mesmo token.
+const SYNC_MINUTOS_PADRAO = 360;
 const RESCAN_MS = 60_000;
 const RESCAN_LOTE = 10;
 const RESCAN_LOTE_COMENTARIOS = 20;
 const COMENTARIOS_INTERVALO_PADRAO = 180;
 const COMENTARIOS_LOTE_POSTS = 3;
-const POSTS_POR_FONTE_PADRAO = 5;
+const POSTS_POR_FONTE_PADRAO = 3;
 const AGENDAR_SYNC_DEBOUNCE_MS = 60_000;
 const AGENDAR_SYNC_COOLDOWN_MS = 10 * 60_000;
 
@@ -108,7 +109,7 @@ class InstagramMonitorService {
     this.started = true;
     void this.reescanearDeteccoes();
 
-    // Posts primeiro; comentários só depois (precisam das URLs já gravadas).
+    // Não força Apify no boot: se o Coolify reiniciar, usa ultima_verificacao_em.
     void this.syncPerfis().then(() => {
       if (comentariosHabilitados()) void this.coletarComentarios();
     });
@@ -149,13 +150,13 @@ class InstagramMonitorService {
   }
 
   async forceSync(): Promise<void> {
-    await this.syncPerfis();
+    await this.syncPerfis({ forcar: true });
     if (comentariosHabilitados()) {
       await this.coletarComentarios();
     }
   }
 
-  private async syncPerfis(): Promise<void> {
+  async syncPerfis(opts?: { forcar?: boolean }): Promise<void> {
     if (this.syncing || !isDatabaseConfigured() || !isInstagramFetchConfigured()) return;
 
     this.syncing = true;
@@ -166,28 +167,36 @@ class InstagramMonitorService {
       ]);
       if (perfis.length === 0 && buscas.length === 0) return;
 
-      // Só termos sem espaço viram coleta por hashtag; frases ("fabio mitidieri")
-      // são buscadas nas legendas/comentários já coletados.
+      const intervaloMs = getSyncMs();
+      const intervaloHashtagMs = intervaloMs * 2;
+      const forcar = opts?.forcar === true;
+      const perfisDevidos = forcar
+        ? perfis
+        : perfis.filter((p) => fonteVencida(p.ultima_verificacao_em, intervaloMs));
+      // Hashtag é o actor mais caro — intervalo em dobro, salvo sync manual.
       const buscasHashtag = buscas.filter((b) => termoInstagramEhHashtag(b.termo));
+      const hashtagsDevidas = forcar
+        ? buscasHashtag
+        : buscasHashtag.filter((b) =>
+            fonteVencida(b.ultima_verificacao_em, intervaloHashtagMs),
+          );
 
-      const posts =
-        perfis.length > 0 || buscasHashtag.length > 0
-          ? await coletarPostsInstagram(
-              {
-                perfis: perfis.map((p) => p.username),
-                termos: buscasHashtag.map((b) => b.termo),
-              },
-              {
-                limitePorFonte: getPostsPorPerfil(),
-                // Evita pagar de novo posts antigos já salvos (buffer 30 min).
-                apenasMaisRecentesQue: this.lastSyncAt
-                  ? new Date(
-                      new Date(this.lastSyncAt).getTime() - 30 * 60_000,
-                    ).toISOString()
-                  : "2 days",
-              },
-            )
-          : [];
+      if (perfisDevidos.length === 0 && hashtagsDevidas.length === 0) {
+        this.lastSyncAt = new Date().toISOString();
+        console.info("[instagram] sync pulado — fontes ainda dentro do intervalo");
+        return;
+      }
+
+      const posts = await coletarPostsInstagram(
+        {
+          perfis: perfisDevidos.map((p) => p.username),
+          termos: hashtagsDevidas.map((b) => b.termo),
+        },
+        {
+          limitePorFonte: getPostsPorPerfil(),
+          apenasMaisRecentesQue: "12 hours",
+        },
+      );
 
       // Recarrega depois da coleta: o usuário pode ter removido um perfil/termo
       // enquanto a Apify ainda rodava (evita FK inválida no insert).
@@ -256,11 +265,17 @@ class InstagramMonitorService {
         }
       }
 
+      const usernamesPedidos = new Set(perfisDevidos.map((p) => p.username.toLowerCase()));
+      const termosPedidos = new Set(hashtagsDevidas.map((b) => b.termo.toLowerCase()));
       for (const perfil of perfisAtuais) {
-        await marcarPerfilVerificado(perfil.id, null);
+        if (usernamesPedidos.has(perfil.username.toLowerCase())) {
+          await marcarPerfilVerificado(perfil.id, null);
+        }
       }
       for (const busca of buscasAtuais) {
-        await marcarBuscaVerificada(busca.id, null);
+        if (termosPedidos.has(busca.termo.toLowerCase())) {
+          await marcarBuscaVerificada(busca.id, null);
+        }
       }
 
       this.lastSyncAt = new Date().toISOString();
@@ -415,12 +430,16 @@ export function getInstagramMonitorStatus() {
   );
 }
 
-export async function startInstagramMonitorService(): Promise<void> {
+function getInstagramService(): InstagramMonitorService {
   const globalRef = globalThis as MonitorGlobal;
   if (!globalRef.__radio55InstagramMonitor) {
     globalRef.__radio55InstagramMonitor = new InstagramMonitorService();
   }
-  await globalRef.__radio55InstagramMonitor.start();
+  return globalRef.__radio55InstagramMonitor;
+}
+
+export async function startInstagramMonitorService(): Promise<void> {
+  await getInstagramService().start();
 }
 
 export async function syncInstagramPerfisAgora(): Promise<void> {
@@ -446,6 +465,6 @@ export function agendarSyncInstagramPerfis(): void {
   }
   globalRef.__radio55InstagramSyncTimer = setTimeout(() => {
     globalRef.__radio55InstagramSyncTimer = undefined;
-    void syncInstagramPerfisAgora();
+    void getInstagramService().syncPerfis();
   }, AGENDAR_SYNC_DEBOUNCE_MS);
 }

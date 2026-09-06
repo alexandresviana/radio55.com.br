@@ -5,6 +5,8 @@
  * Actor: apify/facebook-ads-scraper
  */
 
+import { autorizarRunApify } from "@/lib/apify-guard";
+
 const APIFY_BASE = "https://api.apify.com/v2";
 const ACTOR_ADS_ID = "apify~facebook-ads-scraper";
 const FETCH_TIMEOUT_MS = 5 * 60 * 1000;
@@ -166,7 +168,10 @@ export async function coletarAnunciosMeta(
   const unicos = [...new Set(startUrls.map((u) => u.trim()).filter(Boolean))];
   if (unicos.length === 0) return [];
 
-  const limite = Math.min(Math.max(opts.limiteTotal ?? 15, 1), 200);
+  const limite = Math.min(Math.max(opts.limiteTotal ?? 5, 1), 200);
+  if (!(await autorizarRunApify("coleta de anúncios Meta"))) {
+    return [];
+  }
 
   const url = `${APIFY_BASE}/acts/${ACTOR_ADS_ID}/run-sync-get-dataset-items?token=${encodeURIComponent(token)}&format=json`;
   const res = await fetch(url, {

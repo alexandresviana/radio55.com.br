@@ -8,6 +8,8 @@
  * - Comentários: apify/instagram-comment-scraper
  */
 
+import { autorizarRunApify } from "@/lib/apify-guard";
+
 const APIFY_BASE = "https://api.apify.com/v2";
 const ACTOR_PERFIS_ID = "apify~instagram-scraper";
 const ACTOR_HASHTAGS_ID = "apify~instagram-hashtag-scraper";
@@ -140,6 +142,9 @@ async function chamarActorDataset(
   const token = getInstagramFetchToken();
   if (!token) {
     throw new Error("Coleta do Instagram não configurada no servidor");
+  }
+  if (!(await autorizarRunApify(rotulo))) {
+    return [];
   }
 
   const url = `${APIFY_BASE}/acts/${actorId}/run-sync-get-dataset-items?token=${encodeURIComponent(token)}&format=json`;
@@ -294,6 +299,9 @@ export async function coletarComentariosInstagram(
     throw new Error("Coleta do Instagram não configurada no servidor");
   }
   if (postUrls.length === 0) return [];
+  if (!(await autorizarRunApify("coleta de comentários"))) {
+    return [];
+  }
 
   const input = {
     directUrls: postUrls,

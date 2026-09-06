@@ -8,10 +8,11 @@ import {
 } from "@/lib/x-db";
 import { escanearDeteccoesPostX, registrarDeteccaoDeBuscaX } from "@/lib/x-deteccao";
 import { coletarTweetsX, isXFetchConfigured } from "@/lib/x-fetch";
+import { fonteVencida } from "@/lib/apify-guard";
 
 // Pacote econômico Apify: intervalo maior e menos itens por ciclo.
-const SYNC_MINUTOS_PADRAO = 120;
-const TWEETS_POR_CICLO_PADRAO = 15;
+const SYNC_MINUTOS_PADRAO = 360;
+const TWEETS_POR_CICLO_PADRAO = 8;
 const RESCAN_MS = 60_000;
 const RESCAN_LOTE = 15;
 const AGENDAR_SYNC_DEBOUNCE_MS = 60_000;
@@ -83,7 +84,7 @@ class XMonitorService {
   }
 
   async forceSync(): Promise<void> {
-    await this.syncBuscas();
+    await this.syncBuscas({ forcar: true });
   }
 
   async forceRescan(limite = 40): Promise<void> {
@@ -94,7 +95,7 @@ class XMonitorService {
     }
   }
 
-  private async syncBuscas(): Promise<void> {
+  async syncBuscas(opts?: { forcar?: boolean }): Promise<void> {
     if (this.syncing || !isDatabaseConfigured() || !isXFetchConfigured()) return;
 
     this.syncing = true;
@@ -102,8 +103,17 @@ class XMonitorService {
       const buscas = await listarXBuscasAtivas();
       if (buscas.length === 0) return;
 
+      const devidas = opts?.forcar
+        ? buscas
+        : buscas.filter((b) => fonteVencida(b.ultima_verificacao_em, getSyncMs()));
+      if (devidas.length === 0) {
+        this.lastSyncAt = new Date().toISOString();
+        console.info("[x] sync pulado — buscas ainda dentro do intervalo");
+        return;
+      }
+
       const tweets = await coletarTweetsX(
-        buscas.map((b) => b.termo),
+        devidas.map((b) => b.termo),
         { limiteTotal: getTweetsPorCiclo() },
       );
 
@@ -139,8 +149,11 @@ class XMonitorService {
         }
       }
 
+      const termosPedidos = new Set(devidas.map((b) => b.termo.toLowerCase()));
       for (const busca of buscasAtuais) {
-        await marcarXBuscaVerificada(busca.id, null);
+        if (termosPedidos.has(busca.termo.toLowerCase())) {
+          await marcarXBuscaVerificada(busca.id, null);
+        }
       }
 
       this.lastSyncAt = new Date().toISOString();
@@ -219,7 +232,7 @@ export function agendarSyncXBuscas(): void {
   if (globalRef.__radio55XSyncTimer) clearTimeout(globalRef.__radio55XSyncTimer);
   globalRef.__radio55XSyncTimer = setTimeout(() => {
     globalRef.__radio55XSyncTimer = undefined;
-    void syncXBuscasAgora();
+    void getService().syncBuscas();
   }, AGENDAR_SYNC_DEBOUNCE_MS);
 }
 

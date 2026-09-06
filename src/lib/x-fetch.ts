@@ -3,6 +3,8 @@
  * O nome do provedor nunca aparece na dashboard — aqui é só infra.
  */
 
+import { autorizarRunApify } from "@/lib/apify-guard";
+
 const APIFY_BASE = "https://api.apify.com/v2";
 const ACTOR_BUSCA_ID = "apidojo~twitter-scraper-lite";
 const FETCH_TIMEOUT_MS = 4 * 60 * 1000;
@@ -90,8 +92,11 @@ export async function coletarTweetsX(
   const unicos = [...new Set(termos.map((t) => t.trim()).filter(Boolean))];
   if (unicos.length === 0) return [];
 
-  const limite = Math.min(Math.max(opts.limiteTotal ?? 15, 1), 200);
+  const limite = Math.min(Math.max(opts.limiteTotal ?? 8, 1), 200);
   const searchTerms = unicos.map(queryBuscaX);
+  if (!(await autorizarRunApify("coleta do X"))) {
+    return [];
+  }
 
   const url = `${APIFY_BASE}/acts/${ACTOR_BUSCA_ID}/run-sync-get-dataset-items?token=${encodeURIComponent(token)}&format=json`;
   const res = await fetch(url, {
