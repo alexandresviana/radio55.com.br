@@ -195,7 +195,73 @@ export async function initColetaDatabase(): Promise<void> {
 
     CREATE INDEX IF NOT EXISTS idx_coleta_meta_fonte
       ON coleta_meta_ads (lower(fonte_chave), coletado_em DESC);
+
+    CREATE TABLE IF NOT EXISTS coleta_controle (
+      id INTEGER PRIMARY KEY,
+      forcar_solicitado_em TIMESTAMPTZ,
+      coleta_iniciada_em TIMESTAMPTZ,
+      coleta_concluida_em TIMESTAMPTZ,
+      ultimo_erro TEXT
+    );
+    INSERT INTO coleta_controle (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
   `);
+}
+
+export async function solicitarColetaForcada(): Promise<Date> {
+  const result = await getColetaPool().query<{ forcar_solicitado_em: Date }>(
+    `UPDATE coleta_controle
+     SET forcar_solicitado_em = NOW()
+     WHERE id = 1
+     RETURNING forcar_solicitado_em`,
+  );
+  const pedido = result.rows[0]?.forcar_solicitado_em;
+  if (!pedido) throw new Error("coleta_controle ausente");
+  return pedido;
+}
+
+export async function haPedidoColetaForcada(): Promise<boolean> {
+  const result = await getColetaPool().query<{ pendente: boolean }>(
+    `SELECT forcar_solicitado_em IS NOT NULL
+        AND (coleta_concluida_em IS NULL OR coleta_concluida_em < forcar_solicitado_em)
+       AS pendente
+     FROM coleta_controle
+     WHERE id = 1`,
+  );
+  return result.rows[0]?.pendente === true;
+}
+
+export async function marcarColetaIniciada(): Promise<void> {
+  await getColetaPool().query(
+    `UPDATE coleta_controle SET coleta_iniciada_em = NOW() WHERE id = 1`,
+  );
+}
+
+export async function marcarColetaConcluida(erro?: string | null): Promise<void> {
+  await getColetaPool().query(
+    `UPDATE coleta_controle
+     SET coleta_concluida_em = NOW(), ultimo_erro = $1
+     WHERE id = 1
+       AND (forcar_solicitado_em IS NULL OR coleta_iniciada_em >= forcar_solicitado_em)`,
+    [erro ?? null],
+  );
+}
+
+export async function aguardarColetaConcluida(
+  desde: Date,
+  timeoutMs = 240_000,
+): Promise<boolean> {
+  const inicio = Date.now();
+  while (Date.now() - inicio < timeoutMs) {
+    const result = await getColetaPool().query<{ ok: boolean }>(
+      `SELECT COALESCE(coleta_concluida_em >= $1::timestamptz, FALSE) AS ok
+       FROM coleta_controle
+       WHERE id = 1`,
+      [desde],
+    );
+    if (result.rows[0]?.ok) return true;
+    await new Promise((resolve) => setTimeout(resolve, 2_500));
+  }
+  return false;
 }
 
 export async function upsertColetaFonte(

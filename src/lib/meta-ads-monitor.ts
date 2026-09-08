@@ -19,7 +19,7 @@ import {
 } from "@/lib/meta-ads-fetch";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
 import { deveForcarColetaApify, fonteVencida } from "@/lib/apify-guard";
-import { executarColetaApifyUnificada } from "@/lib/coleta-coletor";
+import { garantirColetaAtualizada } from "@/lib/coleta-coletor";
 import { isColetaCompartilhada } from "@/lib/coleta-db";
 import { consumirMetaAdsCompartilhado, publicarFontesMetaAds } from "@/lib/coleta-consumidor";
 
@@ -128,7 +128,7 @@ class MetaAdsMonitorService {
       this.syncing = true;
       try {
         await publicarFontesMetaAds();
-        if (opts?.forcar) await executarColetaApifyUnificada({ forcar: true });
+        if (opts?.forcar) await garantirColetaAtualizada({ forcar: true });
         this.anunciosColetados += await consumirMetaAdsCompartilhado();
         this.lastSyncAt = new Date().toISOString();
         this.lastError = null;

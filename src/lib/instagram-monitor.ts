@@ -31,7 +31,7 @@ import {
 } from "@/lib/instagram-fetch";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
 import { deveForcarColetaApify, fonteVencida } from "@/lib/apify-guard";
-import { executarColetaApifyUnificada } from "@/lib/coleta-coletor";
+import { garantirColetaAtualizada } from "@/lib/coleta-coletor";
 import { isColetaCompartilhada } from "@/lib/coleta-db";
 import { consumirInstagramCompartilhado, publicarFontesInstagram } from "@/lib/coleta-consumidor";
 
@@ -179,7 +179,7 @@ class InstagramMonitorService {
       this.syncing = true;
       try {
         await publicarFontesInstagram();
-        if (opts?.forcar) await executarColetaApifyUnificada({ forcar: true });
+        if (opts?.forcar) await garantirColetaAtualizada({ forcar: true });
         this.postsColetados += await consumirInstagramCompartilhado();
         this.lastSyncAt = new Date().toISOString();
         this.lastError = null;

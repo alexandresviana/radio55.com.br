@@ -9,7 +9,7 @@ import {
 import { escanearDeteccoesPostX, registrarDeteccaoDeBuscaX } from "@/lib/x-deteccao";
 import { coletarTweetsX, isXFetchConfigured } from "@/lib/x-fetch";
 import { deveForcarColetaApify, fonteVencida } from "@/lib/apify-guard";
-import { executarColetaApifyUnificada } from "@/lib/coleta-coletor";
+import { garantirColetaAtualizada } from "@/lib/coleta-coletor";
 import { isColetaCompartilhada } from "@/lib/coleta-db";
 import { consumirXCompartilhado, publicarFontesX } from "@/lib/coleta-consumidor";
 
@@ -118,7 +118,7 @@ class XMonitorService {
       this.syncing = true;
       try {
         await publicarFontesX();
-        if (opts?.forcar) await executarColetaApifyUnificada({ forcar: true });
+        if (opts?.forcar) await garantirColetaAtualizada({ forcar: true });
         this.postsColetados += await consumirXCompartilhado();
         this.lastSyncAt = new Date().toISOString();
         this.lastError = null;

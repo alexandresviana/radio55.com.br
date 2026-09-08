@@ -1,7 +1,12 @@
-import { executarColetaApifyUnificada, podeColetarApify } from "@/lib/coleta-coletor";
+import {
+  coletarSeHouverPedidoForcado,
+  executarColetaApifyUnificada,
+  podeColetarApify,
+} from "@/lib/coleta-coletor";
 import { initColetaDatabase, isColetaCompartilhada } from "@/lib/coleta-db";
 
 const TICK_PADRAO_MIN = 15;
+const FORCE_POLL_MS = 15_000;
 
 type ColetaGlobal = typeof globalThis & {
   __radio55ColetaMonitor?: ColetaMonitorService;
@@ -16,6 +21,7 @@ function getTickMs(): number {
 class ColetaMonitorService {
   private started = false;
   private timer?: NodeJS.Timeout;
+  private forceTimer?: NodeJS.Timeout;
 
   async start(): Promise<void> {
     if (this.started || !isColetaCompartilhada()) return;
@@ -29,6 +35,12 @@ class ColetaMonitorService {
     }
 
     console.info("[coleta] coletor unificado ativo — união das fontes de todos os tenants");
+    this.forceTimer = setInterval(() => {
+      void coletarSeHouverPedidoForcado().catch((error) => {
+        console.error("[coleta]", error instanceof Error ? error.message : error);
+      });
+    }, FORCE_POLL_MS);
+    this.forceTimer.unref();
     // Espera os tenants publicarem as fontes no primeiro boot.
     setTimeout(() => {
       void executarColetaApifyUnificada();

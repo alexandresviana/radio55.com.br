@@ -1,10 +1,15 @@
 import { fonteVencida, getApifyToken } from "@/lib/apify-guard";
 import {
+  aguardarColetaConcluida,
   desativarFontesSumidas,
+  haPedidoColetaForcada,
   isColetaCompartilhada,
   isColetaSomenteConsumir,
   listarFontesAtivas,
+  marcarColetaConcluida,
+  marcarColetaIniciada,
   marcarFonteVerificada,
+  solicitarColetaForcada,
   upsertColetaInstagramPost,
   upsertColetaMetaAd,
   upsertColetaXPost,
@@ -52,24 +57,66 @@ export function podeColetarApify(): boolean {
   );
 }
 
-export async function executarColetaApifyUnificada(opts?: { forcar?: boolean }): Promise<void> {
-  if (!podeColetarApify()) return;
+export async function executarColetaApifyUnificada(
+  opts?: { forcar?: boolean },
+): Promise<"ok" | "ocupado" | "pulado"> {
+  if (!podeColetarApify()) return "pulado";
 
   const resultado = await withColetorLock(async () => {
-    const sumidas = await desativarFontesSumidas();
-    if (sumidas > 0) {
-      console.info(`[coleta] ${sumidas} fonte(s) sem tenant há 7d — desativadas`);
-    }
+    await marcarColetaIniciada();
+    try {
+      const sumidas = await desativarFontesSumidas();
+      if (sumidas > 0) {
+        console.info(`[coleta] ${sumidas} fonte(s) sem tenant há 7d — desativadas`);
+      }
 
-    const forcar = opts?.forcar === true;
-    await coletarInstagramUnificado(forcar);
-    await coletarXUnificado(forcar);
-    await coletarMetaUnificado(forcar);
+      const forcar = opts?.forcar === true;
+      await coletarInstagramUnificado(forcar);
+      await coletarXUnificado(forcar);
+      await coletarMetaUnificado(forcar);
+      await marcarColetaConcluida(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "falha na coleta";
+      await marcarColetaConcluida(message);
+      throw error;
+    }
   });
 
   if (resultado === "ocupado") {
-    console.info("[coleta] outro tenant já está na Apify — só consumo");
+    console.info("[coleta] outro processo já está coletando — aguardando");
+    return "ocupado";
   }
+  return "ok";
+}
+
+let syncForcadoEmAndamento: Promise<void> | null = null;
+
+/** No coletor, roda a Apify. No consumidor, pede e espera o coletor terminar. */
+export async function garantirColetaAtualizada(opts?: { forcar?: boolean }): Promise<void> {
+  if (!isColetaCompartilhada() || !opts?.forcar) return;
+  if (syncForcadoEmAndamento) return syncForcadoEmAndamento;
+
+  syncForcadoEmAndamento = (async () => {
+    const pedido = await solicitarColetaForcada();
+    if (podeColetarApify()) {
+      const resultado = await executarColetaApifyUnificada({ forcar: true });
+      if (resultado === "ok") return;
+    }
+    const ok = await aguardarColetaConcluida(pedido);
+    if (!ok) {
+      throw new Error("A atualização está demorando. Tente de novo em alguns minutos.");
+    }
+  })().finally(() => {
+    syncForcadoEmAndamento = null;
+  });
+
+  return syncForcadoEmAndamento;
+}
+
+export async function coletarSeHouverPedidoForcado(): Promise<void> {
+  if (!podeColetarApify()) return;
+  if (!(await haPedidoColetaForcada())) return;
+  await executarColetaApifyUnificada({ forcar: true });
 }
 
 async function coletarInstagramUnificado(forcar: boolean): Promise<void> {
@@ -95,7 +142,7 @@ async function coletarInstagramUnificado(forcar: boolean): Promise<void> {
       },
       {
         limitePorFonte: limiteEnv("INSTAGRAM_POSTS_POR_PERFIL", 3, 1, 50),
-        apenasMaisRecentesQue: "12 hours",
+        apenasMaisRecentesQue: forcar ? "7 days" : "12 hours",
       },
     );
 
