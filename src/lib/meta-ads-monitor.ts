@@ -18,7 +18,7 @@ import {
   urlPaginaFacebook,
 } from "@/lib/meta-ads-fetch";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
-import { fonteVencida } from "@/lib/apify-guard";
+import { deveForcarColetaApify, fonteVencida } from "@/lib/apify-guard";
 
 // Pacote econômico Apify: anúncio muda pouco — intervalo longo, poucos itens.
 const SYNC_MINUTOS_PADRAO = 720;
@@ -70,7 +70,7 @@ class MetaAdsMonitorService {
 
     this.started = true;
     void this.reescanearDeteccoes();
-    void this.syncFontes();
+    void this.syncFontes({ forcar: deveForcarColetaApify() });
 
     this.syncTimer = setInterval(() => {
       void this.syncFontes();

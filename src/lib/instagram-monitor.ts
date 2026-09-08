@@ -30,7 +30,7 @@ import {
   urlPerfilInstagram,
 } from "@/lib/instagram-fetch";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
-import { fonteVencida } from "@/lib/apify-guard";
+import { deveForcarColetaApify, fonteVencida } from "@/lib/apify-guard";
 
 // Pacote econômico: Apify cobra por item — defaults longos para 3 projetos no mesmo token.
 const SYNC_MINUTOS_PADRAO = 360;
@@ -109,8 +109,8 @@ class InstagramMonitorService {
     this.started = true;
     void this.reescanearDeteccoes();
 
-    // Não força Apify no boot: se o Coolify reiniciar, usa ultima_verificacao_em.
-    void this.syncPerfis().then(() => {
+    // Sem FORCAR_COLETA_APIFY, usa ultima_verificacao_em (sobrevive a restart).
+    void this.syncPerfis({ forcar: deveForcarColetaApify() }).then(() => {
       if (comentariosHabilitados()) void this.coletarComentarios();
     });
 

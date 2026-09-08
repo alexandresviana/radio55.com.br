@@ -7,6 +7,7 @@ import AdminMetaAdsTab from "@/components/AdminMetaAdsTab";
 import AdminRadiosTab from "@/components/AdminRadiosTab";
 import AdminXTab from "@/components/AdminXTab";
 import AdminYoutubeTab from "@/components/AdminYoutubeTab";
+import ForcarColetaApify from "@/components/ForcarColetaApify";
 import Header from "@/components/Header";
 import PalavrasChave from "@/components/PalavrasChave";
 
@@ -56,7 +57,9 @@ function AdminPageInner() {
           </p>
         </div>
 
-        <div className="mb-6 flex flex-wrap gap-2 border-b border-slate-200 pb-1">
+        <ForcarColetaApify />
+
+        <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-slate-200 pb-1">
           {TABS.map((tab) => (
             <button
               key={tab.id}

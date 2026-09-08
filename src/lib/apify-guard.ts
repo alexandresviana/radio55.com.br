@@ -17,6 +17,11 @@ export function getApifyMaxRunsDia(): number {
   return Number.isFinite(raw) && raw >= 1 ? Math.floor(raw) : RUNS_PADRAO;
 }
 
+/** Uma vez: ignora o intervalo de 6h/12h e paga a Apify agora. */
+export function deveForcarColetaApify(): boolean {
+  return process.env.FORCAR_COLETA_APIFY === "true";
+}
+
 /** Fonte ainda dentro do intervalo — não paga a Apify de novo (sobrevive a restart). */
 export function fonteVencida(
   ultimaIso: string | null | undefined,

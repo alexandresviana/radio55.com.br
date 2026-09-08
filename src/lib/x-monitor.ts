@@ -8,7 +8,7 @@ import {
 } from "@/lib/x-db";
 import { escanearDeteccoesPostX, registrarDeteccaoDeBuscaX } from "@/lib/x-deteccao";
 import { coletarTweetsX, isXFetchConfigured } from "@/lib/x-fetch";
-import { fonteVencida } from "@/lib/apify-guard";
+import { deveForcarColetaApify, fonteVencida } from "@/lib/apify-guard";
 
 // Pacote econômico Apify: intervalo maior e menos itens por ciclo.
 const SYNC_MINUTOS_PADRAO = 360;
@@ -60,7 +60,7 @@ class XMonitorService {
 
     this.started = true;
     void this.reescanearDeteccoes();
-    void this.syncBuscas();
+    void this.syncBuscas({ forcar: deveForcarColetaApify() });
 
     this.syncTimer = setInterval(() => {
       void this.syncBuscas();
