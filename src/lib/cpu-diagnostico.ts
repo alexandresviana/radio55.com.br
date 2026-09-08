@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { getApifyToken } from "@/lib/apify-guard";
+import { isColetaCompartilhada, papelColetaApify, type PapelColetaApify } from "@/lib/coleta-db";
 import { getTranscriptionStatus } from "@/lib/transcription";
 import { getActiveRecordingDiagnostico } from "@/lib/recorder";
 
@@ -33,6 +34,8 @@ export interface DiagnosticoCpu {
   radios_marcadas: number;
   radios_gravando: number;
   apify_token: boolean;
+  apify_papel: PapelColetaApify;
+  coleta_compartilhada: boolean;
   alerta: string | null;
   processos: ProcessoDiagnostico[];
   gravacoes: ReturnType<typeof getActiveRecordingDiagnostico>["itens"];
@@ -157,6 +160,8 @@ export function obterDiagnosticoCpu(): DiagnosticoCpu {
     radios_marcadas: gravacoes.marcadas,
     radios_gravando: gravacoes.gravando,
     apify_token: Boolean(getApifyToken()),
+    apify_papel: papelColetaApify(),
+    coleta_compartilhada: isColetaCompartilhada(),
     alerta: alertaDiagnostico({
       whisperProcessos,
       whisperVivo,

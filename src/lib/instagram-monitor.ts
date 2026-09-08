@@ -31,6 +31,9 @@ import {
 } from "@/lib/instagram-fetch";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
 import { deveForcarColetaApify, fonteVencida } from "@/lib/apify-guard";
+import { executarColetaApifyUnificada } from "@/lib/coleta-coletor";
+import { isColetaCompartilhada } from "@/lib/coleta-db";
+import { consumirInstagramCompartilhado, publicarFontesInstagram } from "@/lib/coleta-consumidor";
 
 // Pacote econômico: Apify cobra por item — defaults longos para 3 projetos no mesmo token.
 const SYNC_MINUTOS_PADRAO = 360;
@@ -62,6 +65,16 @@ function getComentariosMs(): number {
   );
   const minutos = Number.isFinite(raw) && raw >= 5 ? raw : COMENTARIOS_INTERVALO_PADRAO;
   return minutos * 60 * 1000;
+}
+
+function getConsumoMs(): number {
+  const raw = Number(process.env.COLETA_CONSUMO_MINUTOS ?? 15);
+  const minutos = Number.isFinite(raw) && raw >= 1 ? raw : 15;
+  return minutos * 60 * 1000;
+}
+
+function instagramPodeRodar(): boolean {
+  return isColetaCompartilhada() || isInstagramFetchConfigured();
 }
 
 function getComentariosPorPost(): number {
@@ -101,7 +114,7 @@ class InstagramMonitorService {
       console.warn("[instagram] INSTAGRAM_ENABLED=false — monitor desativado");
       return;
     }
-    if (!isInstagramFetchConfigured()) {
+    if (!instagramPodeRodar()) {
       console.warn("[instagram] token de coleta ausente — monitor desativado");
       return;
     }
@@ -111,18 +124,18 @@ class InstagramMonitorService {
 
     // Sem FORCAR_COLETA_APIFY, usa ultima_verificacao_em (sobrevive a restart).
     void this.syncPerfis({ forcar: deveForcarColetaApify() }).then(() => {
-      if (comentariosHabilitados()) void this.coletarComentarios();
+      if (comentariosHabilitados() && !isColetaCompartilhada()) void this.coletarComentarios();
     });
 
     this.syncTimer = setInterval(() => {
       void this.syncPerfis();
-    }, getSyncMs());
+    }, isColetaCompartilhada() ? getConsumoMs() : getSyncMs());
 
     this.rescanTimer = setInterval(() => {
       void this.reescanearDeteccoes();
     }, RESCAN_MS);
 
-    if (comentariosHabilitados()) {
+    if (comentariosHabilitados() && !isColetaCompartilhada()) {
       this.comentariosTimer = setInterval(() => {
         void this.coletarComentarios();
       }, getComentariosMs());
@@ -136,12 +149,15 @@ class InstagramMonitorService {
   getStatus() {
     return {
       ativo: this.started,
-      coleta_configurada: isInstagramFetchConfigured(),
+      coleta_configurada: instagramPodeRodar(),
+      coleta_compartilhada: isColetaCompartilhada(),
       sincronizando: this.syncing,
       erro: this.lastError,
       ultima_sincronizacao: this.lastSyncAt,
       posts_coletados: this.postsColetados,
-      intervalo_minutos: Math.round(getSyncMs() / 60000),
+      intervalo_minutos: Math.round(
+        (isColetaCompartilhada() ? getConsumoMs() : getSyncMs()) / 60000,
+      ),
       comentarios_habilitados: comentariosHabilitados(),
       comentarios_coletados: this.comentariosColetados,
       ultima_coleta_comentarios: this.lastComentariosAt,
@@ -151,13 +167,31 @@ class InstagramMonitorService {
 
   async forceSync(): Promise<void> {
     await this.syncPerfis({ forcar: true });
-    if (comentariosHabilitados()) {
+    if (comentariosHabilitados() && !isColetaCompartilhada()) {
       await this.coletarComentarios();
     }
   }
 
   async syncPerfis(opts?: { forcar?: boolean }): Promise<void> {
-    if (this.syncing || !isDatabaseConfigured() || !isInstagramFetchConfigured()) return;
+    if (this.syncing || !isDatabaseConfigured() || !instagramPodeRodar()) return;
+
+    if (isColetaCompartilhada()) {
+      this.syncing = true;
+      try {
+        await publicarFontesInstagram();
+        if (opts?.forcar) await executarColetaApifyUnificada({ forcar: true });
+        this.postsColetados += await consumirInstagramCompartilhado();
+        this.lastSyncAt = new Date().toISOString();
+        this.lastError = null;
+      } catch (error) {
+        this.lastError =
+          error instanceof Error ? error.message : "Erro ao consumir coleta do Instagram";
+        console.error("[instagram]", this.lastError);
+      } finally {
+        this.syncing = false;
+      }
+      return;
+    }
 
     this.syncing = true;
     try {
@@ -260,7 +294,7 @@ class InstagramMonitorService {
           await escanearDeteccoesPostInstagram(salvo.id, palavras);
           // Hashtag monitorada: a própria publicação conta como detecção do termo.
           if (busca) {
-            await registrarDeteccaoDeBusca(salvo.id, busca.termo);
+            await registrarDeteccaoDeBusca(salvo.id, busca.termo, palavras);
           }
         }
       }
@@ -416,7 +450,8 @@ export function getInstagramMonitorStatus() {
   return (
     globalRef.__radio55InstagramMonitor?.getStatus() ?? {
       ativo: false,
-      coleta_configurada: isInstagramFetchConfigured(),
+      coleta_configurada: instagramPodeRodar(),
+      coleta_compartilhada: isColetaCompartilhada(),
       sincronizando: false,
       erro: null,
       ultima_sincronizacao: null,

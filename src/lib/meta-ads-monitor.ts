@@ -19,6 +19,9 @@ import {
 } from "@/lib/meta-ads-fetch";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
 import { deveForcarColetaApify, fonteVencida } from "@/lib/apify-guard";
+import { executarColetaApifyUnificada } from "@/lib/coleta-coletor";
+import { isColetaCompartilhada } from "@/lib/coleta-db";
+import { consumirMetaAdsCompartilhado, publicarFontesMetaAds } from "@/lib/coleta-consumidor";
 
 // Pacote econômico Apify: anúncio muda pouco — intervalo longo, poucos itens.
 const SYNC_MINUTOS_PADRAO = 720;
@@ -32,6 +35,16 @@ function getSyncMs(): number {
   const raw = Number(process.env.META_ADS_SYNC_MINUTOS ?? SYNC_MINUTOS_PADRAO);
   const minutos = Number.isFinite(raw) && raw >= 5 ? raw : SYNC_MINUTOS_PADRAO;
   return minutos * 60 * 1000;
+}
+
+function getConsumoMs(): number {
+  const raw = Number(process.env.COLETA_CONSUMO_MINUTOS ?? 15);
+  const minutos = Number.isFinite(raw) && raw >= 1 ? raw : 15;
+  return minutos * 60 * 1000;
+}
+
+function metaPodeRodar(): boolean {
+  return isColetaCompartilhada() || isMetaAdsFetchConfigured();
 }
 
 function getAdsPorCiclo(): number {
@@ -63,7 +76,7 @@ class MetaAdsMonitorService {
       console.warn("[meta-ads] META_ADS_ENABLED=false — monitor desativado");
       return;
     }
-    if (!isMetaAdsFetchConfigured()) {
+    if (!metaPodeRodar()) {
       console.warn("[meta-ads] token de coleta ausente — monitor desativado");
       return;
     }
@@ -74,7 +87,7 @@ class MetaAdsMonitorService {
 
     this.syncTimer = setInterval(() => {
       void this.syncFontes();
-    }, getSyncMs());
+    }, isColetaCompartilhada() ? getConsumoMs() : getSyncMs());
 
     this.rescanTimer = setInterval(() => {
       void this.reescanearDeteccoes();
@@ -84,12 +97,15 @@ class MetaAdsMonitorService {
   getStatus() {
     return {
       ativo: this.started,
-      coleta_configurada: isMetaAdsFetchConfigured(),
+      coleta_configurada: metaPodeRodar(),
+      coleta_compartilhada: isColetaCompartilhada(),
       sincronizando: this.syncing,
       erro: this.lastError,
       ultima_sincronizacao: this.lastSyncAt,
       anuncios_coletados: this.anunciosColetados,
-      intervalo_minutos: Math.round(getSyncMs() / 60000),
+      intervalo_minutos: Math.round(
+        (isColetaCompartilhada() ? getConsumoMs() : getSyncMs()) / 60000,
+      ),
     };
   }
 
@@ -106,7 +122,25 @@ class MetaAdsMonitorService {
   }
 
   async syncFontes(opts?: { forcar?: boolean }): Promise<void> {
-    if (this.syncing || !isDatabaseConfigured() || !isMetaAdsFetchConfigured()) return;
+    if (this.syncing || !isDatabaseConfigured() || !metaPodeRodar()) return;
+
+    if (isColetaCompartilhada()) {
+      this.syncing = true;
+      try {
+        await publicarFontesMetaAds();
+        if (opts?.forcar) await executarColetaApifyUnificada({ forcar: true });
+        this.anunciosColetados += await consumirMetaAdsCompartilhado();
+        this.lastSyncAt = new Date().toISOString();
+        this.lastError = null;
+      } catch (error) {
+        this.lastError =
+          error instanceof Error ? error.message : "Erro ao consumir coleta de anúncios";
+        console.error("[meta-ads]", this.lastError);
+      } finally {
+        this.syncing = false;
+      }
+      return;
+    }
 
     this.syncing = true;
     try {
@@ -199,7 +233,7 @@ class MetaAdsMonitorService {
         if (salvo.novo || salvo.textoMudou) {
           await escanearDeteccoesMetaAd(salvo.id, palavras);
           if (busca) {
-            await registrarDeteccaoDeBuscaMetaAds(salvo.id, busca.termo);
+            await registrarDeteccaoDeBuscaMetaAds(salvo.id, busca.termo, palavras);
           }
         }
       }

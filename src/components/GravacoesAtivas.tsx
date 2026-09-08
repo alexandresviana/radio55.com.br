@@ -33,6 +33,7 @@ interface DiagnosticoCpu {
   radios_marcadas: number;
   radios_gravando: number;
   apify_token?: boolean;
+  apify_papel?: "coletor" | "consumidor" | "ausente";
   alerta: string | null;
 }
 
@@ -247,7 +248,11 @@ export default function GravacoesAtivas() {
             {diagnostico.whisper_processos > 1
               ? ` · ${diagnostico.whisper_processos} workers`
               : ""}
-            {diagnostico.apify_token === false ? " · APIFY_TOKEN ausente" : ""}
+            {diagnostico.apify_papel === "consumidor"
+              ? " · Apify no principal"
+              : diagnostico.apify_papel === "ausente" || diagnostico.apify_token === false
+                ? " · APIFY_TOKEN ausente"
+                : ""}
           </p>
         )}
         {diagnostico?.alerta && (

@@ -17,6 +17,7 @@ interface InstagramPerfil {
 interface MonitorStatus {
   ativo: boolean;
   coleta_configurada: boolean;
+  coleta_compartilhada?: boolean;
   sincronizando: boolean;
   erro: string | null;
   ultima_sincronizacao: string | null;
@@ -140,11 +141,16 @@ export default function PerfisInstagram() {
         </button>
       </div>
 
-      {monitor && !monitor.coleta_configurada && (
+      {monitor && !monitor.coleta_configurada && !monitor.coleta_compartilhada && (
         <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          Falta <code className="font-mono">APIFY_TOKEN</code> neste projeto do Coolify. Cadastros
-          ficam salvos, mas a Apify não roda até a variável existir no ambiente (Runtime) e o
-          container reiniciar.
+          Falta <code className="font-mono">APIFY_TOKEN</code> neste projeto (é o coletor). Nos
+          tenants que só consomem, use <code className="font-mono">COLETA_DATABASE_URL</code> e{" "}
+          <code className="font-mono">COLETA_SOMENTE_CONSUMIR=true</code> — sem token.
+        </p>
+      )}
+      {monitor?.coleta_compartilhada && (
+        <p className="mb-3 text-xs text-slate-500">
+          Base compartilhada — a Apify roda no tenant principal; este só puxa os posts.
         </p>
       )}
 

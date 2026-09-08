@@ -2,19 +2,21 @@
 
 import { useEffect, useState } from "react";
 
+type PapelColeta = "coletor" | "consumidor" | "ausente";
+
 export default function ForcarColetaApify() {
   const [rodando, setRodando] = useState(false);
-  const [tokenOk, setTokenOk] = useState<boolean | null>(null);
+  const [papel, setPapel] = useState<PapelColeta | null>(null);
   const [msg, setMsg] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
 
   useEffect(() => {
     void fetch("/api/diagnostico")
       .then((res) => res.json())
-      .then((data: { apify_token?: boolean }) => {
-        setTokenOk(data.apify_token === true);
+      .then((data: { apify_papel?: PapelColeta }) => {
+        setPapel(data.apify_papel ?? "ausente");
       })
       .catch(() => {
-        setTokenOk(null);
+        setPapel(null);
       });
   }, []);
 
@@ -35,7 +37,10 @@ export default function ForcarColetaApify() {
       }
       setMsg({
         tipo: "ok",
-        texto: "Coleta disparada — Instagram, X e Meta ignoraram o intervalo de 6h.",
+        texto:
+          papel === "consumidor"
+            ? "Posts puxados da base compartilhada — a Apify não rodou neste tenant."
+            : "Coleta disparada — Instagram, X e Meta ignoraram o intervalo de 6h.",
       });
     } catch {
       setMsg({ tipo: "erro", texto: "Não foi possível falar com o servidor" });
@@ -44,28 +49,46 @@ export default function ForcarColetaApify() {
     }
   }
 
+  const consumidor = papel === "consumidor";
+  const semToken = papel === "ausente";
+
   return (
     <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50/70 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold text-sky-950">Coleta das redes</h2>
-          <p className="mt-1 text-xs text-sky-800">
-            Fura o intervalo de 6h (Instagram/X) e 12h (Meta). Consome o teto diário da Apify.
-          </p>
-          {tokenOk === false && (
+          {consumidor ? (
+            <p className="mt-1 text-xs text-sky-800">
+              Este tenant só consome. A Apify roda no principal; daqui a gente puxa os posts e
+              detecta com as palavras-chave locais.
+            </p>
+          ) : (
+            <p className="mt-1 text-xs text-sky-800">
+              Fura o intervalo de 6h (Instagram/X) e 12h (Meta). Consome o teto diário da Apify.
+            </p>
+          )}
+          {semToken && (
             <p className="mt-2 text-xs text-amber-800">
-              Este container não vê <code className="font-mono">APIFY_TOKEN</code>. Coloque no
-              Coolify (Runtime), reinicie, e o botão libera.
+              Sem <code className="font-mono">APIFY_TOKEN</code> e sem base compartilhada. No
+              principal, coloque o token. Nos outros,{" "}
+              <code className="font-mono">COLETA_DATABASE_URL</code> +{" "}
+              <code className="font-mono">COLETA_SOMENTE_CONSUMIR=true</code>.
             </p>
           )}
         </div>
         <button
           type="button"
-          disabled={rodando || tokenOk === false}
+          disabled={rodando || semToken}
           onClick={() => void coletar()}
           className="rounded-lg bg-sky-800 px-3 py-2 text-sm font-medium text-white hover:bg-sky-900 disabled:opacity-60"
         >
-          {rodando ? "Coletando..." : "Coletar redes agora"}
+          {rodando
+            ? consumidor
+              ? "Puxando..."
+              : "Coletando..."
+            : consumidor
+              ? "Puxar posts agora"
+              : "Coletar redes agora"}
         </button>
       </div>
       {msg && (

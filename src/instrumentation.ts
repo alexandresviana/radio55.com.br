@@ -12,6 +12,7 @@ export async function register() {
     const { startXMonitorService } = await import("@/lib/x-monitor");
     const { startMetaAdsMonitorService } = await import("@/lib/meta-ads-monitor");
     const { startBunnyStorageUploader } = await import("@/lib/bunny-storage-uploader");
+    const { startColetaCompartilhadaService } = await import("@/lib/coleta-monitor");
     const { readEmissoras } = await import("@/lib/emissoras");
     const { releaseProcessLock, tryAcquireProcessLock } = await import("@/lib/process-lock");
 
@@ -65,6 +66,7 @@ export async function register() {
 
       iniciarComAtraso("indexer", 5_000, startGravacoesIndexer);
       iniciarComAtraso("youtube", 15_000, startYoutubeMonitorService);
+      iniciarComAtraso("coleta", 20_000, startColetaCompartilhadaService);
       iniciarComAtraso("instagram", 25_000, startInstagramMonitorService);
       iniciarComAtraso("x", 35_000, startXMonitorService);
       iniciarComAtraso("meta-ads", 45_000, startMetaAdsMonitorService);

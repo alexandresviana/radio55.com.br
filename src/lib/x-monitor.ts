@@ -9,6 +9,9 @@ import {
 import { escanearDeteccoesPostX, registrarDeteccaoDeBuscaX } from "@/lib/x-deteccao";
 import { coletarTweetsX, isXFetchConfigured } from "@/lib/x-fetch";
 import { deveForcarColetaApify, fonteVencida } from "@/lib/apify-guard";
+import { executarColetaApifyUnificada } from "@/lib/coleta-coletor";
+import { isColetaCompartilhada } from "@/lib/coleta-db";
+import { consumirXCompartilhado, publicarFontesX } from "@/lib/coleta-consumidor";
 
 // Pacote econômico Apify: intervalo maior e menos itens por ciclo.
 const SYNC_MINUTOS_PADRAO = 360;
@@ -22,6 +25,16 @@ function getSyncMs(): number {
   const raw = Number(process.env.X_SYNC_MINUTOS ?? SYNC_MINUTOS_PADRAO);
   const minutos = Number.isFinite(raw) && raw >= 5 ? raw : SYNC_MINUTOS_PADRAO;
   return minutos * 60 * 1000;
+}
+
+function getConsumoMs(): number {
+  const raw = Number(process.env.COLETA_CONSUMO_MINUTOS ?? 15);
+  const minutos = Number.isFinite(raw) && raw >= 1 ? raw : 15;
+  return minutos * 60 * 1000;
+}
+
+function xPodeRodar(): boolean {
+  return isColetaCompartilhada() || isXFetchConfigured();
 }
 
 function getTweetsPorCiclo(): number {
@@ -53,7 +66,7 @@ class XMonitorService {
       console.warn("[x] X_ENABLED=false — monitor desativado");
       return;
     }
-    if (!isXFetchConfigured()) {
+    if (!xPodeRodar()) {
       console.warn("[x] token de coleta ausente — monitor desativado");
       return;
     }
@@ -64,7 +77,7 @@ class XMonitorService {
 
     this.syncTimer = setInterval(() => {
       void this.syncBuscas();
-    }, getSyncMs());
+    }, isColetaCompartilhada() ? getConsumoMs() : getSyncMs());
 
     this.rescanTimer = setInterval(() => {
       void this.reescanearDeteccoes();
@@ -74,12 +87,15 @@ class XMonitorService {
   getStatus() {
     return {
       ativo: this.started,
-      coleta_configurada: isXFetchConfigured(),
+      coleta_configurada: xPodeRodar(),
+      coleta_compartilhada: isColetaCompartilhada(),
       sincronizando: this.syncing,
       erro: this.lastError,
       ultima_sincronizacao: this.lastSyncAt,
       posts_coletados: this.postsColetados,
-      intervalo_minutos: Math.round(getSyncMs() / 60000),
+      intervalo_minutos: Math.round(
+        (isColetaCompartilhada() ? getConsumoMs() : getSyncMs()) / 60000,
+      ),
     };
   }
 
@@ -96,7 +112,24 @@ class XMonitorService {
   }
 
   async syncBuscas(opts?: { forcar?: boolean }): Promise<void> {
-    if (this.syncing || !isDatabaseConfigured() || !isXFetchConfigured()) return;
+    if (this.syncing || !isDatabaseConfigured() || !xPodeRodar()) return;
+
+    if (isColetaCompartilhada()) {
+      this.syncing = true;
+      try {
+        await publicarFontesX();
+        if (opts?.forcar) await executarColetaApifyUnificada({ forcar: true });
+        this.postsColetados += await consumirXCompartilhado();
+        this.lastSyncAt = new Date().toISOString();
+        this.lastError = null;
+      } catch (error) {
+        this.lastError = error instanceof Error ? error.message : "Erro ao consumir coleta do X";
+        console.error("[x]", this.lastError);
+      } finally {
+        this.syncing = false;
+      }
+      return;
+    }
 
     this.syncing = true;
     try {
@@ -145,7 +178,7 @@ class XMonitorService {
         if (salvo.novo) this.postsColetados += 1;
         if (salvo.novo || salvo.textoMudou) {
           await escanearDeteccoesPostX(salvo.id, palavras);
-          await registrarDeteccaoDeBuscaX(salvo.id, busca.termo);
+          await registrarDeteccaoDeBuscaX(salvo.id, busca.termo, palavras);
         }
       }
 
