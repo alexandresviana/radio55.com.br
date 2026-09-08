@@ -1,4 +1,5 @@
 import { readdirSync, readFileSync } from "node:fs";
+import { getApifyToken } from "@/lib/apify-guard";
 import { getTranscriptionStatus } from "@/lib/transcription";
 import { getActiveRecordingDiagnostico } from "@/lib/recorder";
 
@@ -31,6 +32,7 @@ export interface DiagnosticoCpu {
   ffmpeg_outros: number;
   radios_marcadas: number;
   radios_gravando: number;
+  apify_token: boolean;
   alerta: string | null;
   processos: ProcessoDiagnostico[];
   gravacoes: ReturnType<typeof getActiveRecordingDiagnostico>["itens"];
@@ -154,6 +156,7 @@ export function obterDiagnosticoCpu(): DiagnosticoCpu {
     ffmpeg_outros: ffmpegOutros,
     radios_marcadas: gravacoes.marcadas,
     radios_gravando: gravacoes.gravando,
+    apify_token: Boolean(getApifyToken()),
     alerta: alertaDiagnostico({
       whisperProcessos,
       whisperVivo,

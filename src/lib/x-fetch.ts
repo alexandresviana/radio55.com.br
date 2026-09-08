@@ -3,7 +3,7 @@
  * O nome do provedor nunca aparece na dashboard — aqui é só infra.
  */
 
-import { autorizarRunApify } from "@/lib/apify-guard";
+import { autorizarRunApify, getApifyToken } from "@/lib/apify-guard";
 
 const APIFY_BASE = "https://api.apify.com/v2";
 const ACTOR_BUSCA_ID = "apidojo~twitter-scraper-lite";
@@ -49,7 +49,7 @@ interface ApifyTweetItem {
 }
 
 export function getXFetchToken(): string {
-  return process.env.APIFY_TOKEN?.trim() ?? "";
+  return getApifyToken();
 }
 
 export function isXFetchConfigured(): boolean {

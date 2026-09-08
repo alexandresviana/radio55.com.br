@@ -5,7 +5,7 @@
  * Actor: apify/facebook-ads-scraper
  */
 
-import { autorizarRunApify } from "@/lib/apify-guard";
+import { autorizarRunApify, getApifyToken } from "@/lib/apify-guard";
 
 const APIFY_BASE = "https://api.apify.com/v2";
 const ACTOR_ADS_ID = "apify~facebook-ads-scraper";
@@ -73,7 +73,7 @@ interface ApifyAdItem {
 }
 
 export function getMetaAdsFetchToken(): string {
-  return process.env.APIFY_TOKEN?.trim() ?? "";
+  return getApifyToken();
 }
 
 export function isMetaAdsFetchConfigured(): boolean {

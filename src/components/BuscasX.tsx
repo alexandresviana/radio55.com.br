@@ -119,7 +119,7 @@ export default function BuscasX() {
         <p className="mb-4 text-xs text-slate-500">
           {monitor.coleta_configurada
             ? `Monitor ${monitor.ativo ? "ativo" : "inativo"} · intervalo ${monitor.intervalo_minutos} min · última sync ${formatDateTime(monitor.ultima_sincronizacao)}`
-            : "Coleta não configurada no servidor."}
+            : "Falta APIFY_TOKEN neste projeto do Coolify."}
           {monitor.erro ? ` · ${monitor.erro}` : ""}
         </p>
       )}

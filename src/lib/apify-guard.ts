@@ -9,7 +9,9 @@ type ApifyGlobal = typeof globalThis & {
 };
 
 export function getApifyToken(): string {
-  return process.env.APIFY_TOKEN?.trim() ?? "";
+  // Acesso dinâmico: o webpack não embute string vazia no build da imagem.
+  const raw = process.env["APIFY_TOKEN"];
+  return typeof raw === "string" ? raw.trim() : "";
 }
 
 export function getApifyMaxRunsDia(): number {

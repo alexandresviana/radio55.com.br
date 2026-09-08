@@ -8,7 +8,7 @@
  * - Comentários: apify/instagram-comment-scraper
  */
 
-import { autorizarRunApify } from "@/lib/apify-guard";
+import { autorizarRunApify, getApifyToken } from "@/lib/apify-guard";
 
 const APIFY_BASE = "https://api.apify.com/v2";
 const ACTOR_PERFIS_ID = "apify~instagram-scraper";
@@ -49,7 +49,7 @@ interface ApifyPostItem {
 }
 
 export function getInstagramFetchToken(): string {
-  return process.env.APIFY_TOKEN?.trim() ?? "";
+  return getApifyToken();
 }
 
 export function isInstagramFetchConfigured(): boolean {

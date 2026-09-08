@@ -1,10 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function ForcarColetaApify() {
   const [rodando, setRodando] = useState(false);
+  const [tokenOk, setTokenOk] = useState<boolean | null>(null);
   const [msg, setMsg] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
+
+  useEffect(() => {
+    void fetch("/api/diagnostico")
+      .then((res) => res.json())
+      .then((data: { apify_token?: boolean }) => {
+        setTokenOk(data.apify_token === true);
+      })
+      .catch(() => {
+        setTokenOk(null);
+      });
+  }, []);
 
   async function coletar() {
     if (rodando) return;
@@ -40,10 +52,16 @@ export default function ForcarColetaApify() {
           <p className="mt-1 text-xs text-sky-800">
             Fura o intervalo de 6h (Instagram/X) e 12h (Meta). Consome o teto diário da Apify.
           </p>
+          {tokenOk === false && (
+            <p className="mt-2 text-xs text-amber-800">
+              Este container não vê <code className="font-mono">APIFY_TOKEN</code>. Coloque no
+              Coolify (Runtime), reinicie, e o botão libera.
+            </p>
+          )}
         </div>
         <button
           type="button"
-          disabled={rodando}
+          disabled={rodando || tokenOk === false}
           onClick={() => void coletar()}
           className="rounded-lg bg-sky-800 px-3 py-2 text-sm font-medium text-white hover:bg-sky-900 disabled:opacity-60"
         >

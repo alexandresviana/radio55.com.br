@@ -142,8 +142,9 @@ export default function PerfisInstagram() {
 
       {monitor && !monitor.coleta_configurada && (
         <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          A coleta de publicações não está configurada no servidor. Cadastros ficam salvos, mas
-          nada será coletado até a chave de acesso ser definida no ambiente.
+          Falta <code className="font-mono">APIFY_TOKEN</code> neste projeto do Coolify. Cadastros
+          ficam salvos, mas a Apify não roda até a variável existir no ambiente (Runtime) e o
+          container reiniciar.
         </p>
       )}
 

@@ -32,6 +32,7 @@ interface DiagnosticoCpu {
   ffmpeg_lame: number;
   radios_marcadas: number;
   radios_gravando: number;
+  apify_token?: boolean;
   alerta: string | null;
 }
 
@@ -246,6 +247,7 @@ export default function GravacoesAtivas() {
             {diagnostico.whisper_processos > 1
               ? ` · ${diagnostico.whisper_processos} workers`
               : ""}
+            {diagnostico.apify_token === false ? " · APIFY_TOKEN ausente" : ""}
           </p>
         )}
         {diagnostico?.alerta && (
