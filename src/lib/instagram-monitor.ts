@@ -34,6 +34,7 @@ import { deveForcarColetaApify, fonteVencida } from "@/lib/apify-guard";
 import { garantirColetaAtualizada } from "@/lib/coleta-coletor";
 import { isColetaCompartilhada } from "@/lib/coleta-db";
 import { consumirInstagramCompartilhado, publicarFontesInstagram } from "@/lib/coleta-consumidor";
+import { getProviderInstagram, isSocialCrawlConfigured } from "@/lib/socialcrawl-fetch";
 
 // Pacote econômico: Apify cobra por item — defaults longos para 3 projetos no mesmo token.
 const SYNC_MINUTOS_PADRAO = 360;
@@ -74,7 +75,9 @@ function getConsumoMs(): number {
 }
 
 function instagramPodeRodar(): boolean {
-  return isColetaCompartilhada() || isInstagramFetchConfigured();
+  if (isColetaCompartilhada()) return true;
+  if (getProviderInstagram() === "socialcrawl" && isSocialCrawlConfigured()) return true;
+  return isInstagramFetchConfigured();
 }
 
 function getComentariosPorPost(): number {

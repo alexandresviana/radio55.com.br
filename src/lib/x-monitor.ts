@@ -12,6 +12,7 @@ import { deveForcarColetaApify, fonteVencida } from "@/lib/apify-guard";
 import { garantirColetaAtualizada } from "@/lib/coleta-coletor";
 import { isColetaCompartilhada } from "@/lib/coleta-db";
 import { consumirXCompartilhado, publicarFontesX } from "@/lib/coleta-consumidor";
+import { getProviderX, isSocialCrawlConfigured } from "@/lib/socialcrawl-fetch";
 
 // Pacote econômico Apify: intervalo maior e menos itens por ciclo.
 const SYNC_MINUTOS_PADRAO = 360;
@@ -34,7 +35,9 @@ function getConsumoMs(): number {
 }
 
 function xPodeRodar(): boolean {
-  return isColetaCompartilhada() || isXFetchConfigured();
+  if (isColetaCompartilhada()) return true;
+  if (getProviderX() === "socialcrawl" && isSocialCrawlConfigured()) return true;
+  return isXFetchConfigured();
 }
 
 function getTweetsPorCiclo(): number {

@@ -78,10 +78,14 @@ export function isColetaSomenteConsumir(): boolean {
 
 export type PapelColetaApify = "coletor" | "consumidor" | "ausente";
 
-/** Coletor = chama a Apify. Consumidor = só puxa posts da base compartilhada. */
+/** Coletor = tem token (Apify ou SocialCrawl). Consumidor = só puxa da base compartilhada. */
 export function papelColetaApify(): PapelColetaApify {
-  const raw = process.env["APIFY_TOKEN"];
-  const temToken = typeof raw === "string" && raw.trim().length > 0;
+  const apifyToken = process.env["APIFY_TOKEN"];
+  const scKey = process.env["SOCIALCRAWL_API_KEY"];
+  const temApify = typeof apifyToken === "string" && apifyToken.trim().length > 0;
+  const temSC = typeof scKey === "string" && scKey.trim().length > 0;
+  const temToken = temApify || temSC;
+
   if (isColetaCompartilhada() && (isColetaSomenteConsumir() || !temToken)) {
     return "consumidor";
   }

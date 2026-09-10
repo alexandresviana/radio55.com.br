@@ -28,6 +28,13 @@ import {
   urlBuscaBibliotecaAds,
   urlPaginaFacebook,
 } from "@/lib/meta-ads-fetch";
+import {
+  coletarPostsInstagramSC,
+  coletarTweetsXSC,
+  getProviderInstagram,
+  getProviderX,
+  isSocialCrawlConfigured,
+} from "@/lib/socialcrawl-fetch";
 import { coletarTweetsX, isXFetchConfigured } from "@/lib/x-fetch";
 
 const IG_SYNC_MS = () => minutosEnv("INSTAGRAM_SYNC_MINUTOS", 360);
@@ -49,12 +56,25 @@ function vencidas(fontes: ColetaFonte[], intervaloMs: number, forcar: boolean): 
   return forcar ? fontes : fontes.filter((f) => fonteVencida(f.ultima_verificacao_em, intervaloMs));
 }
 
-export function podeColetarApify(): boolean {
-  return (
-    isColetaCompartilhada() &&
-    !isColetaSomenteConsumir() &&
-    Boolean(getApifyToken())
-  );
+/** Coletor = tem token de algum provedor. Consumidor puro fica false. */
+export function podeColetar(): boolean {
+  if (!isColetaCompartilhada() || isColetaSomenteConsumir()) return false;
+  return Boolean(getApifyToken()) || isSocialCrawlConfigured();
+}
+
+/** Compat: mesmo nome antigo, semântica ampliada (Apify OU SocialCrawl). */
+export const podeColetarApify = podeColetar;
+
+function instagramColetaHabilitada(): boolean {
+  const provider = getProviderInstagram();
+  if (provider === "socialcrawl") return isSocialCrawlConfigured();
+  return isInstagramFetchConfigured();
+}
+
+function xColetaHabilitada(): boolean {
+  const provider = getProviderX();
+  if (provider === "socialcrawl") return isSocialCrawlConfigured();
+  return isXFetchConfigured();
 }
 
 export async function executarColetaApifyUnificada(
@@ -120,7 +140,7 @@ export async function coletarSeHouverPedidoForcado(): Promise<void> {
 }
 
 async function coletarInstagramUnificado(forcar: boolean): Promise<void> {
-  if (!isInstagramFetchConfigured()) return;
+  if (!instagramColetaHabilitada()) return;
 
   const perfis = vencidas(
     await listarFontesAtivas("instagram_perfil"),
@@ -134,17 +154,21 @@ async function coletarInstagramUnificado(forcar: boolean): Promise<void> {
   );
   if (perfis.length === 0 && hashtags.length === 0) return;
 
+  const provider = getProviderInstagram();
+  const opcoes = {
+    limitePorFonte: limiteEnv("INSTAGRAM_POSTS_POR_PERFIL", 3, 1, 50),
+    apenasMaisRecentesQue: forcar ? "7 days" : "12 hours",
+  };
+  const entrada = {
+    perfis: perfis.map((f) => f.chave),
+    termos: hashtags.map((f) => f.chave),
+  };
+
   try {
-    const posts = await coletarPostsInstagram(
-      {
-        perfis: perfis.map((f) => f.chave),
-        termos: hashtags.map((f) => f.chave),
-      },
-      {
-        limitePorFonte: limiteEnv("INSTAGRAM_POSTS_POR_PERFIL", 3, 1, 50),
-        apenasMaisRecentesQue: forcar ? "7 days" : "12 hours",
-      },
-    );
+    const posts =
+      provider === "socialcrawl"
+        ? await coletarPostsInstagramSC(entrada, opcoes)
+        : await coletarPostsInstagram(entrada, opcoes);
 
     const perfilSet = new Set(perfis.map((f) => f.chave));
     const hashtagSet = new Set(hashtags.map((f) => f.chave));
@@ -182,7 +206,7 @@ async function coletarInstagramUnificado(forcar: boolean): Promise<void> {
       await marcarFonteVerificada(fonte.id, null);
     }
     console.info(
-      `[coleta] Instagram: ${posts.length} post(s) de ${perfis.length} perfil(is) + ${hashtags.length} hashtag(s)`,
+      `[coleta] Instagram (${provider}): ${posts.length} post(s) de ${perfis.length} perfil(is) + ${hashtags.length} hashtag(s)`,
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : "falha Instagram";
@@ -194,16 +218,20 @@ async function coletarInstagramUnificado(forcar: boolean): Promise<void> {
 }
 
 async function coletarXUnificado(forcar: boolean): Promise<void> {
-  if (!isXFetchConfigured()) return;
+  if (!xColetaHabilitada()) return;
 
   const termos = vencidas(await listarFontesAtivas("x_termo"), X_SYNC_MS(), forcar);
   if (termos.length === 0) return;
 
+  const provider = getProviderX();
+  const opcoes = { limiteTotal: limiteEnv("X_TWEETS_POR_CICLO", 8, 5, 200) };
+  const chaves = termos.map((f) => f.chave);
+
   try {
-    const tweets = await coletarTweetsX(
-      termos.map((f) => f.chave),
-      { limiteTotal: limiteEnv("X_TWEETS_POR_CICLO", 8, 5, 200) },
-    );
+    const tweets =
+      provider === "socialcrawl"
+        ? await coletarTweetsXSC(chaves, opcoes)
+        : await coletarTweetsX(chaves, opcoes);
 
     for (const tweet of tweets) {
       await upsertColetaXPost({
@@ -224,7 +252,9 @@ async function coletarXUnificado(forcar: boolean): Promise<void> {
     for (const fonte of termos) {
       await marcarFonteVerificada(fonte.id, null);
     }
-    console.info(`[coleta] X: ${tweets.length} post(s) de ${termos.length} termo(s)`);
+    console.info(
+      `[coleta] X (${provider}): ${tweets.length} post(s) de ${termos.length} termo(s)`,
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : "falha X";
     console.error("[coleta]", message);
@@ -234,6 +264,7 @@ async function coletarXUnificado(forcar: boolean): Promise<void> {
   }
 }
 
+/** Meta Ads segue no Apify — SocialCrawl não expõe biblioteca de anúncios. */
 async function coletarMetaUnificado(forcar: boolean): Promise<void> {
   if (!isMetaAdsFetchConfigured()) return;
 
