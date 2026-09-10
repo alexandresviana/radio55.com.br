@@ -211,16 +211,95 @@ export async function initColetaDatabase(): Promise<void> {
   `);
 }
 
+export function intervaloForcarMinutos(): number {
+  const raw = Number(process.env.COLETA_FORCAR_INTERVALO_MINUTOS ?? 60);
+  return Number.isFinite(raw) && raw >= 1 ? Math.floor(raw) : 60;
+}
+
+export class ColetaCooldownError extends Error {
+  retryAfterSegundos: number;
+
+  constructor(retryAfterSegundos: number) {
+    const min = Math.max(1, Math.ceil(retryAfterSegundos / 60));
+    super(`Aguarde ${min} min para coletar de novo.`);
+    this.name = "ColetaCooldownError";
+    this.retryAfterSegundos = retryAfterSegundos;
+  }
+}
+
+let forcarLocalEm: number | null = null;
+
+export function statusForcarColetaLocal(): {
+  pode_forcar: boolean;
+  retry_after_segundos: number;
+  intervalo_minutos: number;
+} {
+  const intervalo = intervaloForcarMinutos();
+  if (!forcarLocalEm) {
+    return { pode_forcar: true, retry_after_segundos: 0, intervalo_minutos: intervalo };
+  }
+  const restante = Math.ceil((forcarLocalEm + intervalo * 60_000 - Date.now()) / 1000);
+  return {
+    pode_forcar: restante <= 0,
+    retry_after_segundos: Math.max(0, restante),
+    intervalo_minutos: intervalo,
+  };
+}
+
+export function reservarForcarColetaLocal(): void {
+  const status = statusForcarColetaLocal();
+  if (!status.pode_forcar) {
+    throw new ColetaCooldownError(status.retry_after_segundos);
+  }
+  forcarLocalEm = Date.now();
+}
+
+export async function statusForcarColeta(): Promise<{
+  pode_forcar: boolean;
+  retry_after_segundos: number;
+  intervalo_minutos: number;
+}> {
+  const intervalo = intervaloForcarMinutos();
+  const result = await getColetaPool().query<{ restante: number | string | null }>(
+    `SELECT GREATEST(
+       0,
+       EXTRACT(EPOCH FROM (
+         forcar_solicitado_em + ($1::int * INTERVAL '1 minute') - NOW()
+       ))
+     ) AS restante
+     FROM coleta_controle
+     WHERE id = 1`,
+    [intervalo],
+  );
+  const restante = Math.ceil(Number(result.rows[0]?.restante ?? 0));
+  return {
+    pode_forcar: restante <= 0,
+    retry_after_segundos: restante,
+    intervalo_minutos: intervalo,
+  };
+}
+
 export async function solicitarColetaForcada(): Promise<Date> {
+  const intervalo = intervaloForcarMinutos();
   const result = await getColetaPool().query<{ forcar_solicitado_em: Date }>(
     `UPDATE coleta_controle
      SET forcar_solicitado_em = NOW()
      WHERE id = 1
+       AND (
+         forcar_solicitado_em IS NULL
+         OR forcar_solicitado_em <= NOW() - ($1::int * INTERVAL '1 minute')
+       )
      RETURNING forcar_solicitado_em`,
+    [intervalo],
   );
   const pedido = result.rows[0]?.forcar_solicitado_em;
-  if (!pedido) throw new Error("coleta_controle ausente");
-  return pedido;
+  if (pedido) return pedido;
+
+  const status = await statusForcarColeta();
+  if (status.retry_after_segundos > 0) {
+    throw new ColetaCooldownError(status.retry_after_segundos);
+  }
+  throw new Error("coleta_controle ausente");
 }
 
 export async function haPedidoColetaForcada(): Promise<boolean> {

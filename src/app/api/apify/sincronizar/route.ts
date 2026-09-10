@@ -8,7 +8,13 @@ import {
   publicarFontesMetaAds,
   publicarFontesX,
 } from "@/lib/coleta-consumidor";
-import { isColetaCompartilhada } from "@/lib/coleta-db";
+import {
+  ColetaCooldownError,
+  isColetaCompartilhada,
+  reservarForcarColetaLocal,
+  statusForcarColeta,
+  statusForcarColetaLocal,
+} from "@/lib/coleta-db";
 import { isDatabaseConfigured } from "@/lib/db";
 import { getInstagramMonitorStatus, syncInstagramPerfisAgora } from "@/lib/instagram-monitor";
 import { getMetaAdsMonitorStatus, syncMetaAdsAgora } from "@/lib/meta-ads-monitor";
@@ -17,6 +23,33 @@ import { getXMonitorStatus, syncXBuscasAgora } from "@/lib/x-monitor";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
+
+function respostaCooldown(error: ColetaCooldownError) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: error.message,
+      erros: [error.message],
+      retry_after_segundos: error.retryAfterSegundos,
+    },
+    { status: 429 },
+  );
+}
+
+export async function GET() {
+  try {
+    const status = isColetaCompartilhada()
+      ? await statusForcarColeta()
+      : statusForcarColetaLocal();
+    return NextResponse.json(status);
+  } catch {
+    return NextResponse.json({
+      pode_forcar: true,
+      retry_after_segundos: 0,
+      intervalo_minutos: 60,
+    });
+  }
+}
 
 export async function POST() {
   if (!isDatabaseConfigured()) {
@@ -46,6 +79,9 @@ export async function POST() {
         meta_ads: getMetaAdsMonitorStatus(),
       });
     } catch (error) {
+      if (error instanceof ColetaCooldownError) {
+        return respostaCooldown(error);
+      }
       const msg =
         error instanceof Error ? error.message : "Falha ao atualizar as redes";
       return NextResponse.json(
@@ -53,6 +89,15 @@ export async function POST() {
         { status: 504 },
       );
     }
+  }
+
+  try {
+    reservarForcarColetaLocal();
+  } catch (error) {
+    if (error instanceof ColetaCooldownError) {
+      return respostaCooldown(error);
+    }
+    throw error;
   }
 
   const erros: string[] = [];
