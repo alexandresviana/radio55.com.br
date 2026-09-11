@@ -20,7 +20,7 @@ import {
 import { isDatabaseConfigured } from "@/lib/db";
 import { getInstagramMonitorStatus, syncInstagramPerfisAgora } from "@/lib/instagram-monitor";
 import { getMetaAdsMonitorStatus, syncMetaAdsAgora } from "@/lib/meta-ads-monitor";
-import { getWebMonitorStatus, syncWebAgora } from "@/lib/web-monitor";
+import { coletarSitesRssAgora, getWebMonitorStatus, syncWebAgora } from "@/lib/web-monitor";
 import { getXMonitorStatus, syncXBuscasAgora } from "@/lib/x-monitor";
 
 export const runtime = "nodejs";
@@ -73,7 +73,7 @@ export async function POST() {
         instagram: await consumirInstagramCompartilhado(),
         x: await consumirXCompartilhado(),
         meta: await consumirMetaAdsCompartilhado(),
-        web: await consumirWebCompartilhado(),
+        web: (await coletarSitesRssAgora()) + (await consumirWebCompartilhado()),
       };
       return NextResponse.json({
         ok: true,

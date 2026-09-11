@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isDatabaseConfigured } from "@/lib/db";
 import { atualizarWebSite, removerWebSite } from "@/lib/web-db";
-import { agendarSyncWeb } from "@/lib/web-monitor";
+import { coletarSiteRssAgora } from "@/lib/web-monitor";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,7 +34,9 @@ export async function PATCH(
     return NextResponse.json({ error: "Site não encontrado" }, { status: 404 });
   }
 
-  if (site.ativo) agendarSyncWeb();
+  if (site.ativo && body.ativo === true) {
+    await coletarSiteRssAgora(site);
+  }
   return NextResponse.json({ site });
 }
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isDatabaseConfigured } from "@/lib/db";
 import { criarWebSite, listarWebSites } from "@/lib/web-db";
-import { agendarSyncWeb } from "@/lib/web-monitor";
+import { coletarSiteRssAgora } from "@/lib/web-monitor";
 import { descobrirFeed } from "@/lib/web-rss-fetch";
 
 export const runtime = "nodejs";
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       urlEntrada: feed.urlEntrada,
       feedUrl: feed.feedUrl,
     });
-    agendarSyncWeb();
+    await coletarSiteRssAgora(site);
     return NextResponse.json({ site }, { status: 201 });
   } catch (error) {
     const pgCode =

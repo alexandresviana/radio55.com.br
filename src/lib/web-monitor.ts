@@ -11,6 +11,7 @@ import {
   listarWebSitesAtivos,
   marcarWebSiteVerificado,
   registrarPublicacaoWeb,
+  type WebSite,
 } from "@/lib/web-db";
 import { coletarFeedRss } from "@/lib/web-rss-fetch";
 
@@ -53,54 +54,74 @@ async function listarPublicacoesParaReescanear(
   return result.rows;
 }
 
-async function coletarSitesRssLocal(): Promise<number> {
-  const sites = await listarWebSitesAtivos();
-  if (sites.length === 0) return 0;
+function limiteRssPorSite(): number {
+  const limiteRaw = Number(process.env.WEB_RSS_POR_SITE ?? 25);
+  return Number.isFinite(limiteRaw) && limiteRaw >= 1 ? Math.min(limiteRaw, 80) : 25;
+}
+
+async function coletarUmSiteRss(site: WebSite): Promise<number> {
+  if (!site.feed_url) {
+    await marcarWebSiteVerificado(site.id, "feed ausente");
+    return 0;
+  }
 
   const palavras = await listarPalavrasChaveAtivas();
-  const limiteRaw = Number(process.env.WEB_RSS_POR_SITE ?? 25);
-  const limite = Number.isFinite(limiteRaw) && limiteRaw >= 1 ? Math.min(limiteRaw, 80) : 25;
+  const limite = limiteRssPorSite();
   let novos = 0;
 
-  for (const site of sites) {
-    if (!site.feed_url) {
-      await marcarWebSiteVerificado(site.id, "feed ausente");
-      continue;
-    }
-    try {
-      const artigos = await coletarFeedRss(site.feed_url, {
+  try {
+    const artigos = await coletarFeedRss(site.feed_url, {
+      dominio: site.dominio,
+      fonte: site.titulo || site.dominio,
+      limite,
+    });
+    for (const artigo of artigos) {
+      const salvo = await registrarPublicacaoWeb({
+        palavraChaveId: null,
+        siteId: site.id,
+        url: artigo.url,
+        titulo: artigo.titulo,
+        fonte: artigo.fonte,
         dominio: site.dominio,
-        fonte: site.titulo || site.dominio,
-        limite,
+        snippet: artigo.snippet,
+        publicadoEm: artigo.publicadoEm,
+        imagemUrl: artigo.imagemUrl,
+        searchTerm: "",
       });
-      for (const artigo of artigos) {
-        const salvo = await registrarPublicacaoWeb({
-          palavraChaveId: null,
-          siteId: site.id,
-          url: artigo.url,
-          titulo: artigo.titulo,
-          fonte: artigo.fonte,
-          dominio: site.dominio,
-          snippet: artigo.snippet,
-          publicadoEm: artigo.publicadoEm,
-          imagemUrl: artigo.imagemUrl,
-          searchTerm: "",
-        });
-        if (!salvo) continue;
-        if (salvo.novo) novos += 1;
-        if (salvo.novo || salvo.textoMudou) {
-          await escanearDeteccoesPublicacaoWeb(salvo.id, palavras);
-        }
+      if (!salvo) continue;
+      if (salvo.novo) novos += 1;
+      if (salvo.novo || salvo.textoMudou) {
+        await escanearDeteccoesPublicacaoWeb(salvo.id, palavras);
       }
-      await marcarWebSiteVerificado(site.id, null);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "falha RSS";
-      console.error("[web] RSS", site.dominio, message);
-      await marcarWebSiteVerificado(site.id, message);
     }
+    await marcarWebSiteVerificado(site.id, null);
+    console.info(`[web] RSS ${site.dominio}: ${artigos.length} item(ns), ${novos} novo(s)`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "falha RSS";
+    console.error("[web] RSS", site.dominio, message);
+    await marcarWebSiteVerificado(site.id, message);
   }
 
   return novos;
+}
+
+async function coletarSitesRssLocal(): Promise<number> {
+  const sites = await listarWebSitesAtivos();
+  if (sites.length === 0) return 0;
+  let novos = 0;
+  for (const site of sites) {
+    novos += await coletarUmSiteRss(site);
+  }
+  return novos;
+}
+
+/** RSS é local e sem crédito — qualquer tenant pode puxar o próprio portal. */
+export async function coletarSitesRssAgora(): Promise<number> {
+  return coletarSitesRssLocal();
+}
+
+export async function coletarSiteRssAgora(site: WebSite): Promise<number> {
+  return coletarUmSiteRss(site);
 }
 
 type MonitorGlobal = typeof globalThis & {
@@ -181,8 +202,8 @@ class WebMonitorService {
       this.syncing = true;
       try {
         await publicarFontesWeb();
-        if (opts?.forcar) await garantirColetaAtualizada({ forcar: true });
-        this.publicacoesColetadas += await consumirWebCompartilhado();
+        const rss = await coletarSitesRssLocal();
+        this.publicacoesColetadas += rss + (await consumirWebCompartilhado());
         this.lastSyncAt = new Date().toISOString();
         this.lastError = null;
       } catch (error) {

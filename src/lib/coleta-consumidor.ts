@@ -32,7 +32,6 @@ import {
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
 import {
   listarWebSitesAtivos,
-  marcarWebSiteVerificado,
   registrarPublicacaoWeb,
 } from "@/lib/web-db";
 import {
@@ -251,7 +250,6 @@ export async function consumirWebCompartilhado(): Promise<number> {
     }
   }
 
-  for (const site of sites) await marcarWebSiteVerificado(site.id, null);
   return novos;
 }
 
