@@ -36,7 +36,9 @@ import {
   getProviderInstagram,
   getProviderWeb,
   getProviderX,
+  iniciarCicloSocialCrawl,
   isSocialCrawlConfigured,
+  resumoCicloSocialCrawl,
 } from "@/lib/socialcrawl-fetch";
 import { coletarTweetsX, isXFetchConfigured } from "@/lib/x-fetch";
 import { coletarFeedRss, parseChaveFonteWebSite } from "@/lib/web-rss-fetch";
@@ -96,11 +98,20 @@ export async function executarColetaApifyUnificada(
       }
 
       const forcar = opts?.forcar === true;
+      iniciarCicloSocialCrawl();
+      console.info(`[coleta] ciclo ${forcar ? "FORCADO" : "agendado"} — início`);
       await coletarInstagramUnificado(forcar);
       await coletarXUnificado(forcar);
       await coletarMetaUnificado(forcar);
       await coletarWebUnificado(forcar);
       await coletarWebSitesUnificado(forcar);
+      const sc = resumoCicloSocialCrawl();
+      const detalhe = Object.entries(sc.por)
+        .map(([grupo, uso]) => `${grupo}:${uso.chamadas}cham/${uso.creditos}cr`)
+        .join(" ") || "nenhuma";
+      console.info(
+        `[coleta] ciclo ${forcar ? "FORCADO" : "agendado"} — fim socialcrawl chamadas=${sc.chamadas} creditos=${sc.creditos} cache=${sc.cache} ${detalhe}`,
+      );
       await marcarColetaConcluida(null);
     } catch (error) {
       const message = error instanceof Error ? error.message : "falha na coleta";
@@ -143,23 +154,28 @@ export async function garantirColetaAtualizada(opts?: { forcar?: boolean }): Pro
 export async function coletarSeHouverPedidoForcado(): Promise<void> {
   if (!podeColetarApify()) return;
   if (!(await haPedidoColetaForcada())) return;
+  console.info("[coleta] pedido forçado pendente — rodando ciclo completo");
   await executarColetaApifyUnificada({ forcar: true });
 }
 
 async function coletarInstagramUnificado(forcar: boolean): Promise<void> {
   if (!instagramColetaHabilitada()) return;
 
-  const perfis = vencidas(
-    await listarFontesAtivas("instagram_perfil"),
-    IG_SYNC_MS(),
-    forcar,
-  );
-  const hashtags = vencidas(
-    await listarFontesAtivas("instagram_hashtag"),
-    IG_SYNC_MS() * 2,
-    forcar,
-  );
-  if (perfis.length === 0 && hashtags.length === 0) return;
+  const todosPerfis = await listarFontesAtivas("instagram_perfil");
+  const todasHashtags = await listarFontesAtivas("instagram_hashtag");
+  const perfis = vencidas(todosPerfis, IG_SYNC_MS(), forcar);
+  const hashtags = vencidas(todasHashtags, IG_SYNC_MS() * 2, forcar);
+  if (perfis.length === 0 && hashtags.length === 0) {
+    console.info(
+      `[coleta] Instagram: pulado — ${todosPerfis.length} perfil(is) + ${todasHashtags.length} hashtag(s) ainda no intervalo`,
+    );
+    return;
+  }
+  if (getProviderInstagram() === "socialcrawl" && hashtags.length > 0) {
+    console.info(
+      `[coleta] Instagram: ${hashtags.length} hashtag(s) × 5 créditos ≈ ${hashtags.length * 5} + ${perfis.length} perfil(is) × 1`,
+    );
+  }
 
   const provider = getProviderInstagram();
   const opcoes = {
@@ -227,8 +243,12 @@ async function coletarInstagramUnificado(forcar: boolean): Promise<void> {
 async function coletarXUnificado(forcar: boolean): Promise<void> {
   if (!xColetaHabilitada()) return;
 
-  const termos = vencidas(await listarFontesAtivas("x_termo"), X_SYNC_MS(), forcar);
-  if (termos.length === 0) return;
+  const todos = await listarFontesAtivas("x_termo");
+  const termos = vencidas(todos, X_SYNC_MS(), forcar);
+  if (termos.length === 0) {
+    console.info(`[coleta] X: pulado — ${todos.length} termo(s) ainda no intervalo`);
+    return;
+  }
 
   const provider = getProviderX();
   const opcoes = { limiteTotal: limiteEnv("X_TWEETS_POR_CICLO", 8, 5, 200) };
@@ -275,8 +295,15 @@ async function coletarXUnificado(forcar: boolean): Promise<void> {
 async function coletarWebUnificado(forcar: boolean): Promise<void> {
   if (getProviderWeb() !== "socialcrawl") return;
 
-  const termos = vencidas(await listarFontesAtivas("web_termo"), WEB_SYNC_MS(), forcar);
-  if (termos.length === 0) return;
+  const todos = await listarFontesAtivas("web_termo");
+  const termos = vencidas(todos, WEB_SYNC_MS(), forcar);
+  if (termos.length === 0) {
+    console.info(`[coleta] Web (Google News): pulado — ${todos.length} termo(s) ainda no intervalo`);
+    return;
+  }
+  console.info(
+    `[coleta] Web (Google News): ${termos.length} termo(s) × 1 crédito ≈ ${termos.length}`,
+  );
 
   const chaves = termos.map((f) => f.chave);
   const depth = limiteEnv("WEB_NEWS_POR_TERMO", 20, 1, 100);
@@ -322,8 +349,12 @@ async function coletarWebUnificado(forcar: boolean): Promise<void> {
 
 /** Portais cadastrados: RSS/Atom local, sem crédito de API. */
 async function coletarWebSitesUnificado(forcar: boolean): Promise<void> {
-  const fontes = vencidas(await listarFontesAtivas("web_site"), WEB_SYNC_MS(), forcar);
-  if (fontes.length === 0) return;
+  const todos = await listarFontesAtivas("web_site");
+  const fontes = vencidas(todos, WEB_SYNC_MS(), forcar);
+  if (fontes.length === 0) {
+    console.info(`[coleta] Web (RSS): pulado — ${todos.length} site(s) ainda no intervalo`);
+    return;
+  }
 
   const limite = limiteEnv("WEB_RSS_POR_SITE", 25, 1, 80);
   let total = 0;

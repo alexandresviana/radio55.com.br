@@ -17,6 +17,68 @@ const SC_BASE = "https://www.socialcrawl.dev/v1";
 const FETCH_TIMEOUT_MS = 90_000;
 const MAX_TENTATIVAS = 3;
 
+interface CicloSocialCrawl {
+  creditos: number;
+  chamadas: number;
+  cache: number;
+  por: Record<string, { chamadas: number; creditos: number }>;
+}
+
+type SCGlobal = typeof globalThis & {
+  __orbitSCCiclo?: CicloSocialCrawl;
+  __orbitSCProcesso?: { creditos: number; chamadas: number };
+};
+
+function cicloVazio(): CicloSocialCrawl {
+  return { creditos: 0, chamadas: 0, cache: 0, por: {} };
+}
+
+function grupoDoRotulo(rotulo: string): string {
+  if (rotulo.startsWith("IG perfil")) return "ig_perfil";
+  if (rotulo.startsWith("IG hashtag")) return "ig_hashtag";
+  if (rotulo.startsWith("X ")) return "x";
+  if (rotulo.startsWith("Google News")) return "google_news";
+  return "outro";
+}
+
+export function iniciarCicloSocialCrawl(): void {
+  (globalThis as SCGlobal).__orbitSCCiclo = cicloVazio();
+}
+
+export function resumoCicloSocialCrawl(): CicloSocialCrawl {
+  return (globalThis as SCGlobal).__orbitSCCiclo ?? cicloVazio();
+}
+
+function registrarUsoSC(
+  rotulo: string,
+  path: string,
+  env: SCEnvelope<unknown>,
+  extra?: string,
+): void {
+  const creditos = Number(env.credits_used ?? 0) || 0;
+  const restantes =
+    env.credits_remaining == null ? "?" : String(env.credits_remaining);
+  const cache = env.cached ? " cache" : "";
+  const sufixo = extra ? ` ${extra}` : "";
+  console.info(
+    `[socialcrawl] ${rotulo} ${path} creditos=${creditos}${cache} restantes=${restantes}${sufixo}`,
+  );
+
+  const g = globalThis as SCGlobal;
+  if (!g.__orbitSCCiclo) g.__orbitSCCiclo = cicloVazio();
+  if (!g.__orbitSCProcesso) g.__orbitSCProcesso = { creditos: 0, chamadas: 0 };
+  g.__orbitSCCiclo.chamadas += 1;
+  g.__orbitSCCiclo.creditos += creditos;
+  if (env.cached) g.__orbitSCCiclo.cache += 1;
+  const grupo = grupoDoRotulo(rotulo);
+  const atual = g.__orbitSCCiclo.por[grupo] ?? { chamadas: 0, creditos: 0 };
+  atual.chamadas += 1;
+  atual.creditos += creditos;
+  g.__orbitSCCiclo.por[grupo] = atual;
+  g.__orbitSCProcesso.chamadas += 1;
+  g.__orbitSCProcesso.creditos += creditos;
+}
+
 type ProviderIG = "apify" | "socialcrawl";
 type ProviderX = "apify" | "socialcrawl";
 type ProviderWeb = "socialcrawl" | "off";
@@ -149,10 +211,15 @@ async function scGet<T>(
     }
 
     if (res.status === 429 || res.status >= 500) {
+      const falha = (await res.json().catch(() => ({}))) as SCEnvelope<T>;
+      registrarUsoSC(rotulo, path, falha, `http=${res.status} tentativa=${tentativa + 1}`);
       if (tentativa >= MAX_TENTATIVAS - 1) {
         throw new Error(`SocialCrawl ${rotulo}: HTTP ${res.status}`);
       }
       tentativa += 1;
+      console.warn(
+        `[socialcrawl] ${rotulo}: retry ${tentativa}/${MAX_TENTATIVAS} após HTTP ${res.status}`,
+      );
       await esperar(1500 * tentativa);
       continue;
     }
@@ -162,15 +229,20 @@ async function scGet<T>(
       // 404 típico de perfil privado/inexistente: crédito é devolvido, retorna vazio.
       const err = body.error;
       if (err?.type === "RESOURCE_NOT_FOUND") {
-        console.info(
-          `[socialcrawl] ${rotulo}: ${err.details?.reason ?? "não encontrado"} (sem cobrança)`,
+        registrarUsoSC(
+          rotulo,
+          path,
+          body,
+          err.details?.reason ?? "não encontrado",
         );
         return body;
       }
+      registrarUsoSC(rotulo, path, body, err?.type ?? "falha");
       throw new Error(
         `SocialCrawl ${rotulo}: ${err?.type ?? "falha"} ${err?.message ?? ""}`.trim(),
       );
     }
+    registrarUsoSC(rotulo, path, body);
     return body;
   }
 }

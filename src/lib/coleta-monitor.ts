@@ -34,7 +34,9 @@ class ColetaMonitorService {
       return;
     }
 
-    console.info("[coleta] coletor unificado ativo — união das fontes de todos os tenants");
+    console.info(
+      `[coleta] coletor unificado ativo — tick ${Math.round(getTickMs() / 60000)} min; força só com pedido`,
+    );
     this.forceTimer = setInterval(() => {
       void coletarSeHouverPedidoForcado().catch((error) => {
         console.error("[coleta]", error instanceof Error ? error.message : error);
@@ -43,6 +45,7 @@ class ColetaMonitorService {
     this.forceTimer.unref();
     // Espera os tenants publicarem as fontes no primeiro boot.
     setTimeout(() => {
+      console.info("[coleta] primeiro tick após boot");
       void executarColetaApifyUnificada();
     }, 70_000).unref();
     this.timer = setInterval(() => {
