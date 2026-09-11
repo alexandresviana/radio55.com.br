@@ -19,6 +19,7 @@ const MAX_TENTATIVAS = 3;
 
 type ProviderIG = "apify" | "socialcrawl";
 type ProviderX = "apify" | "socialcrawl";
+type ProviderWeb = "socialcrawl" | "off";
 
 export function getSocialCrawlKey(): string {
   const raw = process.env["SOCIALCRAWL_API_KEY"];
@@ -35,6 +36,12 @@ export function getProviderInstagram(): ProviderIG {
 
 export function getProviderX(): ProviderX {
   return process.env.COLETA_PROVIDER_X === "socialcrawl" ? "socialcrawl" : "apify";
+}
+
+/** Provedor de coleta web (Google News). Só liga quando SOCIALCRAWL_API_KEY existe. */
+export function getProviderWeb(): ProviderWeb {
+  if (process.env.COLETA_PROVIDER_WEB === "off") return "off";
+  return isSocialCrawlConfigured() ? "socialcrawl" : "off";
 }
 
 interface SCEnvelope<T> {
@@ -327,6 +334,124 @@ export async function coletarPostsInstagramSC(
       })(),
     );
   }
+
+  const grupos = await Promise.all(jobs);
+  return grupos.flat();
+}
+
+export interface ArtigoWebColetado {
+  url: string;
+  titulo: string;
+  fonte: string;
+  dominio: string;
+  publicadoEm: Date | null;
+  snippet: string;
+  imagemUrl: string | null;
+  searchTerm: string;
+}
+
+interface SCNewsArticle {
+  title?: string | null;
+  url?: string | null;
+  source?: string | null;
+  published_at?: string | null;
+  snippet?: string | null;
+  media?:
+    | {
+        thumbnail_url?: string | null;
+        image_url?: string | null;
+      }
+    | string
+    | null;
+  ext?: {
+    domain?: string | null;
+    host?: string | null;
+    thumbnail_url?: string | null;
+  } | null;
+}
+
+function extrairDominio(url: string, fallbackDominio: string | null): string {
+  if (fallbackDominio && fallbackDominio.trim()) return fallbackDominio.trim().toLowerCase();
+  try {
+    return new URL(url).host.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+function extrairThumb(media: SCNewsArticle["media"], ext: SCNewsArticle["ext"]): string | null {
+  if (typeof media === "string" && media) return media;
+  if (media && typeof media === "object") {
+    return media.thumbnail_url ?? media.image_url ?? null;
+  }
+  return ext?.thumbnail_url ?? null;
+}
+
+function mapearArtigoNews(
+  item: SCNewsArticle,
+  searchTerm: string,
+): ArtigoWebColetado | null {
+  const url = (item.url ?? "").trim();
+  if (!url) return null;
+
+  return {
+    url,
+    titulo: (item.title ?? "").trim(),
+    fonte: (item.source ?? "").trim(),
+    dominio: extrairDominio(url, item.ext?.domain ?? item.ext?.host ?? null),
+    publicadoEm: item.published_at ? new Date(item.published_at) : null,
+    snippet: (item.snippet ?? "").trim(),
+    imagemUrl: extrairThumb(item.media, item.ext),
+    searchTerm,
+  };
+}
+
+/**
+ * Busca notícias por termo no Google News via SocialCrawl.
+ * 1 crédito por chamada, retorna até `depth` artigos por termo.
+ */
+export async function coletarGoogleNewsSC(
+  termos: string[],
+  opts: { depth?: number; language?: string; location?: string; timeRange?: string } = {},
+): Promise<ArtigoWebColetado[]> {
+  if (!isSocialCrawlConfigured()) {
+    throw new Error("SocialCrawl não configurado no servidor");
+  }
+
+  const unicos = [...new Set(termos.map((t) => t.trim()).filter(Boolean))];
+  if (unicos.length === 0) return [];
+
+  const depth = Math.min(Math.max(opts.depth ?? 20, 1), 100);
+  const language = opts.language ?? "pt-BR";
+  const location = opts.location ?? "Brazil";
+  const timeRange = opts.timeRange ?? "day";
+
+  const jobs = unicos.map(async (termo) => {
+    try {
+      const env = await scGet<SCListData<SCNewsArticle>>(
+        "/google_news/search",
+        {
+          keyword: termo,
+          depth: String(depth),
+          language_code: language,
+          location_name: location,
+          time_range: timeRange,
+        },
+        `Google News "${termo}"`,
+      );
+      if (!env.success) return [];
+      const items = env.data?.items ?? [];
+      return items
+        .map((it) => mapearArtigoNews(it, termo))
+        .filter((x): x is ArtigoWebColetado => x !== null);
+    } catch (error) {
+      console.error(
+        "[socialcrawl] Google News:",
+        error instanceof Error ? error.message : error,
+      );
+      return [];
+    }
+  });
 
   const grupos = await Promise.all(jobs);
   return grupos.flat();

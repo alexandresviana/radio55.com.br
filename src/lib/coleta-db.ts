@@ -5,7 +5,8 @@ export type ColetaPlataforma =
   | "instagram_hashtag"
   | "x_termo"
   | "meta_termo"
-  | "meta_pagina";
+  | "meta_pagina"
+  | "web_termo";
 
 export interface ColetaFonte {
   id: number;
@@ -43,6 +44,17 @@ export interface ColetaXPost {
   curtidas: number | null;
   retweets: number | null;
   respostas: number | null;
+  search_term: string;
+}
+
+export interface ColetaWebArtigo {
+  url: string;
+  titulo: string;
+  fonte: string;
+  dominio: string;
+  publicado_em: Date | null;
+  snippet: string;
+  imagem_url: string | null;
   search_term: string;
 }
 
@@ -199,6 +211,22 @@ export async function initColetaDatabase(): Promise<void> {
 
     CREATE INDEX IF NOT EXISTS idx_coleta_meta_fonte
       ON coleta_meta_ads (lower(fonte_chave), coletado_em DESC);
+
+    CREATE TABLE IF NOT EXISTS coleta_web_artigos (
+      id SERIAL PRIMARY KEY,
+      url TEXT NOT NULL UNIQUE,
+      titulo TEXT NOT NULL DEFAULT '',
+      fonte TEXT NOT NULL DEFAULT '',
+      dominio TEXT NOT NULL DEFAULT '',
+      publicado_em TIMESTAMPTZ,
+      snippet TEXT NOT NULL DEFAULT '',
+      imagem_url TEXT,
+      search_term TEXT NOT NULL DEFAULT '',
+      coletado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_coleta_web_termo
+      ON coleta_web_artigos (lower(search_term), coletado_em DESC);
 
     CREATE TABLE IF NOT EXISTS coleta_controle (
       id INTEGER PRIMARY KEY,
@@ -458,6 +486,49 @@ export async function upsertColetaXPost(post: ColetaXPost): Promise<void> {
       post.search_term,
     ],
   );
+}
+
+export async function upsertColetaWebArtigo(artigo: ColetaWebArtigo): Promise<void> {
+  await getColetaPool().query(
+    `INSERT INTO coleta_web_artigos (
+       url, titulo, fonte, dominio, publicado_em, snippet, imagem_url, search_term
+     )
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+     ON CONFLICT (url) DO UPDATE SET
+       titulo = COALESCE(NULLIF(EXCLUDED.titulo, ''), coleta_web_artigos.titulo),
+       snippet = COALESCE(NULLIF(EXCLUDED.snippet, ''), coleta_web_artigos.snippet),
+       imagem_url = COALESCE(EXCLUDED.imagem_url, coleta_web_artigos.imagem_url),
+       coletado_em = NOW()`,
+    [
+      artigo.url,
+      artigo.titulo,
+      artigo.fonte,
+      artigo.dominio,
+      artigo.publicado_em,
+      artigo.snippet,
+      artigo.imagem_url,
+      artigo.search_term,
+    ],
+  );
+}
+
+export async function listarWebArtigosCompartilhados(input: {
+  termos: string[];
+  dias?: number;
+}): Promise<ColetaWebArtigo[]> {
+  const termos = input.termos.map((t) => t.toLowerCase());
+  if (termos.length === 0) return [];
+
+  const result = await getColetaPool().query<ColetaWebArtigo>(
+    `SELECT url, titulo, fonte, dominio, publicado_em, snippet, imagem_url, search_term
+     FROM coleta_web_artigos
+     WHERE coletado_em > NOW() - ($2::int * INTERVAL '1 day')
+       AND lower(search_term) = ANY($1::text[])
+     ORDER BY coletado_em DESC
+     LIMIT 400`,
+    [termos, input.dias ?? 3],
+  );
+  return result.rows;
 }
 
 export async function upsertColetaMetaAd(ad: ColetaMetaAd): Promise<void> {

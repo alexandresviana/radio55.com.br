@@ -10,7 +10,13 @@ import { normalizeText } from "@/lib/text-normalize";
 import { listarXBuscasAtivas } from "@/lib/x-db";
 import { listarYoutubeCanaisAtivos } from "@/lib/youtube-db";
 
-export type FontePanorama = "radio" | "youtube" | "instagram" | "x" | "meta_ads";
+export type FontePanorama =
+  | "radio"
+  | "youtube"
+  | "instagram"
+  | "x"
+  | "meta_ads"
+  | "web";
 export type JanelaPanorama = "24h" | "7d" | "30d";
 
 export interface ItemPanorama {
@@ -34,6 +40,7 @@ export interface ContagensPanorama {
   instagram: number;
   x: number;
   meta_ads: number;
+  web: number;
 }
 
 function janelaParaDesde(janela: JanelaPanorama): Date {
@@ -84,7 +91,7 @@ export async function contarPanorama(params: {
   janela?: JanelaPanorama;
 }): Promise<ContagensPanorama> {
   if (!isDatabaseConfigured()) {
-    return { total: 0, radio: 0, youtube: 0, instagram: 0, x: 0, meta_ads: 0 };
+    return { total: 0, radio: 0, youtube: 0, instagram: 0, x: 0, meta_ads: 0, web: 0 };
   }
 
   const desde = janelaParaDesde(params.janela ?? "24h").toISOString();
@@ -96,6 +103,7 @@ export async function contarPanorama(params: {
     instagram: string;
     x: string;
     meta_ads: string;
+    web: string;
   }>(
     `SELECT
        (
@@ -161,7 +169,22 @@ export async function contarPanorama(params: {
              OR translate(lower(d.termo), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
              OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
            )
-       ) AS meta_ads`,
+       ) AS meta_ads,
+       (
+         SELECT COUNT(*)::text
+         FROM web_palavra_deteccoes d
+         JOIN web_publicacoes p ON p.id = d.publicacao_id
+         WHERE d.detectado_em >= $1::timestamptz
+           AND (
+             $2::text IS NULL
+             OR d.termo ILIKE $2
+             OR d.contexto ILIKE $2
+             OR p.titulo ILIKE $2
+             OR p.snippet ILIKE $2
+             OR translate(lower(d.termo), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+             OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+           )
+       ) AS web`,
     [desde, busca.ilike, busca.normalizado],
   );
 
@@ -171,14 +194,16 @@ export async function contarPanorama(params: {
   const instagram = Number(row?.instagram ?? 0);
   const x = Number(row?.x ?? 0);
   const meta_ads = Number(row?.meta_ads ?? 0);
+  const web = Number(row?.web ?? 0);
 
   return {
-    total: radio + youtube + instagram + x + meta_ads,
+    total: radio + youtube + instagram + x + meta_ads + web,
     radio,
     youtube,
     instagram,
     x,
     meta_ads,
+    web,
   };
 }
 
@@ -350,6 +375,35 @@ export async function buscarPanorama(params: {
     `);
   }
 
+  if (fonte === "todas" || fonte === "web") {
+    partes.push(`
+      SELECT
+        'web'::text AS fonte,
+        d.id,
+        d.termo,
+        d.contexto,
+        d.detectado_em,
+        COALESCE(NULLIF(p.fonte, ''), NULLIF(p.dominio, ''), 'Web') AS titulo,
+        COALESCE(NULLIF(p.titulo, ''), 'Notícia') AS subtitulo,
+        p.url AS url,
+        NULL::text AS trecho_audio,
+        NULL::text AS detalhe
+      FROM web_palavra_deteccoes d
+      JOIN web_publicacoes p ON p.id = d.publicacao_id
+      WHERE d.detectado_em >= $1::timestamptz
+        AND (
+          $2::text IS NULL
+          OR d.termo ILIKE $2
+          OR d.contexto ILIKE $2
+          OR p.titulo ILIKE $2
+          OR p.snippet ILIKE $2
+          OR p.fonte ILIKE $2
+          OR translate(lower(d.termo), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+          OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+        )
+    `);
+  }
+
   if (partes.length === 0) return [];
 
   const result = await getPool().query<{
@@ -469,6 +523,15 @@ function sqlEventosRelatorio(fonte: FontePanorama | "todas"): string[] {
       WHERE d.detectado_em >= $1::timestamptz ${filtroTermo}
     `);
   }
+  if (fonte === "todas" || fonte === "web") {
+    partes.push(`
+      SELECT 'web'::text AS fonte, d.termo, d.contexto,
+             COALESCE(NULLIF(p.fonte, ''), NULLIF(p.dominio, ''), 'Web') AS veiculo, d.detectado_em
+      FROM web_palavra_deteccoes d
+      JOIN web_publicacoes p ON p.id = d.publicacao_id
+      WHERE d.detectado_em >= $1::timestamptz ${filtroTermo}
+    `);
+  }
 
   return partes;
 }
@@ -566,6 +629,7 @@ export interface PontoEvolucaoPanorama {
   instagram: number;
   x: number;
   meta_ads: number;
+  web: number;
   total: number;
 }
 
@@ -651,6 +715,20 @@ export async function buscarEvolucaoPanorama(params: {
            OR translate(lower(d.termo), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
            OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
          )
+       UNION ALL
+       SELECT date_trunc('${trunc}', d.detectado_em), 'web'
+       FROM web_palavra_deteccoes d
+       JOIN web_publicacoes p ON p.id = d.publicacao_id
+       WHERE d.detectado_em >= $1::timestamptz
+         AND (
+           $2::text IS NULL
+           OR d.termo ILIKE $2
+           OR d.contexto ILIKE $2
+           OR p.titulo ILIKE $2
+           OR p.snippet ILIKE $2
+           OR translate(lower(d.termo), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+           OR translate(lower(d.contexto), 'áàâãéêíóôõúüç', 'aaaaeeiooouuc') LIKE $3
+         )
      ) AS eventos
      GROUP BY hora, fonte
      ORDER BY hora ASC`,
@@ -672,7 +750,14 @@ export async function buscarEvolucaoPanorama(params: {
     else if (row.fonte === "instagram") ponto.instagram = n;
     else if (row.fonte === "x") ponto.x = n;
     else if (row.fonte === "meta_ads") ponto.meta_ads = n;
-    ponto.total = ponto.radio + ponto.youtube + ponto.instagram + ponto.x + ponto.meta_ads;
+    else if (row.fonte === "web") ponto.web = n;
+    ponto.total =
+      ponto.radio +
+      ponto.youtube +
+      ponto.instagram +
+      ponto.x +
+      ponto.meta_ads +
+      ponto.web;
   }
 
   return [...porBucket.values()];
@@ -860,6 +945,12 @@ async function listarSeriesMonitoradas(
     }));
   }
 
+  if (fonte === "web") {
+    // Sem cadastro fixo de veículos: as séries surgem dinamicamente do próprio
+    // painel a partir dos artigos coletados no período.
+    return [];
+  }
+
   const [paginas, buscas] = await Promise.all([
     listarMetaAdsPaginasAtivas(),
     listarMetaAdsBuscasAtivas(),
@@ -978,6 +1069,21 @@ function sqlEventosPorFonte(fonte: FontePanorama, trunc: "hour" | "day"): string
     `;
   }
 
+  if (fonte === "web") {
+    return `
+      SELECT
+        date_trunc('${trunc}', d.detectado_em) AS hora,
+        ('web:' || lower(COALESCE(NULLIF(pub.dominio, ''), NULLIF(pub.fonte, ''), 'web'))) AS serie_id,
+        COALESCE(NULLIF(pub.fonte, ''), NULLIF(pub.dominio, ''), 'Web') AS serie_label,
+        d.termo,
+        d.contexto,
+        pub.titulo AS titulo_extra
+      FROM web_palavra_deteccoes d
+      JOIN web_publicacoes pub ON pub.id = d.publicacao_id
+      WHERE d.detectado_em >= $1::timestamptz
+    `;
+  }
+
   return null;
 }
 
@@ -987,6 +1093,7 @@ function pontoVazio(hora: string): PontoEvolucaoPanorama {
     radio: 0,
     youtube: 0,
     instagram: 0,
+    web: 0,
     x: 0,
     meta_ads: 0,
     total: 0,

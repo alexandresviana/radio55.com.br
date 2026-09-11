@@ -14,6 +14,7 @@ interface PalavraChave {
   coletar_instagram: boolean;
   coletar_x: boolean;
   coletar_meta_ads: boolean;
+  coletar_web: boolean;
   papel: PapelAssunto | null;
   requer_papel: PapelAssunto | null;
 }
@@ -40,6 +41,7 @@ export default function PalavrasChave() {
   const [coletarIg, setColetarIg] = useState(false);
   const [coletarX, setColetarX] = useState(false);
   const [coletarMetaAds, setColetarMetaAds] = useState(false);
+  const [coletarWeb, setColetarWeb] = useState(true);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
@@ -78,6 +80,7 @@ export default function PalavrasChave() {
         coletarInstagram: coletarIg,
         coletarX: coletarX,
         coletarMetaAds: coletarMetaAds,
+        coletarWeb: coletarWeb,
         papel: novoTipo === "pessoa" ? novoPapel : null,
         requerPapel: novoTipo === "tema" ? novoPapel : null,
       }),
@@ -101,6 +104,7 @@ export default function PalavrasChave() {
       coletarInstagram?: boolean;
       coletarX?: boolean;
       coletarMetaAds?: boolean;
+      coletarWeb?: boolean;
       papel?: PapelAssunto | null;
       requerPapel?: PapelAssunto | null;
     },
@@ -151,8 +155,11 @@ export default function PalavrasChave() {
       <h2 className="text-lg font-semibold text-slate-900">Assuntos monitorados</h2>
       <p className="mt-1 text-sm text-slate-500">
         Cadastre uma vez — o sistema procura o termo em <strong>rádio</strong>,{" "}
-        <strong>YouTube</strong>, <strong>Instagram</strong>, <strong>X</strong> e{" "}
-        <strong>anúncios</strong>. Uma <em>pessoa</em> (candidato, oponente, aliado) vale sozinha.
+        <strong>YouTube</strong>, <strong>Instagram</strong>, <strong>X</strong>,{" "}
+        <strong>anúncios</strong> e <strong>web</strong>. Uma <em>pessoa</em> (candidato, oponente,
+        aliado) vale sozinha. Na <strong>web</strong>, temas com papel (ex.:{" "}
+        <em>saúde só com candidato</em>) não fazem busca própria no Google News — eles são
+        detectados quando aparecem junto de alguém do mesmo papel, evitando ruído.
         Um <em>tema</em> só conta no mesmo pedaço de texto que alguém daquele papel.
       </p>
 
@@ -230,6 +237,15 @@ export default function PalavrasChave() {
             />
             Também coletar anúncios (Biblioteca Meta)
           </label>
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={coletarWeb}
+              onChange={(e) => setColetarWeb(e.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 text-emerald-700"
+            />
+            Também coletar notícias na web (Google News)
+          </label>
         </div>
         <p className="text-xs text-slate-400">
           Ex.: <strong>acm neto</strong> como pessoa/candidato e <strong>saúde</strong> como tema
@@ -256,6 +272,7 @@ export default function PalavrasChave() {
                 <th className="px-2 py-2">Coletar IG</th>
                 <th className="px-2 py-2">Coletar X</th>
                 <th className="px-2 py-2">Coletar Ads</th>
+                <th className="px-2 py-2">Coletar Web</th>
                 <th className="px-2 py-2">Status</th>
                 <th className="px-2 py-2" />
               </tr>
@@ -328,6 +345,20 @@ export default function PalavrasChave() {
                         }
                         className="h-4 w-4 rounded border-slate-300 text-emerald-700"
                         title="Buscar anúncios na Biblioteca Meta"
+                      />
+                    </td>
+                    <td className="px-2 py-3">
+                      <input
+                        type="checkbox"
+                        checked={item.coletar_web && !item.requer_papel}
+                        disabled={Boolean(item.requer_papel)}
+                        onChange={(e) => void patch(item.id, { coletarWeb: e.target.checked })}
+                        className="h-4 w-4 rounded border-slate-300 text-emerald-700 disabled:opacity-40"
+                        title={
+                          item.requer_papel
+                            ? "Tema com papel não faz busca própria — só é contado quando aparece junto de uma pessoa"
+                            : "Buscar notícias no Google News (web)"
+                        }
                       />
                     </td>
                     <td className="px-2 py-3">

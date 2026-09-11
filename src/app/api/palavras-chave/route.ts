@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
     coletarInstagram?: boolean;
     coletarX?: boolean;
     coletarMetaAds?: boolean;
+    coletarWeb?: boolean;
     papel?: string | null;
     requerPapel?: string | null;
   };
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
       coletarInstagram?: boolean;
       coletarX?: boolean;
       coletarMetaAds?: boolean;
+      coletarWeb?: boolean;
       papel?: string | null;
       requerPapel?: string | null;
     };
@@ -64,6 +66,7 @@ export async function POST(request: NextRequest) {
       coletarInstagram: body.coletarInstagram,
       coletarX: body.coletarX,
       coletarMetaAds: body.coletarMetaAds,
+      coletarWeb: body.coletarWeb,
       papel: parsePapel(body.papel),
       requerPapel: parsePapel(body.requerPapel),
     });

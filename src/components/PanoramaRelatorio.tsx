@@ -9,6 +9,7 @@ function rotuloFonte(fonte: FontePanorama): string {
   if (fonte === "youtube") return "YouTube";
   if (fonte === "instagram") return "Instagram";
   if (fonte === "meta_ads") return "Anúncios";
+  if (fonte === "web") return "Web";
   return "X";
 }
 

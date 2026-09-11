@@ -59,7 +59,7 @@ export default function ForcarColetaApify() {
         erros?: string[];
         error?: string;
         retry_after_segundos?: number;
-        novos?: { instagram?: number; x?: number; meta?: number };
+        novos?: { instagram?: number; x?: number; meta?: number; web?: number };
       };
       if (typeof data.retry_after_segundos === "number" && data.retry_after_segundos > 0) {
         setEspera(data.retry_after_segundos);
@@ -75,7 +75,10 @@ export default function ForcarColetaApify() {
         return;
       }
       const total =
-        (data.novos?.instagram ?? 0) + (data.novos?.x ?? 0) + (data.novos?.meta ?? 0);
+        (data.novos?.instagram ?? 0) +
+        (data.novos?.x ?? 0) +
+        (data.novos?.meta ?? 0) +
+        (data.novos?.web ?? 0);
       setMsg({
         tipo: "ok",
         texto: total > 0 ? `${total} item(ns) novo(s).` : "Nenhum post novo.",

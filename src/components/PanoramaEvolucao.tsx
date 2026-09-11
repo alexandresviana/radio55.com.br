@@ -9,6 +9,7 @@ interface PontoVeiculos {
   instagram: number;
   x: number;
   meta_ads: number;
+  web: number;
   total: number;
 }
 
@@ -23,7 +24,7 @@ interface PontoFontes {
   total: number;
 }
 
-type SerieId = "radio" | "youtube" | "instagram" | "x" | "meta_ads";
+type SerieId = "radio" | "youtube" | "instagram" | "x" | "meta_ads" | "web";
 
 const VEICULOS: { id: SerieId; label: string; cor: string }[] = [
   { id: "radio", label: "Rádio", cor: "#047857" },
@@ -31,6 +32,7 @@ const VEICULOS: { id: SerieId; label: string; cor: string }[] = [
   { id: "instagram", label: "Instagram", cor: "#a21caf" },
   { id: "x", label: "X", cor: "#0369a1" },
   { id: "meta_ads", label: "Anúncios", cor: "#4338ca" },
+  { id: "web", label: "Web", cor: "#b45309" },
 ];
 
 const PALETTE_FONTES = [

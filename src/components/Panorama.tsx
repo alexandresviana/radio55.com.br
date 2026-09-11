@@ -4,12 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import PanoramaEvolucao from "@/components/PanoramaEvolucao";
 import PanoramaRelatorio from "@/components/PanoramaRelatorio";
 
-type Fonte = "todas" | "radio" | "youtube" | "instagram" | "x" | "meta_ads";
+type Fonte = "todas" | "radio" | "youtube" | "instagram" | "x" | "meta_ads" | "web";
 type Janela = "24h" | "7d" | "30d";
 
 interface ItemPanorama {
   chave: string;
-  fonte: "radio" | "youtube" | "instagram" | "x" | "meta_ads";
+  fonte: "radio" | "youtube" | "instagram" | "x" | "meta_ads" | "web";
   termo: string;
   contexto: string;
   detectado_em: string;
@@ -27,6 +27,7 @@ interface Contagens {
   instagram: number;
   x: number;
   meta_ads: number;
+  web: number;
 }
 
 const JANELAS: { id: Janela; label: string }[] = [
@@ -42,6 +43,7 @@ const FONTES: { id: Fonte; label: string }[] = [
   { id: "instagram", label: "Instagram" },
   { id: "x", label: "X" },
   { id: "meta_ads", label: "Anúncios" },
+  { id: "web", label: "Web" },
 ];
 
 function rotuloFonte(fonte: ItemPanorama["fonte"]): string {
@@ -49,6 +51,7 @@ function rotuloFonte(fonte: ItemPanorama["fonte"]): string {
   if (fonte === "youtube") return "YouTube";
   if (fonte === "instagram") return "Instagram";
   if (fonte === "meta_ads") return "Anúncios";
+  if (fonte === "web") return "Web";
   return "X";
 }
 
@@ -57,6 +60,7 @@ function corFonte(fonte: ItemPanorama["fonte"]): string {
   if (fonte === "youtube") return "bg-red-50 text-red-700";
   if (fonte === "instagram") return "bg-fuchsia-50 text-fuchsia-800";
   if (fonte === "meta_ads") return "bg-indigo-50 text-indigo-800";
+  if (fonte === "web") return "bg-amber-50 text-amber-800";
   return "bg-sky-50 text-sky-800";
 }
 
@@ -138,8 +142,8 @@ export default function Panorama() {
       <div>
         <h2 className="text-xl font-bold text-slate-900">O que está rolando?</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Relatório de IA no topo; abaixo, o gráfico e as menções nas rádios, YouTube, Instagram, X e
-          anúncios.
+          Relatório de IA no topo; abaixo, o gráfico e as menções nas rádios, YouTube, Instagram,
+          X, anúncios e web.
         </p>
       </div>
 
@@ -245,6 +249,7 @@ export default function Panorama() {
               { id: "instagram" as const, label: "Instagram", valor: contagens.instagram },
               { id: "x" as const, label: "X", valor: contagens.x ?? 0 },
               { id: "meta_ads" as const, label: "Anúncios", valor: contagens.meta_ads ?? 0 },
+              { id: "web" as const, label: "Web", valor: contagens.web ?? 0 },
             ] as const
           ).map((card) => (
             <button

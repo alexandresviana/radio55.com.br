@@ -19,6 +19,7 @@ const FONTES = new Set<FontePanorama | "todas">([
   "instagram",
   "x",
   "meta_ads",
+  "web",
 ]);
 
 export async function GET(request: NextRequest) {

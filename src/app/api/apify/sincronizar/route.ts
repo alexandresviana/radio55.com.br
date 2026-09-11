@@ -3,9 +3,11 @@ import { garantirColetaAtualizada } from "@/lib/coleta-coletor";
 import {
   consumirInstagramCompartilhado,
   consumirMetaAdsCompartilhado,
+  consumirWebCompartilhado,
   consumirXCompartilhado,
   publicarFontesInstagram,
   publicarFontesMetaAds,
+  publicarFontesWeb,
   publicarFontesX,
 } from "@/lib/coleta-consumidor";
 import {
@@ -18,6 +20,7 @@ import {
 import { isDatabaseConfigured } from "@/lib/db";
 import { getInstagramMonitorStatus, syncInstagramPerfisAgora } from "@/lib/instagram-monitor";
 import { getMetaAdsMonitorStatus, syncMetaAdsAgora } from "@/lib/meta-ads-monitor";
+import { getWebMonitorStatus, syncWebAgora } from "@/lib/web-monitor";
 import { getXMonitorStatus, syncXBuscasAgora } from "@/lib/x-monitor";
 
 export const runtime = "nodejs";
@@ -64,11 +67,13 @@ export async function POST() {
       await publicarFontesInstagram();
       await publicarFontesX();
       await publicarFontesMetaAds();
+      await publicarFontesWeb();
       await garantirColetaAtualizada({ forcar: true });
       const novos = {
         instagram: await consumirInstagramCompartilhado(),
         x: await consumirXCompartilhado(),
         meta: await consumirMetaAdsCompartilhado(),
+        web: await consumirWebCompartilhado(),
       };
       return NextResponse.json({
         ok: true,
@@ -77,6 +82,7 @@ export async function POST() {
         instagram: getInstagramMonitorStatus(),
         x: getXMonitorStatus(),
         meta_ads: getMetaAdsMonitorStatus(),
+        web: getWebMonitorStatus(),
       });
     } catch (error) {
       if (error instanceof ColetaCooldownError) {
@@ -116,6 +122,7 @@ export async function POST() {
     rodar("instagram", syncInstagramPerfisAgora),
     rodar("x", syncXBuscasAgora),
     rodar("meta-ads", syncMetaAdsAgora),
+    rodar("web", syncWebAgora),
   ]);
 
   return NextResponse.json({
@@ -124,5 +131,6 @@ export async function POST() {
     instagram: getInstagramMonitorStatus(),
     x: getXMonitorStatus(),
     meta_ads: getMetaAdsMonitorStatus(),
+    web: getWebMonitorStatus(),
   });
 }

@@ -34,6 +34,7 @@ export async function PATCH(
     coletarInstagram?: boolean;
     coletarX?: boolean;
     coletarMetaAds?: boolean;
+    coletarWeb?: boolean;
     papel?: string | null;
     requerPapel?: string | null;
   };
@@ -43,6 +44,7 @@ export async function PATCH(
       coletarInstagram?: boolean;
       coletarX?: boolean;
       coletarMetaAds?: boolean;
+      coletarWeb?: boolean;
       papel?: string | null;
       requerPapel?: string | null;
     };
@@ -57,6 +59,7 @@ export async function PATCH(
     typeof body.coletarInstagram !== "boolean" &&
     typeof body.coletarX !== "boolean" &&
     typeof body.coletarMetaAds !== "boolean" &&
+    typeof body.coletarWeb !== "boolean" &&
     !papelInformado
   ) {
     return NextResponse.json(
@@ -72,6 +75,8 @@ export async function PATCH(
     coletarX: typeof body.coletarX === "boolean" ? body.coletarX : undefined,
     coletarMetaAds:
       typeof body.coletarMetaAds === "boolean" ? body.coletarMetaAds : undefined,
+    coletarWeb:
+      typeof body.coletarWeb === "boolean" ? body.coletarWeb : undefined,
     ...(papelInformado
       ? {
           papel: parsePapel(body.papel),

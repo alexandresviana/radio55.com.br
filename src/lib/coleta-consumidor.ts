@@ -2,6 +2,7 @@ import {
   isColetaCompartilhada,
   listarInstagramPostsCompartilhados,
   listarMetaAdsCompartilhados,
+  listarWebArtigosCompartilhados,
   listarXPostsCompartilhados,
   upsertColetaFonte,
 } from "@/lib/coleta-db";
@@ -29,6 +30,11 @@ import {
   registrarMetaAd,
 } from "@/lib/meta-ads-db";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
+import { registrarPublicacaoWeb } from "@/lib/web-db";
+import {
+  escanearDeteccoesPublicacaoWeb,
+  registrarDeteccaoDoTermoWeb,
+} from "@/lib/web-deteccao";
 import { escanearDeteccoesPostX, registrarDeteccaoDeBuscaX } from "@/lib/x-deteccao";
 import { listarXBuscasAtivas, marcarXBuscaVerificada, registrarPostX } from "@/lib/x-db";
 
@@ -53,6 +59,24 @@ export async function publicarFontesX(): Promise<void> {
   const buscas = await listarXBuscasAtivas();
   for (const busca of buscas) {
     await upsertColetaFonte("x_termo", busca.termo);
+  }
+}
+
+/**
+ * Publica cada palavra-chave ativa com `coletar_web = TRUE` como fonte `web_termo`.
+ *
+ * Regra importante: **temas com `requer_papel` não viram query no Google News.**
+ * "Saúde" com requer_papel=candidato não gera chamada própria — a detecção
+ * chega naturalmente quando um candidato pesquisado trouxer um artigo que
+ * também mencione o tema. Isso economiza créditos e evita ruído.
+ */
+export async function publicarFontesWeb(): Promise<void> {
+  if (!isColetaCompartilhada()) return;
+  const palavras = await listarPalavrasChaveAtivas();
+  for (const palavra of palavras) {
+    if (!palavra.coletar_web) continue;
+    if (palavra.requer_papel) continue; // tema com papel: só entra via filtro
+    await upsertColetaFonte("web_termo", palavra.termo);
   }
 }
 
@@ -165,6 +189,45 @@ export async function consumirXCompartilhado(): Promise<number> {
   }
 
   for (const busca of buscas) await marcarXBuscaVerificada(busca.id, null);
+  return novos;
+}
+
+export async function consumirWebCompartilhado(): Promise<number> {
+  if (!isColetaCompartilhada()) return 0;
+
+  const palavras = await listarPalavrasChaveAtivas();
+  const termosAtivos = palavras.filter((p) => p.coletar_web).map((p) => p.termo);
+  if (termosAtivos.length === 0) return 0;
+
+  const artigos = await listarWebArtigosCompartilhados({ termos: termosAtivos });
+  if (artigos.length === 0) return 0;
+
+  const palavraPorTermo = new Map(
+    palavras.map((p) => [p.termo.toLowerCase(), p] as const),
+  );
+
+  let novos = 0;
+  for (const artigo of artigos) {
+    const palavra = palavraPorTermo.get(artigo.search_term.toLowerCase());
+    const salvo = await registrarPublicacaoWeb({
+      palavraChaveId: palavra?.id ?? null,
+      url: artigo.url,
+      titulo: artigo.titulo,
+      fonte: artigo.fonte,
+      dominio: artigo.dominio,
+      snippet: artigo.snippet,
+      publicadoEm: artigo.publicado_em ? new Date(artigo.publicado_em) : null,
+      imagemUrl: artigo.imagem_url,
+      searchTerm: artigo.search_term,
+    });
+    if (!salvo) continue;
+    if (salvo.novo) novos += 1;
+    if (salvo.novo || salvo.textoMudou) {
+      await escanearDeteccoesPublicacaoWeb(salvo.id, palavras);
+      await registrarDeteccaoDoTermoWeb(salvo.id, artigo.search_term, palavras);
+    }
+  }
+
   return novos;
 }
 

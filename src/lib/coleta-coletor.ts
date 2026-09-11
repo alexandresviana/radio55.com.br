@@ -12,6 +12,7 @@ import {
   solicitarColetaForcada,
   upsertColetaInstagramPost,
   upsertColetaMetaAd,
+  upsertColetaWebArtigo,
   upsertColetaXPost,
   withColetorLock,
   type ColetaFonte,
@@ -29,9 +30,11 @@ import {
   urlPaginaFacebook,
 } from "@/lib/meta-ads-fetch";
 import {
+  coletarGoogleNewsSC,
   coletarPostsInstagramSC,
   coletarTweetsXSC,
   getProviderInstagram,
+  getProviderWeb,
   getProviderX,
   isSocialCrawlConfigured,
 } from "@/lib/socialcrawl-fetch";
@@ -40,6 +43,7 @@ import { coletarTweetsX, isXFetchConfigured } from "@/lib/x-fetch";
 const IG_SYNC_MS = () => minutosEnv("INSTAGRAM_SYNC_MINUTOS", 360);
 const X_SYNC_MS = () => minutosEnv("X_SYNC_MINUTOS", 360);
 const META_SYNC_MS = () => minutosEnv("META_ADS_SYNC_MINUTOS", 720);
+const WEB_SYNC_MS = () => minutosEnv("WEB_SYNC_MINUTOS", 360);
 
 function minutosEnv(nome: string, padrao: number): number {
   const raw = Number(process.env[nome] ?? padrao);
@@ -94,6 +98,7 @@ export async function executarColetaApifyUnificada(
       await coletarInstagramUnificado(forcar);
       await coletarXUnificado(forcar);
       await coletarMetaUnificado(forcar);
+      await coletarWebUnificado(forcar);
       await marcarColetaConcluida(null);
     } catch (error) {
       const message = error instanceof Error ? error.message : "falha na coleta";
@@ -257,6 +262,55 @@ async function coletarXUnificado(forcar: boolean): Promise<void> {
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : "falha X";
+    console.error("[coleta]", message);
+    for (const fonte of termos) {
+      await marcarFonteVerificada(fonte.id, message);
+    }
+  }
+}
+
+/** Google News via SocialCrawl — 1 crédito por termo por ciclo. */
+async function coletarWebUnificado(forcar: boolean): Promise<void> {
+  if (getProviderWeb() !== "socialcrawl") return;
+
+  const termos = vencidas(await listarFontesAtivas("web_termo"), WEB_SYNC_MS(), forcar);
+  if (termos.length === 0) return;
+
+  const chaves = termos.map((f) => f.chave);
+  const depth = limiteEnv("WEB_NEWS_POR_TERMO", 20, 1, 100);
+  const timeRange = forcar ? "day" : "day";
+  const language = process.env.WEB_NEWS_LANGUAGE ?? "pt-BR";
+  const location = process.env.WEB_NEWS_LOCATION ?? "Brazil";
+
+  try {
+    const artigos = await coletarGoogleNewsSC(chaves, {
+      depth,
+      language,
+      location,
+      timeRange,
+    });
+
+    for (const artigo of artigos) {
+      await upsertColetaWebArtigo({
+        url: artigo.url,
+        titulo: artigo.titulo,
+        fonte: artigo.fonte,
+        dominio: artigo.dominio,
+        publicado_em: artigo.publicadoEm,
+        snippet: artigo.snippet,
+        imagem_url: artigo.imagemUrl,
+        search_term: artigo.searchTerm.toLowerCase(),
+      });
+    }
+
+    for (const fonte of termos) {
+      await marcarFonteVerificada(fonte.id, null);
+    }
+    console.info(
+      `[coleta] Web (Google News): ${artigos.length} artigo(s) de ${termos.length} termo(s)`,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "falha Web";
     console.error("[coleta]", message);
     for (const fonte of termos) {
       await marcarFonteVerificada(fonte.id, message);

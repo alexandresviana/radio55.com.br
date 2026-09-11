@@ -12,6 +12,7 @@ export interface PalavraChave {
   coletar_instagram: boolean;
   coletar_x: boolean;
   coletar_meta_ads: boolean;
+  coletar_web: boolean;
   papel: PapelAssunto | null;
   requer_papel: PapelAssunto | null;
   criado_em: string;
@@ -22,12 +23,13 @@ export interface PalavraChaveInput {
   coletarInstagram?: boolean;
   coletarX?: boolean;
   coletarMetaAds?: boolean;
+  coletarWeb?: boolean;
   papel?: PapelAssunto | null;
   requerPapel?: PapelAssunto | null;
 }
 
 const COLUNAS_PALAVRA =
-  "id, termo, ativo, coletar_instagram, coletar_x, coletar_meta_ads, papel, requer_papel, criado_em";
+  "id, termo, ativo, coletar_instagram, coletar_x, coletar_meta_ads, coletar_web, papel, requer_papel, criado_em";
 
 function mapPalavra(row: {
   id: number;
@@ -36,6 +38,7 @@ function mapPalavra(row: {
   coletar_instagram?: boolean;
   coletar_x?: boolean;
   coletar_meta_ads?: boolean;
+  coletar_web?: boolean;
   papel?: string | null;
   requer_papel?: string | null;
   criado_em: string | Date;
@@ -47,6 +50,7 @@ function mapPalavra(row: {
     coletar_instagram: Boolean(row.coletar_instagram),
     coletar_x: Boolean(row.coletar_x),
     coletar_meta_ads: Boolean(row.coletar_meta_ads),
+    coletar_web: row.coletar_web == null ? true : Boolean(row.coletar_web),
     papel: parsePapel(row.papel),
     requer_papel: parsePapel(row.requer_papel),
     criado_em: new Date(row.criado_em).toISOString(),
@@ -203,6 +207,7 @@ export async function criarPalavraChave(input: PalavraChaveInput): Promise<Palav
   const coletarInstagram = Boolean(input.coletarInstagram);
   const coletarX = Boolean(input.coletarX);
   const coletarMetaAds = Boolean(input.coletarMetaAds);
+  const coletarWeb = input.coletarWeb == null ? true : Boolean(input.coletarWeb);
   const papeis = normalizarPapeis({
     papel: input.papel,
     requerPapel: input.requerPapel,
@@ -210,18 +215,28 @@ export async function criarPalavraChave(input: PalavraChaveInput): Promise<Palav
 
   const result = await getPool().query(
     `INSERT INTO palavras_chave (
-       termo, ativo, coletar_instagram, coletar_x, coletar_meta_ads, papel, requer_papel
+       termo, ativo, coletar_instagram, coletar_x, coletar_meta_ads, coletar_web,
+       papel, requer_papel
      )
-     VALUES ($1, TRUE, $2, $3, $4, $5, $6)
+     VALUES ($1, TRUE, $2, $3, $4, $5, $6, $7)
      ON CONFLICT (termo) DO UPDATE SET
        ativo = TRUE,
        coletar_instagram = EXCLUDED.coletar_instagram,
        coletar_x = EXCLUDED.coletar_x,
        coletar_meta_ads = EXCLUDED.coletar_meta_ads,
+       coletar_web = EXCLUDED.coletar_web,
        papel = EXCLUDED.papel,
        requer_papel = EXCLUDED.requer_papel
      RETURNING ${COLUNAS_PALAVRA}`,
-    [termo, coletarInstagram, coletarX, coletarMetaAds, papeis.papel, papeis.requerPapel],
+    [
+      termo,
+      coletarInstagram,
+      coletarX,
+      coletarMetaAds,
+      coletarWeb,
+      papeis.papel,
+      papeis.requerPapel,
+    ],
   );
 
   const palavra = mapPalavra(result.rows[0]);
@@ -236,6 +251,7 @@ export async function atualizarPalavraChave(
     coletarInstagram?: boolean;
     coletarX?: boolean;
     coletarMetaAds?: boolean;
+    coletarWeb?: boolean;
     papel?: PapelAssunto | null;
     requerPapel?: PapelAssunto | null;
   },
@@ -254,6 +270,7 @@ export async function atualizarPalavraChave(
        coletar_instagram = COALESCE($3, coletar_instagram),
        coletar_x = COALESCE($4, coletar_x),
        coletar_meta_ads = COALESCE($5, coletar_meta_ads),
+       coletar_web = COALESCE($9, coletar_web),
        papel = CASE WHEN $6 THEN $7 ELSE papel END,
        requer_papel = CASE WHEN $6 THEN $8 ELSE requer_papel END
      WHERE id = $1
@@ -267,6 +284,7 @@ export async function atualizarPalavraChave(
       papeisInformados,
       papeis?.papel ?? null,
       papeis?.requerPapel ?? null,
+      patch.coletarWeb ?? null,
     ],
   );
 

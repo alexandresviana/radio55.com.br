@@ -81,6 +81,8 @@ async function sincronizarSequences(client: PoolClient): Promise<void> {
     "meta_ads_buscas",
     "meta_ads",
     "meta_ads_palavra_deteccoes",
+    "web_publicacoes",
+    "web_palavra_deteccoes",
   ];
 
   for (const tabela of tabelas) {
@@ -481,6 +483,43 @@ export async function initDatabase(): Promise<void> {
       ALTER TABLE meta_ads_palavra_deteccoes
         ADD COLUMN IF NOT EXISTS ancora_termo TEXT NOT NULL DEFAULT '';
 
+      ALTER TABLE palavras_chave
+        ADD COLUMN IF NOT EXISTS coletar_web BOOLEAN NOT NULL DEFAULT TRUE;
+
+      CREATE TABLE IF NOT EXISTS web_publicacoes (
+        id SERIAL PRIMARY KEY,
+        palavra_chave_id INTEGER REFERENCES palavras_chave(id) ON DELETE SET NULL,
+        url TEXT NOT NULL UNIQUE,
+        titulo TEXT NOT NULL DEFAULT '',
+        fonte TEXT NOT NULL DEFAULT '',
+        dominio TEXT NOT NULL DEFAULT '',
+        snippet TEXT NOT NULL DEFAULT '',
+        publicado_em TIMESTAMPTZ,
+        imagem_url TEXT,
+        search_term TEXT NOT NULL DEFAULT '',
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_web_publicacoes_publicado
+        ON web_publicacoes (publicado_em DESC);
+
+      CREATE INDEX IF NOT EXISTS idx_web_publicacoes_termo
+        ON web_publicacoes (lower(search_term), publicado_em DESC);
+
+      CREATE TABLE IF NOT EXISTS web_palavra_deteccoes (
+        id SERIAL PRIMARY KEY,
+        palavra_chave_id INTEGER REFERENCES palavras_chave(id) ON DELETE SET NULL,
+        publicacao_id INTEGER NOT NULL REFERENCES web_publicacoes(id) ON DELETE CASCADE,
+        termo TEXT NOT NULL,
+        contexto TEXT NOT NULL DEFAULT '',
+        ancora_termo TEXT NOT NULL DEFAULT '',
+        detectado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_web_deteccoes_detectado_em
+        ON web_palavra_deteccoes (detectado_em DESC);
+
       CREATE TABLE IF NOT EXISTS emissoras_config (
         id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
         dados JSONB NOT NULL,
@@ -564,6 +603,8 @@ export async function limparBaseDados(): Promise<Record<string, number>> {
       "meta_ads",
       "meta_ads_buscas",
       "meta_ads_paginas",
+      "web_palavra_deteccoes",
+      "web_publicacoes",
       "palavra_deteccoes",
       "transcricao_segmentos",
       "transcricao_progresso",
