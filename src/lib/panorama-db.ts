@@ -9,6 +9,7 @@ import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
 import { normalizeText } from "@/lib/text-normalize";
 import { listarXBuscasAtivas } from "@/lib/x-db";
 import { listarYoutubeCanaisAtivos } from "@/lib/youtube-db";
+import { listarWebSitesAtivos } from "@/lib/web-db";
 
 export type FontePanorama =
   | "radio"
@@ -946,9 +947,11 @@ async function listarSeriesMonitoradas(
   }
 
   if (fonte === "web") {
-    // Sem cadastro fixo de veículos: as séries surgem dinamicamente do próprio
-    // painel a partir dos artigos coletados no período.
-    return [];
+    const sites = await listarWebSitesAtivos();
+    return sites.map((s) => ({
+      id: `web:${s.dominio}`,
+      label: s.titulo || s.dominio,
+    }));
   }
 
   const [paginas, buscas] = await Promise.all([

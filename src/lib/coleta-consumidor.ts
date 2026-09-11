@@ -30,11 +30,16 @@ import {
   registrarMetaAd,
 } from "@/lib/meta-ads-db";
 import { listarPalavrasChaveAtivas } from "@/lib/palavras-chave-db";
-import { registrarPublicacaoWeb } from "@/lib/web-db";
+import {
+  listarWebSitesAtivos,
+  marcarWebSiteVerificado,
+  registrarPublicacaoWeb,
+} from "@/lib/web-db";
 import {
   escanearDeteccoesPublicacaoWeb,
   registrarDeteccaoDoTermoWeb,
 } from "@/lib/web-deteccao";
+import { chaveFonteWebSite } from "@/lib/web-rss-fetch";
 import { escanearDeteccoesPostX, registrarDeteccaoDeBuscaX } from "@/lib/x-deteccao";
 import { listarXBuscasAtivas, marcarXBuscaVerificada, registrarPostX } from "@/lib/x-db";
 
@@ -72,11 +77,18 @@ export async function publicarFontesX(): Promise<void> {
  */
 export async function publicarFontesWeb(): Promise<void> {
   if (!isColetaCompartilhada()) return;
-  const palavras = await listarPalavrasChaveAtivas();
+  const [palavras, sites] = await Promise.all([
+    listarPalavrasChaveAtivas(),
+    listarWebSitesAtivos(),
+  ]);
   for (const palavra of palavras) {
     if (!palavra.coletar_web) continue;
     if (palavra.requer_papel) continue; // tema com papel: só entra via filtro
     await upsertColetaFonte("web_termo", palavra.termo);
+  }
+  for (const site of sites) {
+    if (!site.feed_url) continue;
+    await upsertColetaFonte("web_site", chaveFonteWebSite(site.dominio, site.feed_url));
   }
 }
 
@@ -195,22 +207,31 @@ export async function consumirXCompartilhado(): Promise<number> {
 export async function consumirWebCompartilhado(): Promise<number> {
   if (!isColetaCompartilhada()) return 0;
 
-  const palavras = await listarPalavrasChaveAtivas();
+  const [palavras, sites] = await Promise.all([
+    listarPalavrasChaveAtivas(),
+    listarWebSitesAtivos(),
+  ]);
   const termosAtivos = palavras.filter((p) => p.coletar_web).map((p) => p.termo);
-  if (termosAtivos.length === 0) return 0;
+  if (termosAtivos.length === 0 && sites.length === 0) return 0;
 
-  const artigos = await listarWebArtigosCompartilhados({ termos: termosAtivos });
+  const artigos = await listarWebArtigosCompartilhados({
+    termos: termosAtivos,
+    dominios: sites.map((s) => s.dominio),
+  });
   if (artigos.length === 0) return 0;
 
   const palavraPorTermo = new Map(
     palavras.map((p) => [p.termo.toLowerCase(), p] as const),
   );
+  const sitePorDominio = new Map(sites.map((s) => [s.dominio.toLowerCase(), s]));
 
   let novos = 0;
   for (const artigo of artigos) {
     const palavra = palavraPorTermo.get(artigo.search_term.toLowerCase());
+    const site = sitePorDominio.get(artigo.dominio.toLowerCase());
     const salvo = await registrarPublicacaoWeb({
       palavraChaveId: palavra?.id ?? null,
+      siteId: site?.id ?? null,
       url: artigo.url,
       titulo: artigo.titulo,
       fonte: artigo.fonte,
@@ -224,10 +245,13 @@ export async function consumirWebCompartilhado(): Promise<number> {
     if (salvo.novo) novos += 1;
     if (salvo.novo || salvo.textoMudou) {
       await escanearDeteccoesPublicacaoWeb(salvo.id, palavras);
-      await registrarDeteccaoDoTermoWeb(salvo.id, artigo.search_term, palavras);
+      if (artigo.search_term) {
+        await registrarDeteccaoDoTermoWeb(salvo.id, artigo.search_term, palavras);
+      }
     }
   }
 
+  for (const site of sites) await marcarWebSiteVerificado(site.id, null);
   return novos;
 }
 

@@ -7,6 +7,12 @@ import { deveForcarColetaApify, fonteVencida } from "@/lib/apify-guard";
 import { getProviderWeb, isSocialCrawlConfigured } from "@/lib/socialcrawl-fetch";
 import { escanearDeteccoesPublicacaoWeb } from "@/lib/web-deteccao";
 import { getPool } from "@/lib/db";
+import {
+  listarWebSitesAtivos,
+  marcarWebSiteVerificado,
+  registrarPublicacaoWeb,
+} from "@/lib/web-db";
+import { coletarFeedRss } from "@/lib/web-rss-fetch";
 
 // Google News tem 1 crédito por termo por chamada. Mantém intervalo folgado.
 const SYNC_MINUTOS_PADRAO = 360;
@@ -27,7 +33,8 @@ function getConsumoMs(): number {
 
 function webPodeRodar(): boolean {
   if (isColetaCompartilhada()) return true;
-  return getProviderWeb() === "socialcrawl" && isSocialCrawlConfigured();
+  if (getProviderWeb() === "socialcrawl" && isSocialCrawlConfigured()) return true;
+  return isDatabaseConfigured();
 }
 
 async function listarPublicacoesParaReescanear(
@@ -46,8 +53,59 @@ async function listarPublicacoesParaReescanear(
   return result.rows;
 }
 
+async function coletarSitesRssLocal(): Promise<number> {
+  const sites = await listarWebSitesAtivos();
+  if (sites.length === 0) return 0;
+
+  const palavras = await listarPalavrasChaveAtivas();
+  const limiteRaw = Number(process.env.WEB_RSS_POR_SITE ?? 25);
+  const limite = Number.isFinite(limiteRaw) && limiteRaw >= 1 ? Math.min(limiteRaw, 80) : 25;
+  let novos = 0;
+
+  for (const site of sites) {
+    if (!site.feed_url) {
+      await marcarWebSiteVerificado(site.id, "feed ausente");
+      continue;
+    }
+    try {
+      const artigos = await coletarFeedRss(site.feed_url, {
+        dominio: site.dominio,
+        fonte: site.titulo || site.dominio,
+        limite,
+      });
+      for (const artigo of artigos) {
+        const salvo = await registrarPublicacaoWeb({
+          palavraChaveId: null,
+          siteId: site.id,
+          url: artigo.url,
+          titulo: artigo.titulo,
+          fonte: artigo.fonte,
+          dominio: site.dominio,
+          snippet: artigo.snippet,
+          publicadoEm: artigo.publicadoEm,
+          imagemUrl: artigo.imagemUrl,
+          searchTerm: "",
+        });
+        if (!salvo) continue;
+        if (salvo.novo) novos += 1;
+        if (salvo.novo || salvo.textoMudou) {
+          await escanearDeteccoesPublicacaoWeb(salvo.id, palavras);
+        }
+      }
+      await marcarWebSiteVerificado(site.id, null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "falha RSS";
+      console.error("[web] RSS", site.dominio, message);
+      await marcarWebSiteVerificado(site.id, message);
+    }
+  }
+
+  return novos;
+}
+
 type MonitorGlobal = typeof globalThis & {
   __radio55WebMonitor?: WebMonitorService;
+  __radio55WebSyncTimer?: NodeJS.Timeout;
 };
 
 class WebMonitorService {
@@ -69,7 +127,7 @@ class WebMonitorService {
       return;
     }
     if (!webPodeRodar()) {
-      console.warn("[web] SocialCrawl não configurado — monitor de sites desativado");
+      console.warn("[web] monitor de sites desativado");
       return;
     }
 
@@ -137,16 +195,15 @@ class WebMonitorService {
       return;
     }
 
-    // Modo direto (coletor): usa o mesmo garantirColetaAtualizada que também
-    // dispara a coleta web quando forcar=true; senão só faz consumo local.
-    // Como não temos base compartilhada, precisamos rodar o coletor direto.
     this.syncing = true;
     try {
-      // sem intervalo por termo aqui — o coletor cuida da lista completa.
       const intervaloMs = getSyncMs();
       const desatualizado = fonteVencida(this.lastSyncAt, intervaloMs);
       if (opts?.forcar || desatualizado) {
-        await garantirColetaAtualizada({ forcar: true });
+        this.publicacoesColetadas += await coletarSitesRssLocal();
+        if (getProviderWeb() === "socialcrawl" && isSocialCrawlConfigured()) {
+          await garantirColetaAtualizada({ forcar: true });
+        }
       }
       this.lastSyncAt = new Date().toISOString();
       this.lastError = null;
@@ -207,4 +264,22 @@ export async function reescanearDeteccoesWebAgora(limite = 40): Promise<void> {
 
 export function getWebMonitorStatus() {
   return getService().getStatus();
+}
+
+const AGENDAR_SYNC_DEBOUNCE_MS = 60_000;
+const AGENDAR_SYNC_COOLDOWN_MS = 10 * 60_000;
+
+export function agendarSyncWeb(): void {
+  const globalRef = globalThis as MonitorGlobal;
+  const status = getWebMonitorStatus();
+  if (status.sincronizando) return;
+  if (status.ultima_sincronizacao) {
+    const idade = Date.now() - new Date(status.ultima_sincronizacao).getTime();
+    if (Number.isFinite(idade) && idade < AGENDAR_SYNC_COOLDOWN_MS) return;
+  }
+  if (globalRef.__radio55WebSyncTimer) clearTimeout(globalRef.__radio55WebSyncTimer);
+  globalRef.__radio55WebSyncTimer = setTimeout(() => {
+    globalRef.__radio55WebSyncTimer = undefined;
+    void getService().forceSync();
+  }, AGENDAR_SYNC_DEBOUNCE_MS);
 }

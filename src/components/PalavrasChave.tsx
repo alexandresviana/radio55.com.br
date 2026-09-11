@@ -157,10 +157,8 @@ export default function PalavrasChave() {
         Cadastre uma vez — o sistema procura o termo em <strong>rádio</strong>,{" "}
         <strong>YouTube</strong>, <strong>Instagram</strong>, <strong>X</strong>,{" "}
         <strong>anúncios</strong> e <strong>web</strong>. Uma <em>pessoa</em> (candidato, oponente,
-        aliado) vale sozinha. Na <strong>web</strong>, temas com papel (ex.:{" "}
-        <em>saúde só com candidato</em>) não fazem busca própria no Google News — eles são
-        detectados quando aparecem junto de alguém do mesmo papel, evitando ruído.
-        Um <em>tema</em> só conta no mesmo pedaço de texto que alguém daquele papel.
+        aliado) vale sozinha. Um <em>tema</em> só conta no mesmo pedaço de texto que alguém
+        daquele papel.
       </p>
 
       <div className="mt-4 space-y-3">
@@ -244,7 +242,7 @@ export default function PalavrasChave() {
               onChange={(e) => setColetarWeb(e.target.checked)}
               className="h-4 w-4 rounded border-slate-300 text-emerald-700"
             />
-            Também coletar notícias na web (Google News)
+            Também coletar notícias na web
           </label>
         </div>
         <p className="text-xs text-slate-400">
@@ -357,7 +355,7 @@ export default function PalavrasChave() {
                         title={
                           item.requer_papel
                             ? "Tema com papel não faz busca própria — só é contado quando aparece junto de uma pessoa"
-                            : "Buscar notícias no Google News (web)"
+                            : "Buscar notícias na web"
                         }
                       />
                     </td>

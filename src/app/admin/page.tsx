@@ -6,12 +6,13 @@ import AdminInstagramTab from "@/components/AdminInstagramTab";
 import AdminMetaAdsTab from "@/components/AdminMetaAdsTab";
 import AdminRadiosTab from "@/components/AdminRadiosTab";
 import AdminXTab from "@/components/AdminXTab";
+import AdminWebTab from "@/components/AdminWebTab";
 import AdminYoutubeTab from "@/components/AdminYoutubeTab";
 import ForcarColetaApify from "@/components/ForcarColetaApify";
 import Header from "@/components/Header";
 import PalavrasChave from "@/components/PalavrasChave";
 
-type AdminTab = "assuntos" | "radios" | "youtube" | "instagram" | "x" | "meta";
+type AdminTab = "assuntos" | "radios" | "youtube" | "instagram" | "x" | "meta" | "web";
 
 const TABS: { id: AdminTab; label: string }[] = [
   { id: "assuntos", label: "Assuntos" },
@@ -20,6 +21,7 @@ const TABS: { id: AdminTab; label: string }[] = [
   { id: "instagram", label: "Instagram" },
   { id: "x", label: "X" },
   { id: "meta", label: "Anúncios" },
+  { id: "web", label: "Web" },
 ];
 
 const ABAS = new Set<AdminTab>(TABS.map((t) => t.id));
@@ -82,6 +84,7 @@ function AdminPageInner() {
         {aba === "instagram" && <AdminInstagramTab />}
         {aba === "x" && <AdminXTab />}
         {aba === "meta" && <AdminMetaAdsTab />}
+        {aba === "web" && <AdminWebTab />}
       </main>
     </div>
   );

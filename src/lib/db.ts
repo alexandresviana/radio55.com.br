@@ -81,6 +81,7 @@ async function sincronizarSequences(client: PoolClient): Promise<void> {
     "meta_ads_buscas",
     "meta_ads",
     "meta_ads_palavra_deteccoes",
+    "web_sites",
     "web_publicacoes",
     "web_palavra_deteccoes",
   ];
@@ -486,6 +487,22 @@ export async function initDatabase(): Promise<void> {
       ALTER TABLE palavras_chave
         ADD COLUMN IF NOT EXISTS coletar_web BOOLEAN NOT NULL DEFAULT TRUE;
 
+      CREATE TABLE IF NOT EXISTS web_sites (
+        id SERIAL PRIMARY KEY,
+        dominio TEXT NOT NULL UNIQUE,
+        titulo TEXT NOT NULL DEFAULT '',
+        url_entrada TEXT NOT NULL DEFAULT '',
+        feed_url TEXT NOT NULL DEFAULT '',
+        ativo BOOLEAN NOT NULL DEFAULT TRUE,
+        ultima_verificacao_em TIMESTAMPTZ,
+        ultimo_erro TEXT,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_web_sites_ativo
+        ON web_sites (ativo)
+        WHERE ativo = TRUE;
+
       CREATE TABLE IF NOT EXISTS web_publicacoes (
         id SERIAL PRIMARY KEY,
         palavra_chave_id INTEGER REFERENCES palavras_chave(id) ON DELETE SET NULL,
@@ -505,6 +522,12 @@ export async function initDatabase(): Promise<void> {
 
       CREATE INDEX IF NOT EXISTS idx_web_publicacoes_termo
         ON web_publicacoes (lower(search_term), publicado_em DESC);
+
+      ALTER TABLE web_publicacoes
+        ADD COLUMN IF NOT EXISTS site_id INTEGER REFERENCES web_sites(id) ON DELETE SET NULL;
+
+      CREATE INDEX IF NOT EXISTS idx_web_publicacoes_site
+        ON web_publicacoes (site_id, publicado_em DESC);
 
       CREATE TABLE IF NOT EXISTS web_palavra_deteccoes (
         id SERIAL PRIMARY KEY,
@@ -605,6 +628,7 @@ export async function limparBaseDados(): Promise<Record<string, number>> {
       "meta_ads_paginas",
       "web_palavra_deteccoes",
       "web_publicacoes",
+      "web_sites",
       "palavra_deteccoes",
       "transcricao_segmentos",
       "transcricao_progresso",

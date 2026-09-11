@@ -6,7 +6,8 @@ export type ColetaPlataforma =
   | "x_termo"
   | "meta_termo"
   | "meta_pagina"
-  | "web_termo";
+  | "web_termo"
+  | "web_site";
 
 export interface ColetaFonte {
   id: number;
@@ -227,6 +228,9 @@ export async function initColetaDatabase(): Promise<void> {
 
     CREATE INDEX IF NOT EXISTS idx_coleta_web_termo
       ON coleta_web_artigos (lower(search_term), coletado_em DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_coleta_web_dominio
+      ON coleta_web_artigos (lower(dominio), coletado_em DESC);
 
     CREATE TABLE IF NOT EXISTS coleta_controle (
       id INTEGER PRIMARY KEY,
@@ -513,20 +517,25 @@ export async function upsertColetaWebArtigo(artigo: ColetaWebArtigo): Promise<vo
 }
 
 export async function listarWebArtigosCompartilhados(input: {
-  termos: string[];
+  termos?: string[];
+  dominios?: string[];
   dias?: number;
 }): Promise<ColetaWebArtigo[]> {
-  const termos = input.termos.map((t) => t.toLowerCase());
-  if (termos.length === 0) return [];
+  const termos = (input.termos ?? []).map((t) => t.toLowerCase());
+  const dominios = (input.dominios ?? []).map((d) => d.toLowerCase());
+  if (termos.length === 0 && dominios.length === 0) return [];
 
   const result = await getColetaPool().query<ColetaWebArtigo>(
     `SELECT url, titulo, fonte, dominio, publicado_em, snippet, imagem_url, search_term
      FROM coleta_web_artigos
-     WHERE coletado_em > NOW() - ($2::int * INTERVAL '1 day')
-       AND lower(search_term) = ANY($1::text[])
+     WHERE coletado_em > NOW() - ($3::int * INTERVAL '1 day')
+       AND (
+         (cardinality($1::text[]) > 0 AND lower(search_term) = ANY($1::text[]))
+         OR (cardinality($2::text[]) > 0 AND lower(dominio) = ANY($2::text[]))
+       )
      ORDER BY coletado_em DESC
      LIMIT 400`,
-    [termos, input.dias ?? 3],
+    [termos, dominios, input.dias ?? 3],
   );
   return result.rows;
 }

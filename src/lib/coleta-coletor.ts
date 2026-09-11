@@ -39,6 +39,7 @@ import {
   isSocialCrawlConfigured,
 } from "@/lib/socialcrawl-fetch";
 import { coletarTweetsX, isXFetchConfigured } from "@/lib/x-fetch";
+import { coletarFeedRss, parseChaveFonteWebSite } from "@/lib/web-rss-fetch";
 
 const IG_SYNC_MS = () => minutosEnv("INSTAGRAM_SYNC_MINUTOS", 360);
 const X_SYNC_MS = () => minutosEnv("X_SYNC_MINUTOS", 360);
@@ -99,6 +100,7 @@ export async function executarColetaApifyUnificada(
       await coletarXUnificado(forcar);
       await coletarMetaUnificado(forcar);
       await coletarWebUnificado(forcar);
+      await coletarWebSitesUnificado(forcar);
       await marcarColetaConcluida(null);
     } catch (error) {
       const message = error instanceof Error ? error.message : "falha na coleta";
@@ -316,6 +318,47 @@ async function coletarWebUnificado(forcar: boolean): Promise<void> {
       await marcarFonteVerificada(fonte.id, message);
     }
   }
+}
+
+/** Portais cadastrados: RSS/Atom local, sem crédito de API. */
+async function coletarWebSitesUnificado(forcar: boolean): Promise<void> {
+  const fontes = vencidas(await listarFontesAtivas("web_site"), WEB_SYNC_MS(), forcar);
+  if (fontes.length === 0) return;
+
+  const limite = limiteEnv("WEB_RSS_POR_SITE", 25, 1, 80);
+  let total = 0;
+
+  for (const fonte of fontes) {
+    const { dominio, feedUrl } = parseChaveFonteWebSite(fonte.chave);
+    if (!feedUrl) {
+      await marcarFonteVerificada(fonte.id, "feed ausente");
+      continue;
+    }
+
+    try {
+      const artigos = await coletarFeedRss(feedUrl, { dominio, limite });
+      for (const artigo of artigos) {
+        await upsertColetaWebArtigo({
+          url: artigo.url,
+          titulo: artigo.titulo,
+          fonte: artigo.fonte,
+          dominio: artigo.dominio || dominio,
+          publicado_em: artigo.publicadoEm,
+          snippet: artigo.snippet,
+          imagem_url: artigo.imagemUrl,
+          search_term: "",
+        });
+      }
+      total += artigos.length;
+      await marcarFonteVerificada(fonte.id, null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "falha RSS";
+      console.error("[coleta] RSS", dominio, message);
+      await marcarFonteVerificada(fonte.id, message);
+    }
+  }
+
+  console.info(`[coleta] Web (RSS): ${total} artigo(s) de ${fontes.length} site(s)`);
 }
 
 /** Meta Ads segue no Apify — SocialCrawl não expõe biblioteca de anúncios. */

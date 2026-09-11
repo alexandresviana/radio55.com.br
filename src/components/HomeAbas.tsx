@@ -11,12 +11,14 @@ import MetaAdsAnuncios from "@/components/MetaAdsAnuncios";
 import MetaAdsDeteccoes from "@/components/MetaAdsDeteccoes";
 import PainelDeteccoes from "@/components/PainelDeteccoes";
 import Panorama from "@/components/Panorama";
+import WebDeteccoes from "@/components/WebDeteccoes";
+import WebPublicacoes from "@/components/WebPublicacoes";
 import XDeteccoes from "@/components/XDeteccoes";
 import XPosts from "@/components/XPosts";
 import YoutubeBuscaTranscricoes from "@/components/YoutubeBuscaTranscricoes";
 import YoutubeDeteccoes from "@/components/YoutubeDeteccoes";
 
-type HomeTab = "panorama" | "radio" | "youtube" | "instagram" | "x" | "meta" | "ia";
+type HomeTab = "panorama" | "radio" | "youtube" | "instagram" | "x" | "meta" | "web" | "ia";
 
 const TABS: { id: HomeTab; label: string }[] = [
   { id: "panorama", label: "Panorama" },
@@ -25,6 +27,7 @@ const TABS: { id: HomeTab; label: string }[] = [
   { id: "instagram", label: "Instagram" },
   { id: "x", label: "X" },
   { id: "meta", label: "Anúncios" },
+  { id: "web", label: "Web" },
   { id: "ia", label: "Busca IA" },
 ];
 
@@ -136,6 +139,16 @@ export default function HomeAbas() {
           </div>
           <MetaAdsAnuncios />
           <MetaAdsDeteccoes />
+        </div>
+      )}
+
+      {aba === "web" && (
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">Web</h2>
+          </div>
+          <WebPublicacoes />
+          <WebDeteccoes />
         </div>
       )}
 
