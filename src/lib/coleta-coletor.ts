@@ -59,8 +59,46 @@ function limiteEnv(nome: string, padrao: number, min: number, max: number): numb
   return Number.isFinite(raw) && raw >= min ? Math.min(Math.floor(raw), max) : padrao;
 }
 
+function erroTransitorio(erro?: string | null): boolean {
+  if (!erro) return false;
+  return /HTTP\s*(429|5\d\d)|APIFY_TETO|teto de|timeout|falha de rede|SERVICE_UNAVAILABLE|UPSTREAM/i.test(
+    erro,
+  );
+}
+
 function vencidas(fontes: ColetaFonte[], intervaloMs: number, forcar: boolean): ColetaFonte[] {
-  return forcar ? fontes : fontes.filter((f) => fonteVencida(f.ultima_verificacao_em, intervaloMs));
+  if (forcar) return fontes;
+  return fontes.filter(
+    (f) =>
+      fonteVencida(f.ultima_verificacao_em, intervaloMs) || erroTransitorio(f.ultimo_erro),
+  );
+}
+
+async function marcarFontesOk(fontes: ColetaFonte[], chavesOk: string[]): Promise<void> {
+  const ok = new Set(chavesOk.map((c) => c.toLowerCase()));
+  for (const fonte of fontes) {
+    if (ok.has(fonte.chave.toLowerCase())) {
+      await marcarFonteVerificada(fonte.id, null);
+    }
+  }
+}
+
+async function marcarFontesFalha(
+  fontes: ColetaFonte[],
+  falhas: Array<{ chave: string; erro: string }>,
+): Promise<void> {
+  const porChave = new Map(fontes.map((f) => [f.chave.toLowerCase(), f]));
+  for (const falha of falhas) {
+    const fonte = porChave.get(falha.chave.toLowerCase());
+    if (!fonte) continue;
+    if (erroTransitorio(falha.erro)) {
+      console.warn(
+        `[coleta] ${fonte.plataforma} "${fonte.chave}": ${falha.erro} — tenta de novo no próximo tick`,
+      );
+      continue;
+    }
+    await marcarFonteVerificada(fonte.id, falha.erro);
+  }
 }
 
 /** Coletor = tem token de algum provedor. Consumidor puro fica false. */
@@ -188,10 +226,15 @@ async function coletarInstagramUnificado(forcar: boolean): Promise<void> {
   };
 
   try {
-    const posts =
+    const coletado =
       provider === "socialcrawl"
         ? await coletarPostsInstagramSC(entrada, opcoes)
-        : await coletarPostsInstagram(entrada, opcoes);
+        : {
+            itens: await coletarPostsInstagram(entrada, opcoes),
+            ok: [...perfis, ...hashtags].map((f) => f.chave),
+            falhas: [],
+          };
+    const posts = coletado.itens;
 
     const perfilSet = new Set(perfis.map((f) => f.chave));
     const hashtagSet = new Set(hashtags.map((f) => f.chave));
@@ -225,17 +268,20 @@ async function coletarInstagramUnificado(forcar: boolean): Promise<void> {
       });
     }
 
-    for (const fonte of [...perfis, ...hashtags]) {
-      await marcarFonteVerificada(fonte.id, null);
-    }
+    const alvos = [...perfis, ...hashtags];
+    await marcarFontesOk(alvos, coletado.ok);
+    await marcarFontesFalha(alvos, coletado.falhas);
     console.info(
-      `[coleta] Instagram (${provider}): ${posts.length} post(s) de ${perfis.length} perfil(is) + ${hashtags.length} hashtag(s)`,
+      `[coleta] Instagram (${provider}): ${posts.length} post(s) de ${perfis.length} perfil(is) + ${hashtags.length} hashtag(s)` +
+        (coletado.falhas.length ? ` — ${coletado.falhas.length} falha(s)` : ""),
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : "falha Instagram";
     console.error("[coleta]", message);
-    for (const fonte of [...perfis, ...hashtags]) {
-      await marcarFonteVerificada(fonte.id, message);
+    if (!erroTransitorio(message)) {
+      for (const fonte of [...perfis, ...hashtags]) {
+        await marcarFonteVerificada(fonte.id, message);
+      }
     }
   }
 }
@@ -255,10 +301,15 @@ async function coletarXUnificado(forcar: boolean): Promise<void> {
   const chaves = termos.map((f) => f.chave);
 
   try {
-    const tweets =
+    const coletado =
       provider === "socialcrawl"
         ? await coletarTweetsXSC(chaves, opcoes)
-        : await coletarTweetsX(chaves, opcoes);
+        : {
+            itens: await coletarTweetsX(chaves, opcoes),
+            ok: chaves,
+            falhas: [],
+          };
+    const tweets = coletado.itens;
 
     for (const tweet of tweets) {
       await upsertColetaXPost({
@@ -276,17 +327,19 @@ async function coletarXUnificado(forcar: boolean): Promise<void> {
       });
     }
 
-    for (const fonte of termos) {
-      await marcarFonteVerificada(fonte.id, null);
-    }
+    await marcarFontesOk(termos, coletado.ok);
+    await marcarFontesFalha(termos, coletado.falhas);
     console.info(
-      `[coleta] X (${provider}): ${tweets.length} post(s) de ${termos.length} termo(s)`,
+      `[coleta] X (${provider}): ${tweets.length} post(s) de ${termos.length} termo(s)` +
+        (coletado.falhas.length ? ` — ${coletado.falhas.length} falha(s)` : ""),
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : "falha X";
     console.error("[coleta]", message);
-    for (const fonte of termos) {
-      await marcarFonteVerificada(fonte.id, message);
+    if (!erroTransitorio(message)) {
+      for (const fonte of termos) {
+        await marcarFonteVerificada(fonte.id, message);
+      }
     }
   }
 }
@@ -312,12 +365,13 @@ async function coletarWebUnificado(forcar: boolean): Promise<void> {
   const location = process.env.WEB_NEWS_LOCATION ?? "Brazil";
 
   try {
-    const artigos = await coletarGoogleNewsSC(chaves, {
+    const coletado = await coletarGoogleNewsSC(chaves, {
       depth,
       language,
       location,
       timeRange,
     });
+    const artigos = coletado.itens;
 
     for (const artigo of artigos) {
       await upsertColetaWebArtigo({
@@ -332,17 +386,19 @@ async function coletarWebUnificado(forcar: boolean): Promise<void> {
       });
     }
 
-    for (const fonte of termos) {
-      await marcarFonteVerificada(fonte.id, null);
-    }
+    await marcarFontesOk(termos, coletado.ok);
+    await marcarFontesFalha(termos, coletado.falhas);
     console.info(
-      `[coleta] Web (Google News): ${artigos.length} artigo(s) de ${termos.length} termo(s)`,
+      `[coleta] Web (Google News): ${artigos.length} artigo(s) de ${termos.length} termo(s)` +
+        (coletado.falhas.length ? ` — ${coletado.falhas.length} falha(s)` : ""),
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : "falha Web";
     console.error("[coleta]", message);
-    for (const fonte of termos) {
-      await marcarFonteVerificada(fonte.id, message);
+    if (!erroTransitorio(message)) {
+      for (const fonte of termos) {
+        await marcarFonteVerificada(fonte.id, message);
+      }
     }
   }
 }
@@ -396,9 +452,16 @@ async function coletarWebSitesUnificado(forcar: boolean): Promise<void> {
 async function coletarMetaUnificado(forcar: boolean): Promise<void> {
   if (!isMetaAdsFetchConfigured()) return;
 
-  const buscas = vencidas(await listarFontesAtivas("meta_termo"), META_SYNC_MS(), forcar);
-  const paginas = vencidas(await listarFontesAtivas("meta_pagina"), META_SYNC_MS(), forcar);
-  if (buscas.length === 0 && paginas.length === 0) return;
+  const todasBuscas = await listarFontesAtivas("meta_termo");
+  const todasPaginas = await listarFontesAtivas("meta_pagina");
+  const buscas = vencidas(todasBuscas, META_SYNC_MS(), forcar);
+  const paginas = vencidas(todasPaginas, META_SYNC_MS(), forcar);
+  if (buscas.length === 0 && paginas.length === 0) {
+    console.info(
+      `[coleta] Meta: pulado — ${todasBuscas.length} termo(s) + ${todasPaginas.length} página(s) ainda no intervalo`,
+    );
+    return;
+  }
 
   const urls = [
     ...buscas.map((f) => urlBuscaBibliotecaAds(f.chave)),
@@ -451,8 +514,10 @@ async function coletarMetaUnificado(forcar: boolean): Promise<void> {
   } catch (error) {
     const message = error instanceof Error ? error.message : "falha Meta";
     console.error("[coleta]", message);
-    for (const fonte of [...buscas, ...paginas]) {
-      await marcarFonteVerificada(fonte.id, message);
+    if (!erroTransitorio(message)) {
+      for (const fonte of [...buscas, ...paginas]) {
+        await marcarFonteVerificada(fonte.id, message);
+      }
     }
   }
 }

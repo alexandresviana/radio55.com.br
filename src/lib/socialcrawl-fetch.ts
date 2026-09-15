@@ -217,10 +217,11 @@ async function scGet<T>(
         throw new Error(`SocialCrawl ${rotulo}: HTTP ${res.status}`);
       }
       tentativa += 1;
+      const esperaMs = msRetryAposFalha(res, tentativa);
       console.warn(
-        `[socialcrawl] ${rotulo}: retry ${tentativa}/${MAX_TENTATIVAS} após HTTP ${res.status}`,
+        `[socialcrawl] ${rotulo}: retry ${tentativa}/${MAX_TENTATIVAS} após HTTP ${res.status} em ${Math.round(esperaMs / 1000)}s`,
       );
-      await esperar(1500 * tentativa);
+      await esperar(esperaMs);
       continue;
     }
 
@@ -249,6 +250,28 @@ async function scGet<T>(
 
 function esperar(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function msRetryAposFalha(res: Response, tentativa: number): number {
+  const header = Number(res.headers.get("retry-after"));
+  if (res.status === 503) {
+    const segundos = Number.isFinite(header) && header > 0 ? header : 30;
+    return segundos * 1000;
+  }
+  if (res.status === 429 && Number.isFinite(header) && header > 0) {
+    return Math.min(header * 1000, 60_000);
+  }
+  return 1500 * tentativa;
+}
+
+export interface ResultadoFonteSC<T> {
+  itens: T[];
+  ok: string[];
+  falhas: Array<{ chave: string; erro: string }>;
+}
+
+function resultadoVazio<T>(): ResultadoFonteSC<T> {
+  return { itens: [], ok: [], falhas: [] };
 }
 
 function extrairShortCodeInstagram(url: string): string {
@@ -339,19 +362,20 @@ function filtrarRecentes<T extends { publicadoEm: Date | null }>(
 export async function coletarPostsInstagramSC(
   fontes: { perfis?: string[]; termos?: string[] },
   opts: { limitePorFonte?: number; apenasMaisRecentesQue?: string } = {},
-): Promise<PostInstagramColetado[]> {
+): Promise<ResultadoFonteSC<PostInstagramColetado>> {
   if (!isSocialCrawlConfigured()) {
     throw new Error("SocialCrawl não configurado no servidor");
   }
 
   const perfis = [...new Set((fontes.perfis ?? []).map((p) => p.trim().toLowerCase()).filter(Boolean))];
   const termos = [...new Set((fontes.termos ?? []).map((t) => t.trim().toLowerCase()).filter(Boolean))];
-  if (perfis.length === 0 && termos.length === 0) return [];
+  if (perfis.length === 0 && termos.length === 0) return resultadoVazio();
 
   const limite = Math.min(Math.max(opts.limitePorFonte ?? 5, 1), 50);
   const corteMs = parseRecenciaMs(opts.apenasMaisRecentesQue);
 
-  const jobs: Promise<PostInstagramColetado[]>[] = [];
+  type Job = { chave: string; itens: PostInstagramColetado[]; erro?: string };
+  const jobs: Promise<Job>[] = [];
 
   for (const handle of perfis) {
     jobs.push(
@@ -362,19 +386,20 @@ export async function coletarPostsInstagramSC(
             { handle },
             `IG perfil @${handle}`,
           );
-          if (!env.success) return [];
+          if (!env.success) return { chave: handle, itens: [] };
           const items = env.data?.items ?? [];
           const inputUrl = urlPerfilInstagram(handle);
           const mapeados = items
             .map((it) => mapearPostInstagram(it, inputUrl))
             .filter((x): x is PostInstagramColetado => x !== null);
-          return filtrarRecentes(mapeados, corteMs).slice(0, limite);
+          return {
+            chave: handle,
+            itens: filtrarRecentes(mapeados, corteMs).slice(0, limite),
+          };
         } catch (error) {
-          console.error(
-            "[socialcrawl] IG perfil:",
-            error instanceof Error ? error.message : error,
-          );
-          return [];
+          const erro = error instanceof Error ? error.message : "falha Instagram";
+          console.error("[socialcrawl] IG perfil:", erro);
+          return { chave: handle, itens: [], erro };
         }
       })(),
     );
@@ -389,26 +414,26 @@ export async function coletarPostsInstagramSC(
             { hashtag },
             `IG hashtag #${hashtag}`,
           );
-          if (!env.success) return [];
+          if (!env.success) return { chave: hashtag, itens: [] };
           const items = env.data?.items ?? [];
           const inputUrl = urlHashtagInstagram(hashtag);
           const mapeados = items
             .map((it) => mapearPostInstagram(it, inputUrl))
             .filter((x): x is PostInstagramColetado => x !== null);
-          return filtrarRecentes(mapeados, corteMs).slice(0, limite);
+          return {
+            chave: hashtag,
+            itens: filtrarRecentes(mapeados, corteMs).slice(0, limite),
+          };
         } catch (error) {
-          console.error(
-            "[socialcrawl] IG hashtag:",
-            error instanceof Error ? error.message : error,
-          );
-          return [];
+          const erro = error instanceof Error ? error.message : "falha Instagram";
+          console.error("[socialcrawl] IG hashtag:", erro);
+          return { chave: hashtag, itens: [], erro };
         }
       })(),
     );
   }
 
-  const grupos = await Promise.all(jobs);
-  return grupos.flat();
+  return agregarResultados(await Promise.all(jobs));
 }
 
 export interface ArtigoWebColetado {
@@ -485,13 +510,13 @@ function mapearArtigoNews(
 export async function coletarGoogleNewsSC(
   termos: string[],
   opts: { depth?: number; language?: string; location?: string; timeRange?: string } = {},
-): Promise<ArtigoWebColetado[]> {
+): Promise<ResultadoFonteSC<ArtigoWebColetado>> {
   if (!isSocialCrawlConfigured()) {
     throw new Error("SocialCrawl não configurado no servidor");
   }
 
   const unicos = [...new Set(termos.map((t) => t.trim()).filter(Boolean))];
-  if (unicos.length === 0) return [];
+  if (unicos.length === 0) return resultadoVazio();
 
   const depth = Math.min(Math.max(opts.depth ?? 20, 1), 100);
   const language = opts.language ?? "pt-BR";
@@ -511,22 +536,22 @@ export async function coletarGoogleNewsSC(
         },
         `Google News "${termo}"`,
       );
-      if (!env.success) return [];
+      if (!env.success) return { chave: termo.toLowerCase(), itens: [] as ArtigoWebColetado[] };
       const items = env.data?.items ?? [];
-      return items
-        .map((it) => mapearArtigoNews(it, termo))
-        .filter((x): x is ArtigoWebColetado => x !== null);
+      return {
+        chave: termo.toLowerCase(),
+        itens: items
+          .map((it) => mapearArtigoNews(it, termo))
+          .filter((x): x is ArtigoWebColetado => x !== null),
+      };
     } catch (error) {
-      console.error(
-        "[socialcrawl] Google News:",
-        error instanceof Error ? error.message : error,
-      );
-      return [];
+      const erro = error instanceof Error ? error.message : "falha Google News";
+      console.error("[socialcrawl] Google News:", erro);
+      return { chave: termo.toLowerCase(), itens: [] as ArtigoWebColetado[], erro };
     }
   });
 
-  const grupos = await Promise.all(jobs);
-  return grupos.flat();
+  return agregarResultados(await Promise.all(jobs));
 }
 
 /**
@@ -536,40 +561,50 @@ export async function coletarGoogleNewsSC(
 export async function coletarTweetsXSC(
   termos: string[],
   opts: { limiteTotal?: number } = {},
-): Promise<TweetColetado[]> {
+): Promise<ResultadoFonteSC<TweetColetado>> {
   if (!isSocialCrawlConfigured()) {
     throw new Error("SocialCrawl não configurado no servidor");
   }
 
   const unicos = [...new Set(termos.map((t) => t.trim()).filter(Boolean))];
-  if (unicos.length === 0) return [];
+  if (unicos.length === 0) return resultadoVazio();
 
   // limiteTotal antes era global (Apify soma tudo); aqui distribuímos entre termos.
   const total = Math.max(opts.limiteTotal ?? 8, unicos.length);
   const porTermo = Math.max(Math.ceil(total / unicos.length), 3);
 
   const jobs = unicos.map(async (termo) => {
+    const chave = termo.toLowerCase();
     try {
       const env = await scGet<SCListData<SCTweet>>(
         "/twitter/search/tweets",
         { query: termo },
         `X termo "${termo}"`,
       );
-      if (!env.success) return [];
+      if (!env.success) return { chave, itens: [] as TweetColetado[] };
       const items = env.data?.items ?? [];
       const mapeados = items
         .map((it) => mapearTweet(it, termo))
         .filter((x): x is TweetColetado => x !== null);
-      return mapeados.slice(0, porTermo);
+      return { chave, itens: mapeados.slice(0, porTermo) };
     } catch (error) {
-      console.error(
-        "[socialcrawl] X:",
-        error instanceof Error ? error.message : error,
-      );
-      return [];
+      const erro = error instanceof Error ? error.message : "falha X";
+      console.error("[socialcrawl] X:", erro);
+      return { chave, itens: [] as TweetColetado[], erro };
     }
   });
 
-  const grupos = await Promise.all(jobs);
-  return grupos.flat();
+  return agregarResultados(await Promise.all(jobs));
+}
+
+function agregarResultados<T>(
+  jobs: Array<{ chave: string; itens: T[]; erro?: string }>,
+): ResultadoFonteSC<T> {
+  const out = resultadoVazio<T>();
+  for (const job of jobs) {
+    out.itens.push(...job.itens);
+    if (job.erro) out.falhas.push({ chave: job.chave, erro: job.erro });
+    else out.ok.push(job.chave);
+  }
+  return out;
 }

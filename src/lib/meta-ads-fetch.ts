@@ -170,7 +170,7 @@ export async function coletarAnunciosMeta(
 
   const limite = Math.min(Math.max(opts.limiteTotal ?? 5, 1), 200);
   if (!(await autorizarRunApify("coleta de anúncios Meta"))) {
-    return [];
+    throw new Error("APIFY_TETO: pulando coleta de anúncios Meta");
   }
 
   const url = `${APIFY_BASE}/acts/${ACTOR_ADS_ID}/run-sync-get-dataset-items?token=${encodeURIComponent(token)}&format=json`;
