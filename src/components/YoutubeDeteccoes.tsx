@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import SeloTermoDeteccao from "@/components/SeloTermoDeteccao";
+import { useI18n } from "@/i18n/I18nProvider";
 import { formatMinutagem } from "@/lib/text-normalize";
 import { youtubeThumbnailUrl } from "@/lib/youtube-thumbnail";
 
@@ -19,22 +20,12 @@ interface DeteccaoItem {
 
 const POR_PAGINA = 20;
 
-function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-}
-
 function youtubeUrl(videoId: string, segundos: number): string {
   return `https://www.youtube.com/watch?v=${videoId}&t=${Math.floor(segundos)}s`;
 }
 
 export default function YoutubeDeteccoes() {
+  const { t, formatDateTime } = useI18n();
   const [deteccoes, setDeteccoes] = useState<DeteccaoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
@@ -96,10 +87,11 @@ export default function YoutubeDeteccoes() {
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Detecções no YouTube</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{t("Detecções no YouTube")}</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Palavras-chave encontradas nas legendas dos vídeos monitorados. A busca inclui termo,
-            contexto e título do vídeo.
+            {t(
+              "Palavras-chave encontradas nas legendas dos vídeos monitorados. A busca inclui termo, contexto e título do vídeo.",
+            )}
           </p>
         </div>
         <button
@@ -107,7 +99,7 @@ export default function YoutubeDeteccoes() {
           onClick={() => void buscar({ reescanear: true })}
           className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
         >
-          Atualizar
+          {t("Atualizar")}
         </button>
       </div>
 
@@ -119,7 +111,7 @@ export default function YoutubeDeteccoes() {
           onKeyDown={(e) => {
             if (e.key === "Enter") aplicarFiltro();
           }}
-          placeholder="Filtrar por palavra (ex.: eleições)"
+          placeholder={t("Filtrar por palavra (ex.: eleições)")}
           className="min-w-[220px] flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm"
         />
         <button
@@ -128,36 +120,41 @@ export default function YoutubeDeteccoes() {
           onClick={aplicarFiltro}
           className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-60"
         >
-          {loading ? "Buscando..." : "Buscar"}
+          {loading ? t("Buscando...") : t("Buscar")}
         </button>
       </div>
 
-      {erro && <p className="mb-3 text-sm text-red-600">{erro}</p>}
+      {erro && <p className="mb-3 text-sm text-red-600">{t(erro)}</p>}
 
       {loading && deteccoes.length === 0 ? (
-        <p className="text-sm text-slate-400">Carregando detecções...</p>
+        <p className="text-sm text-slate-400">{t("Carregando detecções...")}</p>
       ) : deteccoes.length === 0 ? (
         <p className="text-sm text-slate-400">
-          Nenhuma detecção encontrada
-          {termoBusca ? ` para “${termoBusca}”` : ""}. Cadastre palavras-chave e canais; o sistema
-          reescaneia vídeos já transcritos automaticamente.
+          {termoBusca
+            ? t(
+                "Nenhuma detecção encontrada para “{termo}”. Cadastre palavras-chave e canais; o sistema reescaneia vídeos já transcritos automaticamente.",
+                { termo: termoBusca },
+              )
+            : t(
+                "Nenhuma detecção encontrada. Cadastre palavras-chave e canais; o sistema reescaneia vídeos já transcritos automaticamente.",
+              )}
         </p>
       ) : (
         <>
           <p className="mb-3 text-xs text-slate-500">
-            {total} ocorrência(s)
-            {termoBusca ? ` · filtro “${termoBusca}”` : ""}
+            {t("{total} ocorrência(s)", { total })}
+            {termoBusca ? ` ${t("· filtro “{termo}”", { termo: termoBusca })}` : ""}
           </p>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-500">
-                  <th className="px-2 py-2">Vídeo</th>
-                  <th className="px-2 py-2">Detectado</th>
-                  <th className="px-2 py-2">Palavra</th>
-                  <th className="px-2 py-2">Canal / título</th>
-                  <th className="px-2 py-2">Minutagem</th>
-                  <th className="px-2 py-2">Contexto</th>
+                  <th className="px-2 py-2">{t("Vídeo")}</th>
+                  <th className="px-2 py-2">{t("Detectado")}</th>
+                  <th className="px-2 py-2">{t("Palavra")}</th>
+                  <th className="px-2 py-2">{t("Canal / título")}</th>
+                  <th className="px-2 py-2">{t("Minutagem")}</th>
+                  <th className="px-2 py-2">{t("Contexto")}</th>
                   <th className="px-2 py-2" />
                 </tr>
               </thead>
@@ -179,7 +176,9 @@ export default function YoutubeDeteccoes() {
                         />
                       </a>
                     </td>
-                    <td className="px-2 py-3 text-slate-600">{formatDateTime(item.detectado_em)}</td>
+                    <td className="px-2 py-3 text-slate-600">
+                      {formatDateTime(item.detectado_em, { seconds: true })}
+                    </td>
                     <td className="px-2 py-3 font-medium text-slate-900">
                       <SeloTermoDeteccao termo={item.termo} ancora={item.ancora_termo} />
                     </td>
@@ -198,7 +197,7 @@ export default function YoutubeDeteccoes() {
                         rel="noreferrer"
                         className="text-xs font-medium text-red-600 hover:text-red-700"
                       >
-                        Ver no YouTube
+                        {t("Ver no YouTube")}
                       </a>
                     </td>
                   </tr>
@@ -210,7 +209,7 @@ export default function YoutubeDeteccoes() {
           {totalPaginas > 1 && (
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs text-slate-500">
-                Página {pagina + 1} de {totalPaginas}
+                {t("Página {pagina} de {total}", { pagina: pagina + 1, total: totalPaginas })}
               </p>
               <div className="flex gap-2">
                 <button
@@ -219,7 +218,7 @@ export default function YoutubeDeteccoes() {
                   onClick={() => setPagina((prev) => Math.max(0, prev - 1))}
                   className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                 >
-                  Anterior
+                  {t("Anterior")}
                 </button>
                 <button
                   type="button"
@@ -227,7 +226,7 @@ export default function YoutubeDeteccoes() {
                   onClick={() => setPagina((prev) => prev + 1)}
                   className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                 >
-                  Próxima
+                  {t("Próxima")}
                 </button>
               </div>
             </div>

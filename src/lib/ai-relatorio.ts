@@ -1,4 +1,6 @@
 import { chatCompletion, isAiConfigured } from "@/lib/ai-client";
+import { nomeIdioma, parseIdioma, type Idioma } from "@/i18n/idioma";
+import { translate } from "@/i18n/messages";
 import {
   buscarBaseRelatorioPanorama,
   type FontePanorama,
@@ -57,21 +59,52 @@ function chaveCache(params: {
   janela: JanelaPanorama;
   fonte: FontePanorama | "todas";
   termo: string;
+  idioma: Idioma;
 }): string {
-  return `${params.janela}|${params.fonte}|${params.termo.trim().toLowerCase()}`;
+  return `${params.idioma}|${params.janela}|${params.fonte}|${params.termo.trim().toLowerCase()}`;
 }
 
-function rotuloJanela(janela: JanelaPanorama): string {
-  if (janela === "24h") return "nas últimas 24 horas";
-  if (janela === "7d") return "nos últimos 7 dias";
-  return "nos últimos 30 dias";
+function tituloContagem(idioma: Idioma, total: number, janela: JanelaPanorama): string {
+  const uma = total === 1;
+  if (janela === "24h") {
+    return translate(
+      idioma,
+      uma ? "{n} menção nas últimas 24 horas" : "{n} menções nas últimas 24 horas",
+      { n: total },
+    );
+  }
+  if (janela === "7d") {
+    return translate(
+      idioma,
+      uma ? "{n} menção nos últimos 7 dias" : "{n} menções nos últimos 7 dias",
+      { n: total },
+    );
+  }
+  return translate(
+    idioma,
+    uma ? "{n} menção nos últimos 30 dias" : "{n} menções nos últimos 30 dias",
+    { n: total },
+  );
 }
 
-function rotuloFonte(fonte: FontePanorama): string {
-  if (fonte === "radio") return "Rádio";
+function leituraContagem(idioma: Idioma, mencoes: number): string {
+  return translate(
+    idioma,
+    mencoes === 1 ? "{n} menção no período." : "{n} menções no período.",
+    { n: mencoes },
+  );
+}
+function rotuloJanela(janela: JanelaPanorama, idioma: Idioma): string {
+  if (janela === "24h") return translate(idioma, "nas últimas 24 horas");
+  if (janela === "7d") return translate(idioma, "nos últimos 7 dias");
+  return translate(idioma, "nos últimos 30 dias");
+}
+
+function rotuloFonte(fonte: FontePanorama, idioma: Idioma): string {
+  if (fonte === "radio") return translate(idioma, "Rádio");
   if (fonte === "youtube") return "YouTube";
   if (fonte === "instagram") return "Instagram";
-  if (fonte === "meta_ads") return "Anúncios";
+  if (fonte === "meta_ads") return translate(idioma, "Anúncios");
   if (fonte === "web") return "Web";
   return "X";
 }
@@ -93,32 +126,46 @@ function fallbackSemIa(
     janela: JanelaPanorama;
     fonte: FontePanorama | "todas";
     termo: string;
+    idioma: Idioma;
   },
   base: Awaited<ReturnType<typeof buscarBaseRelatorioPanorama>>,
   aviso?: string,
 ): RelatorioPanorama {
+  const idioma = params.idioma;
   const top = base.por_termo.slice(0, 4).map((item) => item.termo);
-  const fontes = base.por_fonte.map((item) => `${rotuloFonte(item.fonte)} (${item.mencoes})`);
+  const topTxt = top.join(", ") || translate(idioma, "os termos monitorados");
+  const fontes = base.por_fonte.map(
+    (item) => `${rotuloFonte(item.fonte, idioma)} (${item.mencoes})`,
+  );
 
   return {
     titulo:
       base.total === 0
-        ? "Nada relevante no período"
-        : `${base.total} menção${base.total === 1 ? "" : "ões"} ${rotuloJanela(params.janela)}`,
+        ? translate(idioma, "Nada relevante no período")
+        : tituloContagem(idioma, base.total, params.janela),
     resumo:
       base.total === 0
-        ? "Não houve menções às palavras monitoradas neste recorte. Amplie o período ou cadastre mais fontes."
-        : `Os assuntos mais citados foram ${top.join(", ") || "os termos monitorados"}${
-            fontes.length ? `, principalmente em ${fontes.join(", ")}` : ""
-          }.`,
+        ? translate(
+            idioma,
+            "Não houve menções às palavras monitoradas neste recorte. Amplie o período ou cadastre mais fontes.",
+          )
+        : fontes.length
+          ? translate(idioma, "Os assuntos mais citados foram {top}, principalmente em {fontes}.", {
+              top: topTxt,
+              fontes: fontes.join(", "),
+            })
+          : translate(idioma, "Os assuntos mais citados foram {top}.", { top: topTxt }),
     sentimento_geral: "neutro",
-    tom: "Leitura automática sem análise de tom — ative a IA para o briefing completo.",
+    tom: translate(
+      idioma,
+      "Leitura automática sem análise de tom — ative a IA para o briefing completo.",
+    ),
     sentimentos: { positivo: 0, neutro: 100, negativo: 0 },
     assuntos: base.por_termo.slice(0, 6).map((item) => ({
       termo: item.termo,
       mencoes: item.mencoes,
       sentimento: "neutro" as const,
-      leitura: `${item.mencoes} menção${item.mencoes === 1 ? "" : "ões"} no período.`,
+      leitura: leituraContagem(idioma, item.mencoes),
     })),
     destaques: [],
     alertas: [],
@@ -138,15 +185,18 @@ async function gerarComIa(
     janela: JanelaPanorama;
     fonte: FontePanorama | "todas";
     termo: string;
+    idioma: Idioma;
   },
   base: Awaited<ReturnType<typeof buscarBaseRelatorioPanorama>>,
 ): Promise<RelatorioPanorama> {
+  const idioma = params.idioma;
   const raw = await chatCompletion(
     [
       {
         role: "system",
         content: `Você é analista de monitoramento de mídia do Orbit View (rádio, YouTube, Instagram, X e anúncios no Brasil).
-Escreva em português do Brasil, direto, sem jargão de marketing.
+Escreva em ${nomeIdioma(idioma)}, direto, sem jargão de marketing.
+Os nomes dos campos JSON permanecem exatamente como abaixo. O texto dos valores (titulo, resumo, tom, leitura, destaques, alertas) deve estar em ${nomeIdioma(idioma)}.
 Use só o que está nos números e trechos. Não invente declaração, veículo ou fato.
 Se o material for pouco ou ambíguo, diga isso no resumo.
 
@@ -163,7 +213,7 @@ Responda JSON com:
       {
         role: "user",
         content: JSON.stringify({
-          periodo: rotuloJanela(params.janela),
+          periodo: rotuloJanela(params.janela, idioma),
           filtro_assunto: params.termo || null,
           filtro_veiculo: params.fonte === "todas" ? null : params.fonte,
           total_mencoes: base.total,
@@ -205,14 +255,14 @@ Responda JSON com:
         termo: item.termo,
         mencoes: item.mencoes,
         sentimento: "neutro",
-        leitura: `${item.mencoes} menção${item.mencoes === 1 ? "" : "ões"} no período.`,
+        leitura: leituraContagem(idioma, item.mencoes),
       });
     }
   }
 
   return {
-    titulo: String(parsed.titulo ?? "").trim() || `${base.total} menções ${rotuloJanela(params.janela)}`,
-    resumo: String(parsed.resumo ?? "").trim() || "Não foi possível sintetizar o período.",
+    titulo: String(parsed.titulo ?? "").trim() || tituloContagem(idioma, base.total, params.janela),
+    resumo: String(parsed.resumo ?? "").trim() || translate(idioma, "Não foi possível sintetizar o período."),
     sentimento_geral: sentimentoValido(parsed.sentimento_geral),
     tom: String(parsed.tom ?? "").trim(),
     sentimentos: { positivo, neutro, negativo },
@@ -238,11 +288,13 @@ export async function gerarRelatorioPanorama(params: {
   fonte?: FontePanorama | "todas";
   termo?: string;
   refresh?: boolean;
+  idioma?: Idioma;
 }): Promise<RelatorioPanorama> {
   const janela = params.janela ?? "24h";
   const fonte = params.fonte ?? "todas";
   const termo = params.termo?.trim() ?? "";
-  const key = chaveCache({ janela, fonte, termo });
+  const idioma = parseIdioma(params.idioma) ?? "pt";
+  const key = chaveCache({ janela, fonte, termo, idioma });
 
   if (!params.refresh) {
     const hit = cache().get(key);
@@ -256,24 +308,26 @@ export async function gerarRelatorioPanorama(params: {
     const base = await buscarBaseRelatorioPanorama({ janela, fonte, termo: termo || undefined });
 
     if (base.total === 0) {
-      return fallbackSemIa({ janela, fonte, termo }, base);
+      return fallbackSemIa({ janela, fonte, termo, idioma }, base);
     }
 
     if (!isAiConfigured()) {
       return fallbackSemIa(
-        { janela, fonte, termo },
+        { janela, fonte, termo, idioma },
         base,
-        "Briefing numérico — configure OPENAI_API_KEY para análise de tom e destaques.",
+        translate(idioma, "Briefing numérico — configure OPENAI_API_KEY para análise de tom e destaques."),
       );
     }
 
     try {
-      return await gerarComIa({ janela, fonte, termo }, base);
+      return await gerarComIa({ janela, fonte, termo, idioma }, base);
     } catch (error) {
       return fallbackSemIa(
-        { janela, fonte, termo },
+        { janela, fonte, termo, idioma },
         base,
-        error instanceof Error ? error.message : "A IA não respondeu; mostrando só os números.",
+        error instanceof Error
+          ? error.message
+          : translate(idioma, "A IA não respondeu; mostrando só os números."),
       );
     }
   })();

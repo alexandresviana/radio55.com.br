@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import RadioPlayer from "@/components/RadioPlayer";
+import { useI18n } from "@/i18n/I18nProvider";
 import { getMunicipioData, nomeMunicipioExibicao } from "@/lib/estados";
 import { getRegiaoCor } from "@/lib/regioes";
 import type { EmissorasData } from "@/types";
@@ -19,6 +20,7 @@ export default function PainelRadios({
   regiaoFiltro,
   onClose,
 }: PainelRadiosProps) {
+  const { t } = useI18n();
   const [radioSelecionada, setRadioSelecionada] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,24 +30,25 @@ export default function PainelRadios({
   if (!municipio) {
     return (
       <aside className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-800">Emissoras</h2>
+        <h2 className="text-lg font-semibold text-slate-800">{t("Emissoras")}</h2>
         <p className="mt-4 text-sm leading-relaxed text-slate-500">
-          Clique em um município no mapa para ver as rádios cadastradas. Selecione uma emissora
-          para ouvir ao vivo.
+          {t(
+            "Clique em um município no mapa para ver as rádios cadastradas. Selecione uma emissora para ouvir ao vivo.",
+          )}
         </p>
         {regiaoFiltro && (
           <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
-            Filtro ativo: <strong>{regiaoFiltro}</strong>
+            {t("Filtro ativo: {regiao}", { regiao: regiaoFiltro })}
           </p>
         )}
         <div className="mt-6 space-y-2 text-xs text-slate-400">
           <p>
             <span className="inline-block h-3 w-3 rounded-sm bg-emerald-400 align-middle" />{" "}
-            Município com emissoras
+            {t("Município com emissoras")}
           </p>
           <p>
-            <span className="inline-block h-3 w-3 rounded-sm bg-slate-200 align-middle" /> Sem
-            emissoras cadastradas
+            <span className="inline-block h-3 w-3 rounded-sm bg-slate-200 align-middle" />{" "}
+            {t("Sem emissoras cadastradas")}
           </p>
         </div>
       </aside>
@@ -83,7 +86,7 @@ export default function PainelRadios({
             onClose();
           }}
           className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-          aria-label="Fechar painel"
+          aria-label={t("Fechar painel")}
         >
           ✕
         </button>
@@ -104,11 +107,11 @@ export default function PainelRadios({
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {!dados || dados.radios.length === 0 ? (
           <p className="text-sm text-slate-500">
-            Nenhuma emissora cadastrada para este município.
+            {t("Nenhuma emissora cadastrada para este município.")}
           </p>
         ) : regiaoFiltro && dados.regiao !== regiaoFiltro ? (
           <p className="text-sm text-slate-500">
-            Este município não pertence à região filtrada ({regiaoFiltro}).
+            {t("Este município não pertence à região filtrada ({regiao}).", { regiao: regiaoFiltro })}
           </p>
         ) : (
           <ul className="space-y-3">
@@ -129,10 +132,10 @@ export default function PainelRadios({
                       <div>
                         <p className="font-medium text-slate-800">{radio.nome}</p>
                         <p className="mt-1 text-xs text-slate-500">
-                          {radio.tipo === "comercial" ? "Emissora comercial" : "Emissora comunitária"}
+                          {radio.tipo === "comercial" ? t("Emissora comercial") : t("Emissora comunitária")}
                         </p>
                         <p className="mt-1 text-xs text-emerald-700">
-                          {ativa ? "Tocando agora" : "Clique para ouvir ao vivo"}
+                          {ativa ? t("Tocando agora") : t("Clique para ouvir ao vivo")}
                         </p>
                       </div>
                       <span
@@ -152,8 +155,10 @@ export default function PainelRadios({
 
       {dados && dados.radios.length > 0 && (!regiaoFiltro || dados.regiao === regiaoFiltro) && (
         <div className="border-t border-slate-100 px-6 py-3 text-xs text-slate-400">
-          {dados.radios.length} emissora{dados.radios.length !== 1 ? "s" : ""} · Total PJ:{" "}
-          {dados.radios.reduce((sum, r) => sum + r.pj, 0)}
+          {t("{n} emissora(s) · Total PJ: {pj}", {
+            n: dados.radios.length,
+            pj: dados.radios.reduce((sum, r) => sum + r.pj, 0),
+          })}
         </div>
       )}
     </aside>

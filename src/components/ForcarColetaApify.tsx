@@ -2,24 +2,33 @@
 
 import { useEffect, useState } from "react";
 
+import { useI18n } from "@/i18n/I18nProvider";
+
 type PapelColeta = "coletor" | "consumidor" | "ausente";
 
-function formatarEspera(segundos: number): string {
+function formatarEspera(segundos: number, t: (key: string, vars?: Record<string, string | number>) => string): string {
   const min = Math.max(1, Math.ceil(segundos / 60));
   if (min >= 60) {
     const horas = Math.floor(min / 60);
     const resto = min % 60;
-    return resto > 0 ? `${horas} h ${resto} min` : `${horas} h`;
+    return resto > 0
+      ? t("{horas} h {resto} min", { horas, resto })
+      : t("{horas} h", { horas });
   }
-  return `${min} min`;
+  return t("{min} min", { min });
 }
 
 export default function ForcarColetaApify() {
+  const { t } = useI18n();
   const [rodando, setRodando] = useState(false);
   const [papel, setPapel] = useState<PapelColeta | null>(null);
   const [espera, setEspera] = useState(0);
   const [intervaloMin, setIntervaloMin] = useState(60);
-  const [msg, setMsg] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
+  const [msg, setMsg] = useState<{
+    tipo: "ok" | "erro";
+    texto: string;
+    vars?: Record<string, string | number>;
+  } | null>(null);
 
   useEffect(() => {
     void fetch("/api/diagnostico")
@@ -81,7 +90,8 @@ export default function ForcarColetaApify() {
         (data.novos?.web ?? 0);
       setMsg({
         tipo: "ok",
-        texto: total > 0 ? `${total} item(ns) novo(s).` : "Nenhum post novo.",
+        texto: total > 0 ? "{total} item(ns) novo(s)." : "Nenhum post novo.",
+        vars: total > 0 ? { total } : undefined,
       });
     } catch {
       setMsg({ tipo: "erro", texto: "Não foi possível falar com o servidor" });
@@ -97,9 +107,11 @@ export default function ForcarColetaApify() {
     <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50/70 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold text-sky-950">Coleta das redes</h2>
+          <h2 className="text-sm font-semibold text-sky-950">{t("Coleta das redes")}</h2>
           <p className="mt-1 text-xs text-sky-800">
-            Atualiza Instagram, X e Meta agora. No máximo uma vez a cada {intervaloMin} min.
+            {t("Atualiza Instagram, X e Meta agora. No máximo uma vez a cada {min} min.", {
+              min: intervaloMin,
+            })}
           </p>
         </div>
         <button
@@ -109,17 +121,17 @@ export default function ForcarColetaApify() {
           className="rounded-lg bg-sky-800 px-3 py-2 text-sm font-medium text-white hover:bg-sky-900 disabled:opacity-60"
         >
           {rodando
-            ? "Coletando..."
+            ? t("Coletando...")
             : espera > 0
-              ? `Aguarde ${formatarEspera(espera)}`
-              : "Coletar redes agora"}
+              ? t("Aguarde {tempo}", { tempo: formatarEspera(espera, t) })
+              : t("Coletar redes agora")}
         </button>
       </div>
       {msg && (
         <p
           className={`mt-3 text-xs ${msg.tipo === "ok" ? "text-emerald-800" : "text-red-700"}`}
         >
-          {msg.texto}
+          {t(msg.texto, msg.vars)}
         </p>
       )}
     </div>

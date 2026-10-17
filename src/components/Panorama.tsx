@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import PanoramaEvolucao from "@/components/PanoramaEvolucao";
 import PanoramaRelatorio from "@/components/PanoramaRelatorio";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type Fonte = "todas" | "radio" | "youtube" | "instagram" | "x" | "meta_ads" | "web";
 type Janela = "24h" | "7d" | "30d";
@@ -64,24 +65,8 @@ function corFonte(fonte: ItemPanorama["fonte"]): string {
   return "bg-sky-50 text-sky-800";
 }
 
-function formatQuando(iso: string): string {
-  const data = new Date(iso);
-  const agora = Date.now();
-  const diffMin = Math.max(0, Math.floor((agora - data.getTime()) / 60000));
-
-  if (diffMin < 1) return "agora";
-  if (diffMin < 60) return `há ${diffMin} min`;
-  const diffH = Math.floor(diffMin / 60);
-  if (diffH < 24) return `há ${diffH} h`;
-  return data.toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export default function Panorama() {
+  const { t, formatRelative } = useI18n();
   const [assunto, setAssunto] = useState("");
   const [assuntoAplicado, setAssuntoAplicado] = useState("");
   const [assuntos, setAssuntos] = useState<string[]>([]);
@@ -140,10 +125,11 @@ export default function Panorama() {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-bold text-slate-900">O que está rolando?</h2>
+        <h2 className="text-xl font-bold text-slate-900">{t("O que está rolando?")}</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Relatório de IA no topo; abaixo, o gráfico e as menções nas rádios, YouTube, Instagram,
-          X, anúncios e web.
+          {t(
+            "Relatório de IA no topo; abaixo, o gráfico e as menções nas rádios, YouTube, Instagram, X, anúncios e web.",
+          )}
         </p>
       </div>
 
@@ -151,7 +137,7 @@ export default function Panorama() {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
           <div className="min-w-0 flex-1">
             <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-500">
-              Assunto
+              {t("Assunto")}
             </label>
             <div className="flex flex-wrap gap-2">
               <input
@@ -162,7 +148,7 @@ export default function Panorama() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") aplicarAssunto();
                 }}
-                placeholder="Ex.: governador, deputado federal, presidente, eleições"
+                placeholder={t("Ex.: governador, deputado federal, presidente, eleições")}
                 className="min-w-[240px] flex-1 rounded-lg border border-slate-200 px-3 py-2.5 text-sm"
               />
               <datalist id="assuntos-panorama">
@@ -175,7 +161,7 @@ export default function Panorama() {
                 onClick={() => aplicarAssunto()}
                 className="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-800"
               >
-                Ver
+                {t("Ver")}
               </button>
               {assuntoAplicado && (
                 <button
@@ -183,7 +169,7 @@ export default function Panorama() {
                   onClick={() => aplicarAssunto("")}
                   className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50"
                 >
-                  Limpar
+                  {t("Limpar")}
                 </button>
               )}
             </div>
@@ -209,7 +195,7 @@ export default function Panorama() {
 
           <div>
             <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-500">
-              Período
+              {t("Período")}
             </label>
             <div className="flex gap-1 rounded-lg border border-slate-200 p-1">
               {JANELAS.map((item) => (
@@ -223,7 +209,7 @@ export default function Panorama() {
                       : "text-slate-600 hover:bg-slate-50"
                   }`}
                 >
-                  {item.label}
+                  {t(item.label)}
                 </button>
               ))}
             </div>
@@ -264,7 +250,7 @@ export default function Panorama() {
             >
               <div className="text-2xl font-bold tabular-nums text-slate-900">{card.valor}</div>
               <div className="mt-0.5 text-xs font-medium uppercase tracking-wide text-slate-500">
-                {card.label}
+                {t(card.label)}
               </div>
             </button>
           ))}
@@ -283,7 +269,7 @@ export default function Panorama() {
                 : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
             }`}
           >
-            {item.label}
+            {t(item.label)}
           </button>
         ))}
         <button
@@ -291,24 +277,27 @@ export default function Panorama() {
           onClick={() => void carregar()}
           className="ml-auto rounded-full px-3 py-1 text-xs font-medium text-slate-600 ring-1 ring-slate-200 hover:bg-white"
         >
-          Atualizar
+          {t("Atualizar")}
         </button>
       </div>
 
       {erro && (
-        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>
+        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{t(erro)}</p>
       )}
 
       <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
         {loading && itens.length === 0 ? (
-          <p className="p-6 text-sm text-slate-400">Carregando menções...</p>
+          <p className="p-6 text-sm text-slate-400">{t("Carregando menções...")}</p>
         ) : itens.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-sm font-medium text-slate-700">Nada rolando neste filtro</p>
+            <p className="text-sm font-medium text-slate-700">{t("Nada rolando neste filtro")}</p>
             <p className="mt-1 text-sm text-slate-500">
               {assuntoAplicado
-                ? `Sem menções a “${assuntoAplicado}” no período. Amplie o período ou cadastre mais fontes.`
-                : "Cadastre palavras-chave e fontes no Admin; as menções aparecem aqui."}
+                ? t(
+                    "Sem menções a “{termo}” no período. Amplie o período ou cadastre mais fontes.",
+                    { termo: assuntoAplicado },
+                  )
+                : t("Cadastre palavras-chave e fontes no Admin; as menções aparecem aqui.")}
             </p>
           </div>
         ) : (
@@ -317,14 +306,14 @@ export default function Panorama() {
               <li key={item.chave} className="px-5 py-4">
                 <div className="flex flex-wrap items-start gap-3">
                   <div className="min-w-[5.5rem] shrink-0 pt-0.5 text-xs text-slate-500">
-                    {formatQuando(item.detectado_em)}
+                    {formatRelative(item.detectado_em)}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="mb-1 flex flex-wrap items-center gap-2">
                       <span
                         className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${corFonte(item.fonte)}`}
                       >
-                        {rotuloFonte(item.fonte)}
+                        {t(rotuloFonte(item.fonte))}
                       </span>
                       <span className="text-sm font-semibold text-slate-900">{item.termo}</span>
                       {item.detalhe && (
@@ -353,7 +342,7 @@ export default function Panorama() {
                             onClick={() => setAudioAberto(item.chave)}
                             className="text-xs font-medium text-emerald-700 hover:text-emerald-800"
                           >
-                            Ouvir trecho
+                            {t("Ouvir trecho")}
                           </button>
                         )
                       )}
@@ -364,7 +353,7 @@ export default function Panorama() {
                           rel="noreferrer"
                           className="text-xs font-medium text-slate-700 hover:text-slate-900"
                         >
-                          Ver na origem →
+                          {t("Ver na origem →")}
                         </a>
                       )}
                     </div>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatMinutagem } from "@/lib/text-normalize";
 import PaginacaoLista, { POR_PAGINA_ADMIN } from "@/components/PaginacaoLista";
 import SeloTermoDeteccao from "@/components/SeloTermoDeteccao";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface RecordingStatusItem {
   key: string;
@@ -73,6 +74,7 @@ function formatBytes(bytes: number): string {
 }
 
 export default function GravacoesAtivas() {
+  const { t, formatDateTime } = useI18n();
   const [gravacoes, setGravacoes] = useState<RecordingStatusItem[]>([]);
   const [deteccoes, setDeteccoes] = useState<DeteccaoItem[]>([]);
   const [previews, setPreviews] = useState<TranscricaoPreview[]>([]);
@@ -195,34 +197,56 @@ export default function GravacoesAtivas() {
 
   const gravando = gravacoes.filter((item) => item.ativo).length;
 
+  function textoAlerta(alerta: string): string {
+    const workers = alerta.match(/^(\d+) workers Whisper/);
+    if (workers) {
+      return t("{n} workers Whisper neste container — deveria haver no máximo 1", {
+        n: workers[1],
+      });
+    }
+    if (alerta === "Whisper vivo sem rádio gravando — deveria ter encerrado sozinho") {
+      return t(alerta);
+    }
+    const ffmpeg = alerta.match(/^(\d+) ffmpeg reencodando/);
+    if (ffmpeg) {
+      return t("{n} ffmpeg reencodando (lame) — isso come CPU o tempo todo", {
+        n: ffmpeg[1],
+      });
+    }
+    return alerta;
+  }
+
   return (
     <div className="mb-6 space-y-4">
       <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-sm font-semibold text-amber-900">Gravações ativas</h2>
+            <h2 className="text-sm font-semibold text-amber-900">{t("Gravações ativas")}</h2>
             <p className="mt-1 text-xs text-amber-800">
-              Atualização automática a cada 10s. Se a stream cair, reinicia sozinha em ~15s.
-              Arquivos rotacionam a cada 1h para evitar MP3 truncado.
+              {t(
+                "Atualização automática a cada 10s. Se a stream cair, reinicia sozinha em ~15s. Arquivos rotacionam a cada 1h para evitar MP3 truncado.",
+              )}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {diagnostico?.whisper_worker_vivo ? (
               <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
-                Whisper {diagnostico.whisper_ocupado ? "ocupado" : "vivo"}
+                {t("Whisper {estado}", {
+                  estado: t(diagnostico.whisper_ocupado ? "ocupado" : "vivo"),
+                })}
               </span>
             ) : transcricaoAtiva ? (
               <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
-                Transcrição ativa
+                {t("Transcrição ativa")}
               </span>
             ) : diagnostico && !diagnostico.whisper_habilitado ? (
               <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
-                Whisper desligado
+                {t("Whisper desligado")}
               </span>
             ) : null}
             {gravacoes.length > 0 && (
               <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
-                {gravando}/{gravacoes.length} gravando
+                {t("{gravando}/{total} gravando", { gravando, total: gravacoes.length })}
               </span>
             )}
             <button
@@ -231,39 +255,46 @@ export default function GravacoesAtivas() {
               onClick={() => void reiniciar()}
               className="rounded-lg border border-amber-300 bg-white px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-60"
             >
-              {reiniciando === "todas" ? "Reiniciando..." : "Reiniciar todas"}
+              {reiniciando === "todas" ? t("Reiniciando...") : t("Reiniciar todas")}
             </button>
           </div>
         </div>
 
         {diagnostico && (
           <p className="mt-3 text-xs text-amber-900">
-            CPU · {diagnostico.radios_gravando}/{diagnostico.radios_marcadas} gravando · ffmpeg{" "}
-            {diagnostico.ffmpeg_copy} copy / {diagnostico.ffmpeg_lame} lame · Whisper{" "}
+            CPU ·{" "}
+            {t("{gravando}/{total} gravando", {
+              gravando: diagnostico.radios_gravando,
+              total: diagnostico.radios_marcadas,
+            })}{" "}
+            · ffmpeg {diagnostico.ffmpeg_copy} copy / {diagnostico.ffmpeg_lame} lame · Whisper{" "}
             {diagnostico.whisper_habilitado
               ? `${diagnostico.whisper_modelo} · ${diagnostico.whisper_threads} thread · ${
-                  diagnostico.whisper_worker_vivo ? "processo vivo" : "parado"
+                  diagnostico.whisper_worker_vivo ? t("processo vivo") : t("parado")
                 }`
-              : "desligado neste tenant"}
+              : t("desligado neste tenant")}
             {diagnostico.whisper_processos > 1
-              ? ` · ${diagnostico.whisper_processos} workers`
+              ? ` · ${t("{n} workers", { n: diagnostico.whisper_processos })}`
               : ""}
           </p>
         )}
         {diagnostico?.alerta && (
-          <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{diagnostico.alerta}</p>
+          <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+            {textoAlerta(diagnostico.alerta)}
+          </p>
         )}
 
         {statusErro && (
-          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{statusErro}</p>
+          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{t(statusErro)}</p>
         )}
 
         {statusCarregando ? (
-          <p className="mt-3 text-xs text-amber-800">Carregando status das gravações...</p>
+          <p className="mt-3 text-xs text-amber-800">{t("Carregando status das gravações...")}</p>
         ) : gravacoes.length === 0 ? (
           <p className="mt-3 text-xs text-amber-800">
-            Nenhuma rádio com gravação habilitada. Marque <strong>Gravar</strong> no cadastro abaixo
-            e clique em <strong>Salvar alterações</strong>.
+            {t(
+              "Nenhuma rádio com gravação habilitada. Marque Gravar no cadastro abaixo e clique em Salvar alterações.",
+            )}
           </p>
         ) : (
           <ul className="mt-3 space-y-2">
@@ -289,10 +320,10 @@ export default function GravacoesAtivas() {
                   }`}
                 >
                   {item.ativo
-                    ? "Gravando"
+                    ? t("Gravando")
                     : item.dentroDaFaixa === false
-                      ? "Fora da faixa"
-                      : "Parado"}
+                      ? t("Fora da faixa")
+                      : t("Parado")}
                 </span>
                 {item.ativo && item.encode && (
                   <span
@@ -301,12 +332,12 @@ export default function GravacoesAtivas() {
                         ? "bg-orange-100 text-orange-800"
                         : "bg-slate-100 text-slate-600"
                     }`}
-                    title={item.codec ? `fonte ${item.codec}` : undefined}
+                    title={item.codec ? t("fonte {codec}", { codec: item.codec }) : undefined}
                   >
                     {item.encode === "lame" ? `lame (${item.codec ?? "?"})` : `copy ${item.codec ?? "mp3"}`}
                   </span>
                 )}
-                <span className="text-slate-500">{item.arquivos} arquivo(s)</span>
+                <span className="text-slate-500">{t("{n} arquivo(s)", { n: item.arquivos })}</span>
                 {item.tamanhoAtualBytes != null && (
                   <span className="font-medium text-emerald-700">
                     {formatBytes(item.tamanhoAtualBytes)}
@@ -316,7 +347,7 @@ export default function GravacoesAtivas() {
               {item.arquivoAtual && (
                 <p className="w-full font-mono text-xs text-slate-500">{item.arquivoAtual}</p>
               )}
-              {item.erro && <p className="w-full text-xs text-amber-800">{item.erro}</p>}
+              {item.erro && <p className="w-full text-xs text-amber-800">{t(item.erro)}</p>}
               <div className="w-full">
                 <button
                   type="button"
@@ -330,7 +361,7 @@ export default function GravacoesAtivas() {
                   }
                   className="rounded border border-amber-200 bg-white px-2 py-0.5 text-xs text-amber-900 hover:bg-amber-100 disabled:opacity-60"
                 >
-                  {reiniciando === item.key ? "Reiniciando..." : "Reiniciar"}
+                  {reiniciando === item.key ? t("Reiniciando...") : t("Reiniciar")}
                 </button>
               </div>
             </li>
@@ -343,12 +374,12 @@ export default function GravacoesAtivas() {
         <div className="rounded-2xl border border-sky-200 bg-sky-50/50 p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-sky-900">Transcrições ao vivo</h3>
+              <h3 className="text-sm font-semibold text-sky-900">{t("Transcrições ao vivo")}</h3>
               <p className="mt-1 text-xs text-sky-800">
-                Últimos 30 minutos por emissora. Clique para expandir o texto completo.
+                {t("Últimos 30 minutos por emissora. Clique para expandir o texto completo.")}
               </p>
             </div>
-            <span className="text-xs text-sky-700">{previews.length} emissora(s)</span>
+            <span className="text-xs text-sky-700">{t("{n} emissora(s)", { n: previews.length })}</span>
           </div>
 
           <div className="mt-3 space-y-2">
@@ -377,7 +408,7 @@ export default function GravacoesAtivas() {
                         {item.radio_nome} · {item.municipio}
                       </p>
                       <p className="mt-0.5 text-xs text-slate-500">
-                        {item.segmentos} trecho(s)
+                        {t("{n} trecho(s)", { n: item.segmentos })}
                         {item.inicio_segundos != null && item.fim_segundos != null && (
                           <>
                             {" "}
@@ -391,7 +422,7 @@ export default function GravacoesAtivas() {
                       )}
                     </div>
                     <span className="shrink-0 rounded-lg border border-sky-200 px-2 py-1 text-xs text-sky-800">
-                      {aberto ? "Ocultar" : "Ver transcrição"}
+                      {aberto ? t("Ocultar") : t("Ver transcrição")}
                     </span>
                   </button>
 
@@ -440,13 +471,15 @@ export default function GravacoesAtivas() {
             className="flex w-full items-start justify-between gap-3 text-left"
           >
             <div>
-              <h3 className="text-sm font-semibold text-rose-900">Palavras detectadas (ao vivo)</h3>
+              <h3 className="text-sm font-semibold text-rose-900">{t("Palavras detectadas (ao vivo)")}</h3>
               <p className="mt-1 text-xs text-rose-800">
-                {totalDeteccoes} ocorrência(s) recentes nas gravações em andamento.
+                {t("{total} ocorrência(s) recentes nas gravações em andamento.", {
+                  total: totalDeteccoes,
+                })}
               </p>
             </div>
             <span className="shrink-0 rounded-lg border border-rose-200 px-2 py-1 text-xs text-rose-800">
-              {deteccoesExpandidas ? "Ocultar" : "Expandir"}
+              {deteccoesExpandidas ? t("Ocultar") : t("Expandir")}
             </span>
           </button>
 
@@ -482,7 +515,7 @@ export default function GravacoesAtivas() {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      Ir ao ponto exato no MP3
+                      {t("Ir ao ponto exato no MP3")}
                     </a>
                   </div>
                 </div>

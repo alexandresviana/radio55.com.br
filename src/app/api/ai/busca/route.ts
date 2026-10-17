@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { parseIdioma } from "@/i18n/idioma";
 import { executarBuscaIA, getLimitePorPaginaIA, isAiConfigured } from "@/lib/ai-busca";
 import type { ConsultaInterpretada } from "@/lib/ai-busca-types";
 import { isDatabaseConfigured } from "@/lib/db";
@@ -19,12 +20,13 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: { prompt?: string; pagina?: number; interpretacao?: ConsultaInterpretada };
+  let body: { prompt?: string; pagina?: number; interpretacao?: ConsultaInterpretada; idioma?: string };
   try {
     body = (await request.json()) as {
       prompt?: string;
       pagina?: number;
       interpretacao?: ConsultaInterpretada;
+      idioma?: string;
     };
   } catch {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
@@ -46,6 +48,7 @@ export async function POST(request: NextRequest) {
       prompt,
       pagina,
       interpretacao: body.interpretacao,
+      idioma: parseIdioma(body.idioma) ?? "pt",
     });
     return NextResponse.json(resultado);
   } catch (error) {

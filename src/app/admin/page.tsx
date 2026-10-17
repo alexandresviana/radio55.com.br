@@ -11,6 +11,7 @@ import AdminYoutubeTab from "@/components/AdminYoutubeTab";
 import ForcarColetaApify from "@/components/ForcarColetaApify";
 import Header from "@/components/Header";
 import PalavrasChave from "@/components/PalavrasChave";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type AdminTab = "assuntos" | "radios" | "youtube" | "instagram" | "x" | "meta" | "web";
 
@@ -32,6 +33,7 @@ function abaValida(valor: string | null): AdminTab {
 }
 
 function AdminPageInner() {
+  const { t } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [aba, setAba] = useState<AdminTab>(() => abaValida(searchParams.get("aba")));
@@ -49,13 +51,13 @@ function AdminPageInner() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Header subtitle="Configuração das fontes" />
+      <Header subtitle={t("Configuração das fontes")} />
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-slate-900">Admin</h1>
           <p className="text-sm text-slate-500">
-            Cadastro de assuntos e fontes. Buscas e detecções ficam nas abas da página inicial.
+            {t("Cadastro de assuntos e fontes. Buscas e detecções ficam nas abas da página inicial.")}
           </p>
         </div>
 
@@ -73,7 +75,7 @@ function AdminPageInner() {
                   : "text-slate-600 hover:bg-white hover:text-slate-900"
               }`}
             >
-              {tab.label}
+              {t(tab.label)}
             </button>
           ))}
         </div>
@@ -91,12 +93,13 @@ function AdminPageInner() {
 }
 
 export default function AdminPage() {
+  const { t } = useI18n();
   return (
     <Suspense
       fallback={
         <div className="min-h-screen bg-slate-50">
-          <Header subtitle="Configuração das fontes" />
-          <p className="py-20 text-center text-sm text-slate-500">Carregando admin...</p>
+          <Header subtitle={t("Configuração das fontes")} />
+          <p className="py-20 text-center text-sm text-slate-500">{t("Carregando admin...")}</p>
         </div>
       }
     >

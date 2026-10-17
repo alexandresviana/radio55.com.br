@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { RelatorioPanorama, SentimentoRelatorio } from "@/lib/ai-relatorio";
 import type { FontePanorama, JanelaPanorama } from "@/lib/panorama-db";
+import { useI18n } from "@/i18n/I18nProvider";
 
 function rotuloFonte(fonte: FontePanorama): string {
   if (fonte === "radio") return "Rádio";
@@ -27,15 +28,6 @@ function classeSentimento(valor: SentimentoRelatorio): string {
   return "bg-slate-100 text-slate-700 ring-slate-200";
 }
 
-function formatQuando(iso: string): string {
-  return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export default function PanoramaRelatorio({
   janela,
   fonte,
@@ -45,6 +37,7 @@ export default function PanoramaRelatorio({
   fonte: FontePanorama | "todas";
   termo: string;
 }) {
+  const { t, formatDateTime, idioma } = useI18n();
   const [relatorio, setRelatorio] = useState<RelatorioPanorama | null>(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
@@ -59,6 +52,7 @@ export default function PanoramaRelatorio({
       params.set("fonte", fonte);
       if (termo.trim()) params.set("termo", termo.trim());
       if (refresh) params.set("refresh", "1");
+      params.set("idioma", idioma);
 
       const res = await fetch(`/api/panorama/relatorio?${params}`);
       const data = (await res.json().catch(() => ({
@@ -74,7 +68,7 @@ export default function PanoramaRelatorio({
 
       setLoading(false);
     },
-    [janela, fonte, termo],
+    [janela, fonte, termo, idioma],
   );
 
   useEffect(() => {
@@ -94,7 +88,7 @@ export default function PanoramaRelatorio({
   if (erro) {
     return (
       <section className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
-        {erro}
+        {t(erro)}
       </section>
     );
   }
@@ -109,7 +103,7 @@ export default function PanoramaRelatorio({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-200/80">
-              Relatório IA
+              {t("Relatório IA")}
             </p>
             <h3 className="mt-1 text-lg font-semibold leading-snug">{relatorio.titulo}</h3>
           </div>
@@ -119,7 +113,7 @@ export default function PanoramaRelatorio({
                 relatorio.sentimento_geral,
               )}`}
             >
-              {rotuloSentimento(relatorio.sentimento_geral)}
+              {t(rotuloSentimento(relatorio.sentimento_geral))}
             </span>
             <button
               type="button"
@@ -127,7 +121,7 @@ export default function PanoramaRelatorio({
               disabled={loading}
               className="rounded-full px-2.5 py-1 text-[11px] font-medium text-emerald-100 ring-1 ring-white/20 hover:bg-white/10 disabled:opacity-50"
             >
-              {loading ? "Atualizando…" : "Atualizar"}
+              {loading ? t("Atualizando…") : t("Atualizar")}
             </button>
           </div>
         </div>
@@ -145,30 +139,33 @@ export default function PanoramaRelatorio({
               <div
                 className="bg-emerald-500"
                 style={{ width: `${sentimentos.positivo}%` }}
-                title={`Positivo ${sentimentos.positivo}%`}
+                title={`${t("Positivo")} ${sentimentos.positivo}%`}
               />
               <div
                 className="bg-slate-400"
                 style={{ width: `${sentimentos.neutro}%` }}
-                title={`Neutro ${sentimentos.neutro}%`}
+                title={`${t("Neutro")} ${sentimentos.neutro}%`}
               />
               <div
                 className="bg-rose-500"
                 style={{ width: `${sentimentos.negativo}%` }}
-                title={`Negativo ${sentimentos.negativo}%`}
+                title={`${t("Negativo")} ${sentimentos.negativo}%`}
               />
             </div>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
               <span>
-                <span className="font-semibold text-emerald-700">{sentimentos.positivo}%</span> positivo
+                <span className="font-semibold text-emerald-700">{sentimentos.positivo}%</span>{" "}
+                {t("positivo")}
               </span>
               <span>
-                <span className="font-semibold text-slate-600">{sentimentos.neutro}%</span> neutro
+                <span className="font-semibold text-slate-600">{sentimentos.neutro}%</span>{" "}
+                {t("neutro")}
               </span>
               <span>
-                <span className="font-semibold text-rose-700">{sentimentos.negativo}%</span> negativo
+                <span className="font-semibold text-rose-700">{sentimentos.negativo}%</span>{" "}
+                {t("negativo")}
               </span>
-              <span className="ml-auto tabular-nums">{relatorio.total} menções</span>
+              <span className="ml-auto tabular-nums">{t("{n} menções", { n: relatorio.total })}</span>
             </div>
           </div>
         )}
@@ -189,7 +186,7 @@ export default function PanoramaRelatorio({
                       assunto.sentimento,
                     )}`}
                   >
-                    {rotuloSentimento(assunto.sentimento)}
+                    {t(rotuloSentimento(assunto.sentimento))}
                   </span>
                 </div>
                 {assunto.leitura && (
@@ -214,7 +211,7 @@ export default function PanoramaRelatorio({
         {relatorio.alertas.length > 0 && (
           <div className="rounded-xl bg-amber-50 px-4 py-3 ring-1 ring-amber-200">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-800">
-              Atenção
+              {t("Atenção")}
             </p>
             <ul className="mt-1 space-y-1 text-sm text-amber-950">
               {relatorio.alertas.map((item) => (
@@ -227,11 +224,13 @@ export default function PanoramaRelatorio({
         {relatorio.por_fonte.length > 0 && (
           <p className="text-xs text-slate-400">
             {relatorio.por_fonte
-              .map((item) => `${rotuloFonte(item.fonte)} ${item.mencoes}`)
+              .map((item) => `${t(rotuloFonte(item.fonte))} ${item.mencoes}`)
               .join(" · ")}
             <span className="mx-2">·</span>
-            Gerado {formatQuando(relatorio.gerado_em)}
-            {relatorio.ia ? "" : " · sem IA"}
+            {t("Gerado {quando}", {
+              quando: formatDateTime(relatorio.gerado_em, { year: false }),
+            })}
+            {relatorio.ia ? "" : ` ${t("· sem IA")}`}
           </p>
         )}
 

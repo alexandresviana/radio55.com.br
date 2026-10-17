@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/i18n/I18nProvider";
 import { getRegiaoCor } from "@/lib/regioes";
 
 interface FiltroRegiaoProps {
@@ -9,9 +10,10 @@ interface FiltroRegiaoProps {
 }
 
 export default function FiltroRegiao({ regioes, regiaoAtiva, onChange }: FiltroRegiaoProps) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="mr-1 text-sm font-medium text-slate-600">Região:</span>
+      <span className="mr-1 text-sm font-medium text-slate-600">{t("Região:")}</span>
       <button
         type="button"
         onClick={() => onChange(null)}
@@ -21,7 +23,7 @@ export default function FiltroRegiao({ regioes, regiaoAtiva, onChange }: FiltroR
             : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
         }`}
       >
-        Todas
+        {t("Todas")}
       </button>
       {regioes.map((regiao) => {
         const cor = getRegiaoCor(regiao);

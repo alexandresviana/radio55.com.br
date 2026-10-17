@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 import { formatMinutagem } from "@/lib/text-normalize";
 import { youtubeThumbnailUrl } from "@/lib/youtube-thumbnail";
 
@@ -61,17 +62,8 @@ const FILTROS = [
 
 const POR_PAGINA = 15;
 
-function formatDateTime(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export default function YoutubePainel() {
+  const { t, formatDateTime } = useI18n();
   const [monitor, setMonitor] = useState<MonitorStatus | null>(null);
   const [videos, setVideos] = useState<YoutubeVideo[]>([]);
   const [resumos, setResumos] = useState<TranscricaoResumo[]>([]);
@@ -176,9 +168,11 @@ export default function YoutubePainel() {
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Monitoramento de vídeos</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{t("Monitoramento de vídeos")}</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Legendas via múltiplas fontes. Estreias agendadas ficam em aguardando e são reprocessadas.
+            {t(
+              "Legendas via múltiplas fontes. Estreias agendadas ficam em aguardando e são reprocessadas.",
+            )}
           </p>
         </div>
         <button
@@ -186,43 +180,43 @@ export default function YoutubePainel() {
           onClick={() => void carregar()}
           className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
         >
-          Atualizar
+          {t("Atualizar")}
         </button>
       </div>
 
-      {erro && <p className="mb-3 text-sm text-red-600">{erro}</p>}
+      {erro && <p className="mb-3 text-sm text-red-600">{t(erro)}</p>}
 
       {monitor && (
         <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-xl bg-slate-50 px-4 py-3">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Serviço</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">{t("Serviço")}</p>
             <p className="mt-1 font-medium text-slate-900">
-              {monitor.ativo ? "Ativo" : "Inativo"}
-              {monitor.sincronizando ? " · sync" : ""}
-              {monitor.processando ? " · proc." : ""}
+              {monitor.ativo ? t("Ativo") : t("Inativo")}
+              {monitor.sincronizando ? ` ${t("· sync")}` : ""}
+              {monitor.processando ? ` ${t("· proc.")}` : ""}
             </p>
           </div>
           <div className="rounded-xl bg-slate-50 px-4 py-3">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Processados</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">{t("Processados")}</p>
             <p className="mt-1 font-medium text-slate-900">{monitor.videos_processados}</p>
           </div>
           <div className="rounded-xl bg-slate-50 px-4 py-3">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Última sync</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">{t("Última sync")}</p>
             <p className="mt-1 font-medium text-slate-900">
-              {formatDateTime(monitor.ultima_sincronizacao)}
+              {formatDateTime(monitor.ultima_sincronizacao, { year: false })}
             </p>
           </div>
           <div className="rounded-xl bg-slate-50 px-4 py-3">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Último vídeo</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">{t("Último vídeo")}</p>
             <p className="mt-1 font-medium text-slate-900">
-              {formatDateTime(monitor.ultimo_processamento)}
+              {formatDateTime(monitor.ultimo_processamento, { year: false })}
             </p>
           </div>
         </div>
       )}
 
       {monitor?.erro && (
-        <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{monitor.erro}</p>
+        <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{t(monitor.erro)}</p>
       )}
 
       <div className="mb-3 flex flex-wrap gap-2">
@@ -237,16 +231,16 @@ export default function YoutubePainel() {
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
-            {item.label}
+            {t(item.label)}
           </button>
         ))}
       </div>
 
       {videos.length === 0 ? (
-        <p className="text-sm text-slate-400">Nenhum vídeo neste filtro.</p>
+        <p className="text-sm text-slate-400">{t("Nenhum vídeo neste filtro.")}</p>
       ) : (
         <>
-          <p className="mb-2 text-xs text-slate-500">{total} vídeo(s) no total</p>
+          <p className="mb-2 text-xs text-slate-500">{t("{total} vídeo(s) no total", { total })}</p>
           <div className="space-y-2">
             {videos.map((video) => {
               const resumo = resumosPorVideo.get(video.id);
@@ -280,14 +274,14 @@ export default function YoutubePainel() {
                         {video.titulo}
                       </a>
                       <p className="mt-0.5 text-xs text-slate-500">
-                        {video.canal_titulo} · {formatDateTime(video.publicado_em)}
+                        {video.canal_titulo} · {formatDateTime(video.publicado_em, { year: false })}
                       </p>
                       {video.status === "concluido" && resumo && (
                         <p className="mt-1 line-clamp-2 text-sm text-slate-600">
                           {resumo.resumo}
                           {resumo.segmentosTotal > 0 && (
                             <span className="ml-2 text-xs text-slate-400">
-                              ({resumo.segmentosTotal} trechos
+                              ({t("{n} trechos", { n: resumo.segmentosTotal })}
                               {resumo.duracaoSegundos
                                 ? ` · ${formatMinutagem(resumo.duracaoSegundos)}`
                                 : ""}
@@ -297,13 +291,13 @@ export default function YoutubePainel() {
                         </p>
                       )}
                       {video.erro_msg && (
-                        <p className="mt-1 text-xs text-amber-700">{video.erro_msg}</p>
+                        <p className="mt-1 text-xs text-amber-700">{t(video.erro_msg)}</p>
                       )}
                     </div>
 
                     <div className="flex shrink-0 items-center gap-2">
                       <span className="rounded-full bg-white px-2 py-0.5 text-xs text-slate-700 ring-1 ring-slate-200">
-                        {STATUS_LABEL[video.status] ?? video.status}
+                        {t(STATUS_LABEL[video.status] ?? video.status)}
                       </span>
                       {video.status === "concluido" && (
                         <button
@@ -311,7 +305,7 @@ export default function YoutubePainel() {
                           onClick={() => void toggleTranscricao(video.id)}
                           className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700 hover:bg-slate-100"
                         >
-                          {aberto ? "Ocultar" : "Transcrição"}
+                          {aberto ? t("Ocultar") : t("Transcrição")}
                         </button>
                       )}
                       {(video.status === "concluido" || video.status === "sem_transcript") && (
@@ -321,7 +315,7 @@ export default function YoutubePainel() {
                           onClick={() => void reprocessarVideo(video.id)}
                           className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs text-amber-800 hover:bg-amber-100 disabled:opacity-60"
                         >
-                          {reprocessando === video.id ? "..." : "Reprocessar"}
+                          {reprocessando === video.id ? "..." : t("Reprocessar")}
                         </button>
                       )}
                     </div>
@@ -330,16 +324,18 @@ export default function YoutubePainel() {
                   {aberto && (
                     <div className="border-t border-slate-100 bg-white px-3 py-3">
                       {carregandoSegmentos === video.id ? (
-                        <p className="text-sm text-slate-500">Carregando trechos...</p>
+                        <p className="text-sm text-slate-500">{t("Carregando trechos...")}</p>
                       ) : trechos.length === 0 ? (
-                        <p className="text-sm text-slate-400">Nenhum trecho salvo.</p>
+                        <p className="text-sm text-slate-400">{t("Nenhum trecho salvo.")}</p>
                       ) : (
                         <>
                           <p className="mb-2 text-xs text-slate-500">
-                            {trechos.length} trechos · até{" "}
-                            {formatMinutagem(
-                              Math.max(...trechos.map((segmento) => segmento.fim_segundos)),
-                            )}
+                            {t("{n} trechos · até {tempo}", {
+                              n: trechos.length,
+                              tempo: formatMinutagem(
+                                Math.max(...trechos.map((segmento) => segmento.fim_segundos)),
+                              ),
+                            })}
                           </p>
                           <div className="max-h-56 space-y-1 overflow-y-auto text-sm text-slate-700">
                             {trechos.map((segmento, index) => (
@@ -363,7 +359,7 @@ export default function YoutubePainel() {
           {totalPaginas > 1 && (
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs text-slate-500">
-                Página {pagina + 1} de {totalPaginas}
+                {t("Página {pagina} de {total}", { pagina: pagina + 1, total: totalPaginas })}
               </p>
               <div className="flex gap-2">
                 <button
@@ -372,7 +368,7 @@ export default function YoutubePainel() {
                   onClick={() => setPagina((prev) => Math.max(0, prev - 1))}
                   className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                 >
-                  Anterior
+                  {t("Anterior")}
                 </button>
                 <button
                   type="button"
@@ -380,7 +376,7 @@ export default function YoutubePainel() {
                   onClick={() => setPagina((prev) => prev + 1)}
                   className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                 >
-                  Próxima
+                  {t("Próxima")}
                 </button>
               </div>
             </div>

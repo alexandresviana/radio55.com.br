@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { parseIdioma } from "@/i18n/idioma";
 import { isAiConfigured } from "@/lib/ai-client";
 import { gerarRelatorioPanorama } from "@/lib/ai-relatorio";
 import { isDatabaseConfigured } from "@/lib/db";
@@ -39,6 +40,7 @@ export async function GET(request: NextRequest) {
       fonte: FONTES.has(fonteRaw) ? fonteRaw : "todas",
       termo,
       refresh,
+      idioma: parseIdioma(params.get("idioma")) ?? "pt",
     });
 
     return NextResponse.json({ relatorio, ia_configurada: isAiConfigured() });

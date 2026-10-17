@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import SeloTermoDeteccao from "@/components/SeloTermoDeteccao";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface DeteccaoItem {
   id: number;
@@ -17,18 +18,8 @@ interface DeteccaoItem {
 
 const POR_PAGINA = 20;
 
-function formatDateTime(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export default function XDeteccoes() {
+  const { t, formatDateTime } = useI18n();
   const [deteccoes, setDeteccoes] = useState<DeteccaoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
@@ -82,9 +73,9 @@ export default function XDeteccoes() {
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Detecções</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{t("Detecções")}</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Menções a palavras-chave e termos monitorados nos posts do X.
+            {t("Menções a palavras-chave e termos monitorados nos posts do X.")}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -98,7 +89,7 @@ export default function XDeteccoes() {
                 setTermoBusca(termo);
               }
             }}
-            placeholder="Filtrar..."
+            placeholder={t("Filtrar...")}
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
           />
           <button
@@ -109,17 +100,17 @@ export default function XDeteccoes() {
             }}
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
           >
-            Filtrar
+            {t("Filtrar")}
           </button>
         </div>
       </div>
 
-      {erro && <p className="mb-3 text-sm text-red-600">{erro}</p>}
+      {erro && <p className="mb-3 text-sm text-red-600">{t(erro)}</p>}
 
       {loading ? (
-        <p className="text-sm text-slate-500">Carregando detecções...</p>
+        <p className="text-sm text-slate-500">{t("Carregando detecções...")}</p>
       ) : deteccoes.length === 0 ? (
-        <p className="text-sm text-slate-400">Nenhuma detecção ainda.</p>
+        <p className="text-sm text-slate-400">{t("Nenhuma detecção ainda.")}</p>
       ) : (
         <ul className="divide-y divide-slate-100">
           {deteccoes.map((item) => (
@@ -142,7 +133,7 @@ export default function XDeteccoes() {
                 rel="noreferrer"
                 className="mt-2 inline-block text-xs font-medium text-sky-700 hover:text-sky-900"
               >
-                Ver post →
+                {t("Ver post →")}
               </a>
             </li>
           ))}
@@ -157,10 +148,10 @@ export default function XDeteccoes() {
             onClick={() => setPagina((p) => Math.max(0, p - 1))}
             className="rounded-lg border border-slate-200 px-3 py-1.5 disabled:opacity-40"
           >
-            Anterior
+            {t("Anterior")}
           </button>
           <span className="text-slate-500">
-            Página {pagina + 1} de {totalPaginas}
+            {t("Página {pagina} de {total}", { pagina: pagina + 1, total: totalPaginas })}
           </span>
           <button
             type="button"
@@ -168,7 +159,7 @@ export default function XDeteccoes() {
             onClick={() => setPagina((p) => p + 1)}
             className="rounded-lg border border-slate-200 px-3 py-1.5 disabled:opacity-40"
           >
-            Próxima
+            {t("Próxima")}
           </button>
         </div>
       )}

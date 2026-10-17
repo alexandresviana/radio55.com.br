@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import SeloTermoDeteccao from "@/components/SeloTermoDeteccao";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface DeteccaoItem {
   id: number;
@@ -17,17 +18,8 @@ interface DeteccaoItem {
 
 const POR_PAGINA = 20;
 
-function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export default function MetaAdsDeteccoes() {
+  const { t, formatDateTime } = useI18n();
   const [deteccoes, setDeteccoes] = useState<DeteccaoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
@@ -74,9 +66,11 @@ export default function MetaAdsDeteccoes() {
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Detecções nos anúncios</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{t("Detecções nos anúncios")}</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Menções a assuntos e termos monitorados nos textos dos anúncios. {total} resultado(s).
+            {t("Menções a assuntos e termos monitorados nos textos dos anúncios. {total} resultado(s).", {
+              total,
+            })}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -90,7 +84,7 @@ export default function MetaAdsDeteccoes() {
                 setTermoBusca(termo);
               }
             }}
-            placeholder="Filtrar..."
+            placeholder={t("Filtrar...")}
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
           />
           <button
@@ -101,17 +95,17 @@ export default function MetaAdsDeteccoes() {
             }}
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
           >
-            Buscar
+            {t("Buscar")}
           </button>
         </div>
       </div>
 
-      {erro && <p className="mb-3 text-sm text-red-600">{erro}</p>}
+      {erro && <p className="mb-3 text-sm text-red-600">{t(erro)}</p>}
 
       {loading ? (
-        <p className="text-sm text-slate-500">Carregando...</p>
+        <p className="text-sm text-slate-500">{t("Carregando...")}</p>
       ) : deteccoes.length === 0 ? (
-        <p className="text-sm text-slate-400">Nenhuma detecção ainda.</p>
+        <p className="text-sm text-slate-400">{t("Nenhuma detecção ainda.")}</p>
       ) : (
         <ul className="space-y-3">
           {deteccoes.map((item) => (
@@ -124,7 +118,7 @@ export default function MetaAdsDeteccoes() {
                       ancora={item.ancora_termo}
                       className="rounded bg-emerald-50 px-1.5 py-0.5 text-emerald-800"
                     />{" "}
-                    · {item.page_name || "Anunciante"}
+                    · {item.page_name || t("Anunciante")}
                   </p>
                   <p className="text-xs text-slate-500">{formatDateTime(item.detectado_em)}</p>
                 </div>
@@ -134,7 +128,7 @@ export default function MetaAdsDeteccoes() {
                   rel="noreferrer"
                   className="text-xs text-emerald-700 hover:underline"
                 >
-                  Abrir anúncio
+                  {t("Abrir anúncio")}
                 </a>
               </div>
               <p className="mt-2 text-sm text-slate-700">{item.contexto || item.ad_titulo}</p>
@@ -151,7 +145,7 @@ export default function MetaAdsDeteccoes() {
             onClick={() => setPagina((p) => Math.max(0, p - 1))}
             className="rounded-lg border border-slate-200 px-3 py-1.5 disabled:opacity-40"
           >
-            Anterior
+            {t("Anterior")}
           </button>
           <span className="text-slate-500">
             {pagina + 1} / {totalPaginas}
@@ -162,7 +156,7 @@ export default function MetaAdsDeteccoes() {
             onClick={() => setPagina((p) => p + 1)}
             className="rounded-lg border border-slate-200 px-3 py-1.5 disabled:opacity-40"
           >
-            Próxima
+            {t("Próxima")}
           </button>
         </div>
       )}

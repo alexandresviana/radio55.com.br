@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface AnuncioItem {
   id: number;
@@ -17,18 +18,8 @@ interface AnuncioItem {
 
 const POR_PAGINA = 20;
 
-function formatDateTime(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export default function MetaAdsAnuncios() {
+  const { t, formatDateTime } = useI18n();
   const [anuncios, setAnuncios] = useState<AnuncioItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
@@ -76,8 +67,8 @@ export default function MetaAdsAnuncios() {
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Anúncios coletados</h2>
-          <p className="mt-1 text-sm text-slate-500">{total} anúncio(s)</p>
+          <h2 className="text-lg font-semibold text-slate-900">{t("Anúncios coletados")}</h2>
+          <p className="mt-1 text-sm text-slate-500">{t("{total} anúncio(s)", { total })}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <input
@@ -90,7 +81,7 @@ export default function MetaAdsAnuncios() {
                 setTermoBusca(termo);
               }
             }}
-            placeholder="Filtrar..."
+            placeholder={t("Filtrar...")}
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
           />
           <button
@@ -101,17 +92,17 @@ export default function MetaAdsAnuncios() {
             }}
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
           >
-            Buscar
+            {t("Buscar")}
           </button>
         </div>
       </div>
 
-      {erro && <p className="mb-3 text-sm text-red-600">{erro}</p>}
+      {erro && <p className="mb-3 text-sm text-red-600">{t(erro)}</p>}
 
       {loading ? (
-        <p className="text-sm text-slate-500">Carregando...</p>
+        <p className="text-sm text-slate-500">{t("Carregando...")}</p>
       ) : anuncios.length === 0 ? (
-        <p className="text-sm text-slate-400">Nenhum anúncio coletado ainda.</p>
+        <p className="text-sm text-slate-400">{t("Nenhum anúncio coletado ainda.")}</p>
       ) : (
         <ul className="space-y-3">
           {anuncios.map((item) => {
@@ -124,15 +115,15 @@ export default function MetaAdsAnuncios() {
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
                     <p className="font-medium text-slate-900">
-                      {item.page_name || "Anunciante"}
+                      {item.page_name || t("Anunciante")}
                       {item.titulo ? (
                         <span className="font-normal text-slate-600"> — {item.titulo}</span>
                       ) : null}
                     </p>
                     <p className="text-xs text-slate-500">
                       {formatDateTime(item.inicio_em)}
-                      {item.busca_termo ? ` · busca “${item.busca_termo}”` : ""}
-                      {item.pagina_slug ? ` · página ${item.pagina_slug}` : ""}
+                      {item.busca_termo ? ` ${t("· busca “{termo}”", { termo: item.busca_termo })}` : ""}
+                      {item.pagina_slug ? ` ${t("· página {pagina}", { pagina: item.pagina_slug })}` : ""}
                     </p>
                   </div>
                   <a
@@ -141,7 +132,7 @@ export default function MetaAdsAnuncios() {
                     rel="noreferrer"
                     className="text-xs text-emerald-700 hover:underline"
                   >
-                    Ver na biblioteca
+                    {t("Ver na biblioteca")}
                   </a>
                 </div>
                 <p className={`mt-2 text-sm text-slate-700 ${aberto ? "" : "line-clamp-2"}`}>
@@ -152,7 +143,7 @@ export default function MetaAdsAnuncios() {
                   onClick={() => setExpandido(aberto ? null : item.id)}
                   className="mt-1 text-xs text-slate-500 hover:underline"
                 >
-                  {aberto ? "Recolher" : "Expandir"}
+                  {aberto ? t("Recolher") : t("Expandir")}
                 </button>
               </li>
             );
@@ -168,7 +159,7 @@ export default function MetaAdsAnuncios() {
             onClick={() => setPagina((p) => Math.max(0, p - 1))}
             className="rounded-lg border border-slate-200 px-3 py-1.5 disabled:opacity-40"
           >
-            Anterior
+            {t("Anterior")}
           </button>
           <span className="text-slate-500">
             {pagina + 1} / {totalPaginas}
@@ -179,7 +170,7 @@ export default function MetaAdsAnuncios() {
             onClick={() => setPagina((p) => p + 1)}
             className="rounded-lg border border-slate-200 px-3 py-1.5 disabled:opacity-40"
           >
-            Próxima
+            {t("Próxima")}
           </button>
         </div>
       )}

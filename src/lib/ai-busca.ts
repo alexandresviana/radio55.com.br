@@ -1,4 +1,6 @@
 import { chatCompletion, isAiConfigured } from "@/lib/ai-client";
+import { nomeIdioma, parseIdioma, type Idioma } from "@/i18n/idioma";
+import { translate } from "@/i18n/messages";
 import { getLimitePorPaginaIA } from "@/lib/ai-busca-config";
 import {
   buscarDeteccoesRadio,
@@ -25,6 +27,7 @@ export interface OpcoesBuscaIA {
   prompt: string;
   pagina?: number;
   interpretacao?: ConsultaInterpretada;
+  idioma?: Idioma;
 }
 
 type TrechoEncontrado = TrechoRadioEncontrado | TrechoYoutubeEncontrado;
@@ -97,7 +100,10 @@ async function listarRadiosCadastradas(): Promise<{ municipio: string; nome: str
   return lista.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
 }
 
-export async function interpretarPromptUsuario(prompt: string): Promise<ConsultaInterpretada> {
+export async function interpretarPromptUsuario(
+  prompt: string,
+  idioma: Idioma = "pt",
+): Promise<ConsultaInterpretada> {
   const [radios, canais] = await Promise.all([listarRadiosCadastradas(), listarYoutubeCanais()]);
 
   const radiosTexto = radios.map((r) => `${r.nome} (${r.municipio})`).join("; ") || "nenhuma";
@@ -107,24 +113,25 @@ export async function interpretarPromptUsuario(prompt: string): Promise<Consulta
     [
       {
         role: "system",
-        content: `Você interpreta perguntas em português sobre transcrições de rádios e YouTube.
+        content: `Você interpreta perguntas em português, espanhol ou inglês sobre transcrições de rádios e YouTube.
 Data de hoje: ${hojeIso()}.
+Escreva o campo intencao em ${nomeIdioma(idioma)}. Não traduza nomes de rádios, municípios ou canais.
 
 Rádios com gravação ativa: ${radiosTexto}
 Canais YouTube monitorados: ${canaisTexto}
 
 Retorne JSON com:
 - fontes: array com "radio" e/ou "youtube" (ambos se não especificado)
-- termos: palavras/expressões para buscar no texto (substantivos, nomes, temas — sem stopwords)
+- termos: palavras/expressões para buscar no texto (substantivos, nomes, temas — sem stopwords). Mantenha o termo no idioma em que ele deve aparecer na mídia (em geral português).
 - radio_nome: nome parcial da rádio ou null
 - municipio: município ou null
 - canal_youtube: nome parcial do canal ou null
 - data: YYYY-MM-DD ou null
 - hora_de: HH:MM (24h) ou null
 - hora_ate: HH:MM (24h) ou null
-- intencao: resumo curto do que o usuário quer saber
+- intencao: resumo curto do que o usuário quer saber, em ${nomeIdioma(idioma)}
 
-Use null quando o filtro não for mencionado. Inferir data relativa ("hoje", "ontem") a partir de ${hojeIso()}.`,
+Use null quando o filtro não for mencionado. Inferir data relativa ("hoje", "ontem", "hoy", "ayer", "today", "yesterday") a partir de ${hojeIso()}.`,
       },
       { role: "user", content: prompt },
     ],
@@ -243,9 +250,13 @@ async function gerarResposta(
   prompt: string,
   interpretacao: ConsultaInterpretada,
   fontes: FonteCitada[],
+  idioma: Idioma,
 ): Promise<string> {
   if (fontes.length === 0) {
-    return "Não encontrei trechos transcritos que correspondam à sua pergunta com os filtros interpretados. Tente ampliar o intervalo de datas, verificar o nome da emissora ou usar termos diferentes.";
+    return translate(
+      idioma,
+      "Não encontrei trechos transcritos que correspondam à sua pergunta com os filtros interpretados. Tente ampliar o intervalo de datas, verificar o nome da emissora ou usar termos diferentes.",
+    );
   }
 
   const contexto = fontes
@@ -258,7 +269,7 @@ async function gerarResposta(
   return chatCompletion([
     {
       role: "system",
-      content: `Você é assistente do portal Orbit View. Responda em português do Brasil, de forma clara e jornalística.
+      content: `Você é assistente do portal Orbit View. Responda em ${nomeIdioma(idioma)}, de forma clara e jornalística.
 Use APENAS os trechos fornecidos. Cite fontes como [R1], [Y2] etc.
 Se os trechos forem insuficientes, diga isso explicitamente.
 Não invente fatos.`,
@@ -280,12 +291,13 @@ export async function executarBuscaIA(opts: OpcoesBuscaIA): Promise<ResultadoBus
     throw new Error("OPENAI_API_KEY não configurado — busca com IA indisponível");
   }
 
+  const idioma = parseIdioma(opts.idioma) ?? "pt";
   const prompt = opts.prompt.trim();
   const pagina = Math.max(0, opts.pagina ?? 0);
   const porPagina = getLimitePorPaginaIA();
 
   const interpretacao =
-    opts.interpretacao ?? (await interpretarPromptUsuario(prompt));
+    opts.interpretacao ?? (await interpretarPromptUsuario(prompt, idioma));
 
   if (interpretacao.termos.length === 0 && !interpretacao.radio_nome && !interpretacao.data) {
     throw new Error("Não foi possível extrair termos ou filtros da pergunta");
@@ -346,17 +358,25 @@ export async function executarBuscaIA(opts: OpcoesBuscaIA): Promise<ResultadoBus
 
   const fontes = montarFontesPagina(itensPagina);
   const resposta =
-    pagina === 0 ? await gerarResposta(prompt, interpretacao, fontes) : "";
+    pagina === 0 ? await gerarResposta(prompt, interpretacao, fontes, idioma) : "";
 
   let aviso: string | undefined;
   if (buscarRadio && totalRadio === 0) {
-    aviso =
-      "Nenhum trecho encontrado nas transcrições nem nos alertas de palavras-chave para os filtros usados.";
+    aviso = translate(
+      idioma,
+      "Nenhum trecho encontrado nas transcrições nem nos alertas de palavras-chave para os filtros usados.",
+    );
   } else if (buscarRadio && itensPagina.some((i) => i.tipo === "radio" && i.termo_detectado)) {
-    aviso =
-      "Parte dos resultados veio dos alertas de palavras-chave (transcrição completa pode não estar salva para essa data).";
+    aviso = translate(
+      idioma,
+      "Parte dos resultados veio dos alertas de palavras-chave (transcrição completa pode não estar salva para essa data).",
+    );
   } else if (mesclado.length >= fetchSize && totalEstimado > mesclado.length) {
-    aviso = `Mostrando até ${fetchSize} trechos mais recentes; o total pode ser maior (${totalEstimado} ocorrências brutas).`;
+    aviso = translate(
+      idioma,
+      "Mostrando até {limite} trechos mais recentes; o total pode ser maior ({total} ocorrências brutas).",
+      { limite: fetchSize, total: totalEstimado },
+    );
   }
 
   return {

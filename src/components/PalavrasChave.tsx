@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 import {
   PAPEIS_ASSUNTO,
   PAPEIS_ASSUNTO_LABEL,
@@ -27,13 +28,8 @@ function tipoDaPalavra(item: Pick<PalavraChave, "papel" | "requer_papel">): Tipo
   return "solto";
 }
 
-function rotuloRelacao(item: PalavraChave): string {
-  if (item.papel) return PAPEIS_ASSUNTO_LABEL[item.papel];
-  if (item.requer_papel) return `só com ${PAPEIS_ASSUNTO_LABEL[item.requer_papel].toLowerCase()}`;
-  return "Solto";
-}
-
 export default function PalavrasChave() {
+  const { t, formatDateTime } = useI18n();
   const [palavras, setPalavras] = useState<PalavraChave[]>([]);
   const [novoTermo, setNovoTermo] = useState("");
   const [novoTipo, setNovoTipo] = useState<TipoAssunto>("solto");
@@ -144,21 +140,38 @@ export default function PalavrasChave() {
     });
   }
 
+  function rotuloPapelOpcao(papel: PapelAssunto, tipo: TipoAssunto): string {
+    if (tipo === "tema") {
+      return t("Só com {papel}", {
+        papel: t(PAPEIS_ASSUNTO_LABEL[papel]).toLowerCase(),
+      });
+    }
+    return t(PAPEIS_ASSUNTO_LABEL[papel]);
+  }
+
+  function rotuloRelacao(item: PalavraChave): string {
+    if (item.papel) return t(PAPEIS_ASSUNTO_LABEL[item.papel]);
+    if (item.requer_papel) {
+      return t("só com {papel}", {
+        papel: t(PAPEIS_ASSUNTO_LABEL[item.requer_papel]).toLowerCase(),
+      });
+    }
+    return t("Solto");
+  }
+
   async function remover(id: number) {
-    if (!confirm("Remover este assunto? As coletas ligadas a ele serão pausadas.")) return;
+    if (!confirm(t("Remover este assunto? As coletas ligadas a ele serão pausadas."))) return;
     await fetch(`/api/palavras-chave/${id}`, { method: "DELETE" });
     await carregar();
   }
 
   return (
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="text-lg font-semibold text-slate-900">Assuntos monitorados</h2>
+      <h2 className="text-lg font-semibold text-slate-900">{t("Assuntos monitorados")}</h2>
       <p className="mt-1 text-sm text-slate-500">
-        Cadastre uma vez — o sistema procura o termo em <strong>rádio</strong>,{" "}
-        <strong>YouTube</strong>, <strong>Instagram</strong>, <strong>X</strong>,{" "}
-        <strong>anúncios</strong> e <strong>web</strong>. Uma <em>pessoa</em> (candidato, oponente,
-        aliado) vale sozinha. Um <em>tema</em> só conta no mesmo pedaço de texto que alguém
-        daquele papel.
+        {t(
+          "Cadastre uma vez — o sistema procura o termo em rádio, YouTube, Instagram, X, anúncios e web. Uma pessoa (candidato, oponente, aliado) vale sozinha. Um tema só conta no mesmo pedaço de texto que alguém daquele papel.",
+        )}
       </p>
 
       <div className="mt-4 space-y-3">
@@ -170,7 +183,7 @@ export default function PalavrasChave() {
             onKeyDown={(e) => {
               if (e.key === "Enter") void adicionar();
             }}
-            placeholder="Ex.: acm neto, saúde, educação"
+            placeholder={t("Ex.: acm neto, saúde, educação")}
             className="min-w-[220px] flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm"
           />
           <select
@@ -178,9 +191,9 @@ export default function PalavrasChave() {
             onChange={(e) => setNovoTipo(e.target.value as TipoAssunto)}
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
           >
-            <option value="solto">Solto</option>
-            <option value="pessoa">Pessoa</option>
-            <option value="tema">Tema</option>
+            <option value="solto">{t("Solto")}</option>
+            <option value="pessoa">{t("Pessoa")}</option>
+            <option value="tema">{t("Tema")}</option>
           </select>
           {novoTipo !== "solto" && (
             <select
@@ -190,9 +203,7 @@ export default function PalavrasChave() {
             >
               {PAPEIS_ASSUNTO.map((papel) => (
                 <option key={papel} value={papel}>
-                  {novoTipo === "tema"
-                    ? `Só com ${PAPEIS_ASSUNTO_LABEL[papel].toLowerCase()}`
-                    : PAPEIS_ASSUNTO_LABEL[papel]}
+                  {rotuloPapelOpcao(papel, novoTipo)}
                 </option>
               ))}
             </select>
@@ -203,7 +214,7 @@ export default function PalavrasChave() {
             onClick={() => void adicionar()}
             className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-800 disabled:opacity-60"
           >
-            {salvando ? "Salvando..." : "Adicionar"}
+            {salvando ? t("Salvando...") : t("Adicionar")}
           </button>
         </div>
 
@@ -215,7 +226,7 @@ export default function PalavrasChave() {
               onChange={(e) => setColetarIg(e.target.checked)}
               className="h-4 w-4 rounded border-slate-300 text-emerald-700"
             />
-            Também coletar posts no Instagram
+            {t("Também coletar posts no Instagram")}
           </label>
           <label className="flex cursor-pointer items-center gap-2">
             <input
@@ -224,7 +235,7 @@ export default function PalavrasChave() {
               onChange={(e) => setColetarX(e.target.checked)}
               className="h-4 w-4 rounded border-slate-300 text-emerald-700"
             />
-            Também coletar posts no X
+            {t("Também coletar posts no X")}
           </label>
           <label className="flex cursor-pointer items-center gap-2">
             <input
@@ -233,7 +244,7 @@ export default function PalavrasChave() {
               onChange={(e) => setColetarMetaAds(e.target.checked)}
               className="h-4 w-4 rounded border-slate-300 text-emerald-700"
             />
-            Também coletar anúncios (Biblioteca Meta)
+            {t("Também coletar anúncios (Biblioteca Meta)")}
           </label>
           <label className="flex cursor-pointer items-center gap-2">
             <input
@@ -242,36 +253,37 @@ export default function PalavrasChave() {
               onChange={(e) => setColetarWeb(e.target.checked)}
               className="h-4 w-4 rounded border-slate-300 text-emerald-700"
             />
-            Também coletar notícias na web
+            {t("Também coletar notícias na web")}
           </label>
         </div>
         <p className="text-xs text-slate-400">
-          Ex.: <strong>acm neto</strong> como pessoa/candidato e <strong>saúde</strong> como tema
-          só com candidato. Saúde solta deixa de entrar.
+          {t(
+            "Ex.: acm neto como pessoa/candidato e saúde como tema só com candidato. Saúde solta deixa de entrar.",
+          )}
         </p>
       </div>
 
       {erro && (
-        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>
+        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{t(erro)}</p>
       )}
 
       {loading ? (
-        <p className="mt-4 text-sm text-slate-500">Carregando assuntos...</p>
+        <p className="mt-4 text-sm text-slate-500">{t("Carregando assuntos...")}</p>
       ) : palavras.length === 0 ? (
-        <p className="mt-4 text-sm text-slate-500">Nenhum assunto cadastrado.</p>
+        <p className="mt-4 text-sm text-slate-500">{t("Nenhum assunto cadastrado.")}</p>
       ) : (
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead>
               <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-500">
-                <th className="px-2 py-2">Assunto</th>
-                <th className="px-2 py-2">Tipo</th>
-                <th className="px-2 py-2">Papel</th>
-                <th className="px-2 py-2">Coletar IG</th>
-                <th className="px-2 py-2">Coletar X</th>
-                <th className="px-2 py-2">Coletar Ads</th>
-                <th className="px-2 py-2">Coletar Web</th>
-                <th className="px-2 py-2">Status</th>
+                <th className="px-2 py-2">{t("Assunto")}</th>
+                <th className="px-2 py-2">{t("Tipo")}</th>
+                <th className="px-2 py-2">{t("Papel")}</th>
+                <th className="px-2 py-2">{t("Coletar IG")}</th>
+                <th className="px-2 py-2">{t("Coletar X")}</th>
+                <th className="px-2 py-2">{t("Coletar Ads")}</th>
+                <th className="px-2 py-2">{t("Coletar Web")}</th>
+                <th className="px-2 py-2">{t("Status")}</th>
                 <th className="px-2 py-2" />
               </tr>
             </thead>
@@ -290,9 +302,9 @@ export default function PalavrasChave() {
                         onChange={(e) => void alterarTipo(item, e.target.value as TipoAssunto)}
                         className="rounded-md border border-slate-200 px-2 py-1 text-xs"
                       >
-                        <option value="solto">Solto</option>
-                        <option value="pessoa">Pessoa</option>
-                        <option value="tema">Tema</option>
+                        <option value="solto">{t("Solto")}</option>
+                        <option value="pessoa">{t("Pessoa")}</option>
+                        <option value="tema">{t("Tema")}</option>
                       </select>
                     </td>
                     <td className="px-2 py-3">
@@ -306,9 +318,7 @@ export default function PalavrasChave() {
                         >
                           {PAPEIS_ASSUNTO.map((papel) => (
                             <option key={papel} value={papel}>
-                              {tipo === "tema"
-                                ? `Só com ${PAPEIS_ASSUNTO_LABEL[papel].toLowerCase()}`
-                                : PAPEIS_ASSUNTO_LABEL[papel]}
+                              {rotuloPapelOpcao(papel, tipo)}
                             </option>
                           ))}
                         </select>
@@ -322,7 +332,7 @@ export default function PalavrasChave() {
                           void patch(item.id, { coletarInstagram: e.target.checked })
                         }
                         className="h-4 w-4 rounded border-slate-300 text-emerald-700"
-                        title="Buscar posts novos no Instagram"
+                        title={t("Buscar posts novos no Instagram")}
                       />
                     </td>
                     <td className="px-2 py-3">
@@ -331,7 +341,7 @@ export default function PalavrasChave() {
                         checked={item.coletar_x}
                         onChange={(e) => void patch(item.id, { coletarX: e.target.checked })}
                         className="h-4 w-4 rounded border-slate-300 text-emerald-700"
-                        title="Buscar posts novos no X"
+                        title={t("Buscar posts novos no X")}
                       />
                     </td>
                     <td className="px-2 py-3">
@@ -342,7 +352,7 @@ export default function PalavrasChave() {
                           void patch(item.id, { coletarMetaAds: e.target.checked })
                         }
                         className="h-4 w-4 rounded border-slate-300 text-emerald-700"
-                        title="Buscar anúncios na Biblioteca Meta"
+                        title={t("Buscar anúncios na Biblioteca Meta")}
                       />
                     </td>
                     <td className="px-2 py-3">
@@ -354,8 +364,10 @@ export default function PalavrasChave() {
                         className="h-4 w-4 rounded border-slate-300 text-emerald-700 disabled:opacity-40"
                         title={
                           item.requer_papel
-                            ? "Tema com papel não faz busca própria — só é contado quando aparece junto de uma pessoa"
-                            : "Buscar notícias na web"
+                            ? t(
+                                "Tema com papel não faz busca própria — só é contado quando aparece junto de uma pessoa",
+                              )
+                            : t("Buscar notícias na web")
                         }
                       />
                     </td>
@@ -369,7 +381,7 @@ export default function PalavrasChave() {
                             : "bg-slate-100 text-slate-600"
                         }`}
                       >
-                        {item.ativo ? "Ativo" : "Pausado"}
+                        {item.ativo ? t("Ativo") : t("Pausado")}
                       </button>
                     </td>
                     <td className="px-2 py-3 text-right">
@@ -378,7 +390,7 @@ export default function PalavrasChave() {
                         onClick={() => void remover(item.id)}
                         className="text-xs text-red-600 hover:underline"
                       >
-                        Remover
+                        {t("Remover")}
                       </button>
                     </td>
                   </tr>

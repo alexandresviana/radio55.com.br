@@ -1,3 +1,7 @@
+"use client";
+
+import { useI18n } from "@/i18n/I18nProvider";
+
 interface LogoProps {
   size?: "sm" | "md" | "lg";
   variant?: "light" | "dark";
@@ -10,6 +14,7 @@ const sizes = {
 };
 
 export default function Logo({ size = "md", variant = "dark" }: LogoProps) {
+  const { t } = useI18n();
   const s = sizes[size];
   const textColor = variant === "light" ? "text-white" : "text-slate-900";
   const subColor = variant === "light" ? "text-emerald-300" : "text-emerald-700";
@@ -62,7 +67,7 @@ export default function Logo({ size = "md", variant = "dark" }: LogoProps) {
       <div className="leading-tight">
         <p className={`font-bold tracking-tight ${s.text} ${textColor}`}>Orbit View</p>
         <p className={`text-xs font-medium uppercase tracking-wider ${subColor}`}>
-          Monitoramento
+          {t("Monitoramento")}
         </p>
       </div>
     </div>

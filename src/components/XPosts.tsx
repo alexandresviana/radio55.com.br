@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface PostItem {
   id: number;
@@ -17,18 +18,8 @@ interface PostItem {
 
 const POR_PAGINA = 20;
 
-function formatDateTime(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export default function XPosts() {
+  const { t, formatDateTime } = useI18n();
   const [posts, setPosts] = useState<PostItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
@@ -76,8 +67,8 @@ export default function XPosts() {
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Posts coletados</h2>
-          <p className="mt-1 text-sm text-slate-500">{total} post(s)</p>
+          <h2 className="text-lg font-semibold text-slate-900">{t("Posts coletados")}</h2>
+          <p className="mt-1 text-sm text-slate-500">{t("{total} post(s)", { total })}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <input
@@ -90,7 +81,7 @@ export default function XPosts() {
                 setTermoBusca(termo);
               }
             }}
-            placeholder="Filtrar..."
+            placeholder={t("Filtrar...")}
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
           />
           <button
@@ -101,17 +92,17 @@ export default function XPosts() {
             }}
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
           >
-            Filtrar
+            {t("Filtrar")}
           </button>
         </div>
       </div>
 
-      {erro && <p className="mb-3 text-sm text-red-600">{erro}</p>}
+      {erro && <p className="mb-3 text-sm text-red-600">{t(erro)}</p>}
 
       {loading ? (
-        <p className="text-sm text-slate-500">Carregando posts...</p>
+        <p className="text-sm text-slate-500">{t("Carregando posts...")}</p>
       ) : posts.length === 0 ? (
-        <p className="text-sm text-slate-400">Nenhum post coletado ainda.</p>
+        <p className="text-sm text-slate-400">{t("Nenhum post coletado ainda.")}</p>
       ) : (
         <ul className="divide-y divide-slate-100">
           {posts.map((post) => {
@@ -133,8 +124,8 @@ export default function XPosts() {
                     </span>
                   )}
                   <span>{formatDateTime(post.publicado_em)}</span>
-                  {post.curtidas != null && <span>{post.curtidas} curtidas</span>}
-                  {post.retweets != null && <span>{post.retweets} reposts</span>}
+                  {post.curtidas != null && <span>{t("{n} curtidas", { n: post.curtidas })}</span>}
+                  {post.retweets != null && <span>{t("{n} reposts", { n: post.retweets })}</span>}
                 </div>
                 <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{resumo}</p>
                 <div className="mt-2 flex flex-wrap gap-3 text-xs">
@@ -144,7 +135,7 @@ export default function XPosts() {
                       onClick={() => setExpandido(aberto ? null : post.id)}
                       className="font-medium text-slate-600 hover:text-slate-900"
                     >
-                      {aberto ? "Recolher" : "Ver mais"}
+                      {aberto ? t("Recolher") : t("Ver mais")}
                     </button>
                   )}
                   <a
@@ -153,7 +144,7 @@ export default function XPosts() {
                     rel="noreferrer"
                     className="font-medium text-sky-700 hover:text-sky-900"
                   >
-                    Ver no X →
+                    {t("Ver no X →")}
                   </a>
                 </div>
               </li>
@@ -170,10 +161,10 @@ export default function XPosts() {
             onClick={() => setPagina((p) => Math.max(0, p - 1))}
             className="rounded-lg border border-slate-200 px-3 py-1.5 disabled:opacity-40"
           >
-            Anterior
+            {t("Anterior")}
           </button>
           <span className="text-slate-500">
-            Página {pagina + 1} de {totalPaginas}
+            {t("Página {pagina} de {total}", { pagina: pagina + 1, total: totalPaginas })}
           </span>
           <button
             type="button"
@@ -181,7 +172,7 @@ export default function XPosts() {
             onClick={() => setPagina((p) => p + 1)}
             className="rounded-lg border border-slate-200 px-3 py-1.5 disabled:opacity-40"
           >
-            Próxima
+            {t("Próxima")}
           </button>
         </div>
       )}

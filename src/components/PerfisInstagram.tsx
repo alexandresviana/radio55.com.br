@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface InstagramPerfil {
   id: number;
@@ -24,17 +25,8 @@ interface MonitorStatus {
   intervalo_minutos: number;
 }
 
-function formatDateTime(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export default function PerfisInstagram() {
+  const { t, formatDateTime } = useI18n();
   const [perfis, setPerfis] = useState<InstagramPerfil[]>([]);
   const [monitor, setMonitor] = useState<MonitorStatus | null>(null);
   const [entrada, setEntrada] = useState("");
@@ -114,7 +106,13 @@ export default function PerfisInstagram() {
   }
 
   async function remover(perfil: InstagramPerfil) {
-    if (!confirm(`Remover o perfil "@${perfil.username}" e todas as publicações analisadas?`)) {
+    if (
+      !confirm(
+        t("Remover o perfil \"@{usuario}\" e todas as publicações analisadas?", {
+          usuario: perfil.username,
+        }),
+      )
+    ) {
       return;
     }
     await fetch(`/api/instagram/perfis/${perfil.id}`, { method: "DELETE" });
@@ -125,10 +123,11 @@ export default function PerfisInstagram() {
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Perfis do Instagram</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{t("Perfis do Instagram")}</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Informe o @usuário ou a URL do perfil público. As publicações recentes são coletadas
-            periodicamente e as legendas passam pelas mesmas palavras-chave das rádios.
+            {t(
+              "Informe o @usuário ou a URL do perfil público. As publicações recentes são coletadas periodicamente e as legendas passam pelas mesmas palavras-chave das rádios.",
+            )}
           </p>
         </div>
         <button
@@ -137,13 +136,13 @@ export default function PerfisInstagram() {
           onClick={() => void sincronizarAgora()}
           className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
         >
-          {sincronizando ? "Sincronizando..." : "Sincronizar agora"}
+          {sincronizando ? t("Sincronizando...") : t("Sincronizar agora")}
         </button>
       </div>
 
       {monitor?.erro && (
         <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-          Última sincronização falhou: {monitor.erro}
+          {t("Última sincronização falhou:")} {t(monitor.erro)}
         </p>
       )}
 
@@ -155,7 +154,7 @@ export default function PerfisInstagram() {
           onKeyDown={(e) => {
             if (e.key === "Enter") void adicionar();
           }}
-          placeholder="@usuario ou https://www.instagram.com/usuario"
+          placeholder={t("@usuario ou https://www.instagram.com/usuario")}
           className="min-w-[280px] flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm"
         />
         <button
@@ -164,26 +163,26 @@ export default function PerfisInstagram() {
           onClick={() => void adicionar()}
           className="rounded-lg bg-fuchsia-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-fuchsia-800 disabled:opacity-60"
         >
-          {salvando ? "Adicionando..." : "Adicionar perfil"}
+          {salvando ? t("Adicionando...") : t("Adicionar perfil")}
         </button>
       </div>
 
-      {erro && <p className="mb-3 text-sm text-red-600">{erro}</p>}
+      {erro && <p className="mb-3 text-sm text-red-600">{t(erro)}</p>}
 
       {loading ? (
-        <p className="text-sm text-slate-500">Carregando perfis...</p>
+        <p className="text-sm text-slate-500">{t("Carregando perfis...")}</p>
       ) : perfis.length === 0 ? (
-        <p className="text-sm text-slate-400">Nenhum perfil cadastrado.</p>
+        <p className="text-sm text-slate-400">{t("Nenhum perfil cadastrado.")}</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
               <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-500">
-                <th className="px-2 py-2">Perfil</th>
-                <th className="px-2 py-2">Publicações</th>
-                <th className="px-2 py-2">Detecções</th>
-                <th className="px-2 py-2">Última sync</th>
-                <th className="px-2 py-2">Status</th>
+                <th className="px-2 py-2">{t("Perfil")}</th>
+                <th className="px-2 py-2">{t("Publicações")}</th>
+                <th className="px-2 py-2">{t("Detecções")}</th>
+                <th className="px-2 py-2">{t("Última sync")}</th>
+                <th className="px-2 py-2">{t("Status")}</th>
                 <th className="px-2 py-2" />
               </tr>
             </thead>
@@ -204,7 +203,7 @@ export default function PerfisInstagram() {
                   <td className="px-2 py-3">{perfil.posts_total ?? 0}</td>
                   <td className="px-2 py-3">{perfil.deteccoes_total ?? 0}</td>
                   <td className="px-2 py-3 text-slate-600">
-                    {formatDateTime(perfil.ultima_verificacao_em)}
+                    {formatDateTime(perfil.ultima_verificacao_em, { year: false })}
                   </td>
                   <td className="px-2 py-3">
                     <span
@@ -214,7 +213,7 @@ export default function PerfisInstagram() {
                           : "bg-slate-100 text-slate-600"
                       }`}
                     >
-                      {perfil.ativo ? "Ativo" : "Pausado"}
+                      {perfil.ativo ? t("Ativo") : t("Pausado")}
                     </span>
                   </td>
                   <td className="px-2 py-3 text-right">
@@ -223,14 +222,14 @@ export default function PerfisInstagram() {
                       onClick={() => void alternarAtivo(perfil)}
                       className="mr-2 text-xs text-slate-600 hover:text-slate-900"
                     >
-                      {perfil.ativo ? "Pausar" : "Ativar"}
+                      {perfil.ativo ? t("Pausar") : t("Ativar")}
                     </button>
                     <button
                       type="button"
                       onClick={() => void remover(perfil)}
                       className="text-xs text-red-500 hover:text-red-700"
                     >
-                      Remover
+                      {t("Remover")}
                     </button>
                   </td>
                 </tr>

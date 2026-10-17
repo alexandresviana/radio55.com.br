@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface WebSite {
   id: number;
@@ -14,17 +15,8 @@ interface WebSite {
   artigos_total?: number;
 }
 
-function formatDateTime(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export default function SitesWeb() {
+  const { t, formatDateTime } = useI18n();
   const [sites, setSites] = useState<WebSite[]>([]);
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(true);
@@ -83,14 +75,14 @@ export default function SitesWeb() {
   }
 
   async function remover(id: number) {
-    if (!confirm("Remover este portal monitorado?")) return;
+    if (!confirm(t("Remover este portal monitorado?"))) return;
     await fetch(`/api/web/sites/${id}`, { method: "DELETE" });
     await carregar();
   }
 
   return (
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="text-lg font-semibold text-slate-900">Portais monitorados</h2>
+      <h2 className="text-lg font-semibold text-slate-900">{t("Portais monitorados")}</h2>
 
       <div className="mt-4 flex flex-wrap gap-2">
         <input
@@ -100,7 +92,7 @@ export default function SitesWeb() {
           onKeyDown={(e) => {
             if (e.key === "Enter") void adicionar();
           }}
-          placeholder="jornaldacidade.net ou https://site.com/feed"
+          placeholder={t("jornaldacidade.net ou https://site.com/feed")}
           className="min-w-[280px] flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm"
         />
         <button
@@ -109,25 +101,25 @@ export default function SitesWeb() {
           onClick={() => void adicionar()}
           className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-60"
         >
-          {salvando ? "Procurando feed..." : "Adicionar"}
+          {salvando ? t("Procurando feed...") : t("Adicionar")}
         </button>
       </div>
 
-      {erro && <p className="mt-3 text-sm text-red-600">{erro}</p>}
+      {erro && <p className="mt-3 text-sm text-red-600">{t(erro)}</p>}
 
       {loading ? (
-        <p className="mt-4 text-sm text-slate-500">Carregando...</p>
+        <p className="mt-4 text-sm text-slate-500">{t("Carregando...")}</p>
       ) : sites.length === 0 ? (
-        <p className="mt-4 text-sm text-slate-400">Nenhum portal cadastrado.</p>
+        <p className="mt-4 text-sm text-slate-400">{t("Nenhum portal cadastrado.")}</p>
       ) : (
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
               <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-500">
-                <th className="px-2 py-2">Portal</th>
-                <th className="px-2 py-2">Artigos</th>
-                <th className="px-2 py-2">Status</th>
-                <th className="px-2 py-2">Última varredura</th>
+                <th className="px-2 py-2">{t("Portal")}</th>
+                <th className="px-2 py-2">{t("Artigos")}</th>
+                <th className="px-2 py-2">{t("Status")}</th>
+                <th className="px-2 py-2">{t("Última varredura")}</th>
                 <th className="px-2 py-2" />
               </tr>
             </thead>
@@ -156,13 +148,13 @@ export default function SitesWeb() {
                           : "bg-slate-100 text-slate-600"
                       }`}
                     >
-                      {site.ativo ? "Ativo" : "Pausado"}
+                      {site.ativo ? t("Ativo") : t("Pausado")}
                     </button>
                   </td>
                   <td className="px-2 py-3 text-slate-600">
-                    {formatDateTime(site.ultima_verificacao_em)}
+                    {formatDateTime(site.ultima_verificacao_em, { year: false })}
                     {site.ultimo_erro && (
-                      <p className="text-xs text-amber-700">{site.ultimo_erro}</p>
+                      <p className="text-xs text-amber-700">{t(site.ultimo_erro)}</p>
                     )}
                   </td>
                   <td className="px-2 py-3 text-right">
@@ -171,7 +163,7 @@ export default function SitesWeb() {
                       onClick={() => void remover(site.id)}
                       className="text-xs text-red-600 hover:underline"
                     >
-                      Remover
+                      {t("Remover")}
                     </button>
                   </td>
                 </tr>

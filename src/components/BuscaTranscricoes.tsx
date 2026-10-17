@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { formatMinutagem } from "@/lib/text-normalize";
 import PaginacaoLista, { POR_PAGINA_ADMIN } from "@/components/PaginacaoLista";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface ResultadoItem {
   id: number;
@@ -16,17 +17,8 @@ interface ResultadoItem {
   em_gravacao: boolean;
 }
 
-function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export default function BuscaTranscricoes() {
+  const { t, formatDateTime } = useI18n();
   const [termo, setTermo] = useState("");
   const [termoBusca, setTermoBusca] = useState("");
   const [resultados, setResultados] = useState<ResultadoItem[]>([]);
@@ -105,10 +97,11 @@ export default function BuscaTranscricoes() {
   return (
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4">
-        <h2 className="text-lg font-semibold text-slate-900">Buscar nas transcrições</h2>
+        <h2 className="text-lg font-semibold text-slate-900">{t("Buscar nas transcrições")}</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Pesquisa livre no texto transcrito — não depende de palavras-chave cadastradas.
-          O histórico completo de cada gravação fica salvo para buscas futuras.
+          {t(
+            "Pesquisa livre no texto transcrito — não depende de palavras-chave cadastradas. O histórico completo de cada gravação fica salvo para buscas futuras.",
+          )}
         </p>
       </div>
 
@@ -120,7 +113,7 @@ export default function BuscaTranscricoes() {
           onKeyDown={(e) => {
             if (e.key === "Enter") aplicarBusca();
           }}
-          placeholder="Ex.: Milton, eleições, prefeito..."
+          placeholder={t("Ex.: Milton, eleições, prefeito...")}
           className="min-w-[220px] flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm"
         />
         <button
@@ -129,22 +122,24 @@ export default function BuscaTranscricoes() {
           onClick={aplicarBusca}
           className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-60"
         >
-          {loading ? "Buscando..." : "Buscar"}
+          {loading ? t("Buscando...") : t("Buscar")}
         </button>
       </div>
 
-      {erro && <p className="mb-3 text-sm text-red-600">{erro}</p>}
+      {erro && <p className="mb-3 text-sm text-red-600">{t(erro)}</p>}
 
       {buscou && !loading && resultados.length === 0 && !erro && (
         <p className="text-sm text-slate-400">
-          Nenhum trecho encontrado para “{termoBusca}” nas transcrições salvas.
+          {t("Nenhum trecho encontrado para “{termo}” nas transcrições salvas.", {
+            termo: termoBusca,
+          })}
         </p>
       )}
 
       {resultados.length > 0 && (
         <>
           <p className="mb-3 text-xs text-slate-500">
-            {total} trecho(s) com “{termoBusca}”
+            {t("{total} trecho(s) com “{termo}”", { total, termo: termoBusca })}
           </p>
           <div className="space-y-2">
             {resultados.map((item) => (
@@ -162,7 +157,7 @@ export default function BuscaTranscricoes() {
                   <span className="font-mono">{formatMinutagem(item.inicio_segundos)}</span>
                   {item.em_gravacao && (
                     <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-800">
-                      ao vivo
+                      {t("ao vivo")}
                     </span>
                   )}
                 </div>
@@ -174,7 +169,7 @@ export default function BuscaTranscricoes() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Ir ao ponto no MP3
+                  {t("Ir ao ponto no MP3")}
                 </a>
               </div>
             ))}

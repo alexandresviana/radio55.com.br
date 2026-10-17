@@ -17,6 +17,7 @@ import XDeteccoes from "@/components/XDeteccoes";
 import XPosts from "@/components/XPosts";
 import YoutubeBuscaTranscricoes from "@/components/YoutubeBuscaTranscricoes";
 import YoutubeDeteccoes from "@/components/YoutubeDeteccoes";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type HomeTab = "panorama" | "radio" | "youtube" | "instagram" | "x" | "meta" | "web" | "ia";
 
@@ -39,6 +40,7 @@ function abaValida(valor: string | null): HomeTab {
 }
 
 export default function HomeAbas() {
+  const { t } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [aba, setAba] = useState<HomeTab>(() => abaValida(searchParams.get("aba")));
@@ -70,7 +72,7 @@ export default function HomeAbas() {
                 : "text-slate-600 hover:bg-white hover:text-slate-900"
             }`}
           >
-            {tab.label}
+            {t(tab.label)}
           </button>
         ))}
       </div>
@@ -80,10 +82,11 @@ export default function HomeAbas() {
       {aba === "radio" && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Busca nas rádios</h2>
+            <h2 className="text-xl font-bold text-slate-900">{t("Busca nas rádios")}</h2>
             <p className="text-sm text-slate-500">
-              Transcrições, detecções e arquivos — o MP3 antigo sai do disco após 1h, mas a busca
-              e a reprodução seguem pelo armazenamento.
+              {t(
+                "Transcrições, detecções e arquivos — o MP3 antigo sai do disco após 1h, mas a busca e a reprodução seguem pelo armazenamento.",
+              )}
             </p>
           </div>
           <BuscaTranscricoes />
@@ -95,9 +98,9 @@ export default function HomeAbas() {
       {aba === "youtube" && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Busca no YouTube</h2>
+            <h2 className="text-xl font-bold text-slate-900">{t("Busca no YouTube")}</h2>
             <p className="text-sm text-slate-500">
-              Pesquise nas legendas e veja as detecções dos canais monitorados.
+              {t("Pesquise nas legendas e veja as detecções dos canais monitorados.")}
             </p>
           </div>
           <YoutubeBuscaTranscricoes />
@@ -110,7 +113,7 @@ export default function HomeAbas() {
           <div>
             <h2 className="text-xl font-bold text-slate-900">Instagram</h2>
             <p className="text-sm text-slate-500">
-              Publicações coletadas e menções aos assuntos monitorados.
+              {t("Publicações coletadas e menções aos assuntos monitorados.")}
             </p>
           </div>
           <InstagramPosts />
@@ -122,7 +125,7 @@ export default function HomeAbas() {
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-bold text-slate-900">X</h2>
-            <p className="text-sm text-slate-500">Posts coletados e detecções dos termos monitorados.</p>
+            <p className="text-sm text-slate-500">{t("Posts coletados e detecções dos termos monitorados.")}</p>
           </div>
           <XPosts />
           <XDeteccoes />
@@ -132,9 +135,9 @@ export default function HomeAbas() {
       {aba === "meta" && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Anúncios</h2>
+            <h2 className="text-xl font-bold text-slate-900">{t("Anúncios")}</h2>
             <p className="text-sm text-slate-500">
-              Biblioteca de anúncios e detecções dos assuntos monitorados.
+              {t("Biblioteca de anúncios e detecções dos assuntos monitorados.")}
             </p>
           </div>
           <MetaAdsAnuncios />

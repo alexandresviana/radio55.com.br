@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface PontoVeiculos {
   hora: string;
@@ -58,47 +59,6 @@ const INNER_PAD = 6;
 
 type Janela = "24h" | "7d" | "30d";
 
-function formatRotuloEixo(iso: string, janela: Janela): string {
-  const data = new Date(iso);
-  if (janela === "24h") {
-    return data.toLocaleTimeString("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-  return data.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-  });
-}
-
-function formatRotuloHover(iso: string, janela: Janela): string {
-  const data = new Date(iso);
-  if (janela === "24h") {
-    return data.toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-  return data.toLocaleDateString("pt-BR", {
-    weekday: "short",
-    day: "2-digit",
-    month: "2-digit",
-  });
-}
-
-function tituloJanela(janela: Janela, veiculo?: string): string {
-  const base =
-    janela === "7d"
-      ? "Evolução nos últimos 7 dias"
-      : janela === "30d"
-        ? "Evolução nos últimos 30 dias"
-        : "Evolução nas últimas 24 horas";
-  return veiculo ? `${base} · ${veiculo}` : base;
-}
-
 function passoLabelEixo(total: number, janela: Janela): number {
   if (janela === "24h") return 3;
   if (janela === "7d") return 1;
@@ -116,9 +76,9 @@ function niceMax(valor: number): number {
 }
 
 function truncarLabel(label: string, max = 16): string {
-  const t = label.trim();
-  if (t.length <= max) return t;
-  return `${t.slice(0, max - 1)}…`;
+  const texto = label.trim();
+  if (texto.length <= max) return texto;
+  return `${texto.slice(0, max - 1)}…`;
 }
 
 function valorPonto(
@@ -143,6 +103,7 @@ export default function PanoramaEvolucao({
   janela?: Janela;
   onFonteChange?: (fonte: SerieId | "todas") => void;
 }) {
+  const { t, formatAxis, formatHover } = useI18n();
   const gradId = useId().replace(/:/g, "");
   const [fonteDrill, setFonteDrill] = useState<SerieId | null>(null);
   const [series, setSeries] = useState<{ id: string; label: string; cor: string }[]>(VEICULOS);
@@ -269,23 +230,43 @@ export default function PanoramaEvolucao({
   const totalPeriodo = pontos.reduce((acc, p) => acc + (p.total ?? 0), 0);
   const passoLabel = passoLabelEixo(pontos.length, janela);
   const subtitulo = fonteDrill
-    ? `Menções por ${janela === "24h" ? "hora" : "dia"} em cada fonte monitorada · clique em Voltar para os veículos`
-    : `Menções por ${janela === "24h" ? "hora" : "dia"} · clique no nome do veículo para ver as fontes`;
+    ? t(
+        janela === "24h"
+          ? "Menções por hora em cada fonte monitorada · clique em Voltar para os veículos"
+          : "Menções por dia em cada fonte monitorada · clique em Voltar para os veículos",
+      )
+    : t(
+        janela === "24h"
+          ? "Menções por hora · clique no nome do veículo para ver as fontes"
+          : "Menções por dia · clique no nome do veículo para ver as fontes",
+      );
+  const baseTitulo = t(
+    janela === "7d"
+      ? "Evolução nos últimos 7 dias"
+      : janela === "30d"
+        ? "Evolução nos últimos 30 dias"
+        : "Evolução nas últimas 24 horas",
+  );
+  const titulo = veiculoAtual
+    ? t("{base} · {veiculo}", { base: baseTitulo, veiculo: t(veiculoAtual.label) })
+    : baseTitulo;
+
+  function rotuloSerie(label: string): string {
+    return fonteDrill ? label : t(label);
+  }
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900">
-            {tituloJanela(janela, veiculoAtual?.label)}
-          </h3>
+          <h3 className="text-lg font-semibold text-slate-900">{titulo}</h3>
           <p className="mt-1 text-sm text-slate-500">
             {subtitulo}
-            {termo?.trim() ? ` · filtro “${termo.trim()}”` : ""}.
+            {termo?.trim() ? ` ${t("· filtro “{termo}”", { termo: termo.trim() })}` : ""}.
             {!loading && totalPeriodo === 0 && series.length === 0
-              ? " Nenhuma fonte monitorada."
+              ? ` ${t("Nenhuma fonte monitorada.")}`
               : !loading && totalPeriodo === 0
-                ? " Sem menções no período."
+                ? ` ${t("Sem menções no período.")}`
                 : ""}
           </p>
         </div>
@@ -295,18 +276,18 @@ export default function PanoramaEvolucao({
             onClick={voltarVeiculos}
             className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
           >
-            ← Voltar aos veículos
+            {t("← Voltar aos veículos")}
           </button>
         )}
       </div>
 
-      {erro && <p className="mb-3 text-sm text-red-600">{erro}</p>}
+      {erro && <p className="mb-3 text-sm text-red-600">{t(erro)}</p>}
 
       {loading ? (
-        <p className="py-16 text-center text-sm text-slate-500">Carregando gráfico...</p>
+        <p className="py-16 text-center text-sm text-slate-500">{t("Carregando gráfico...")}</p>
       ) : series.length === 0 ? (
         <p className="py-12 text-center text-sm text-slate-500">
-          Nenhuma conta/rádio monitorada neste veículo.
+          {t("Nenhuma conta/rádio monitorada neste veículo.")}
         </p>
       ) : (
         <div className="relative w-full overflow-x-auto">
@@ -314,7 +295,7 @@ export default function PanoramaEvolucao({
             viewBox={`0 0 ${WIDTH} ${height}`}
             className="h-auto w-full min-w-[560px]"
             role="img"
-            aria-label={tituloJanela(janela, veiculoAtual?.label)}
+            aria-label={titulo}
             onMouseLeave={() => setHoverIdx(null)}
           >
             <defs>
@@ -374,7 +355,7 @@ export default function PanoramaEvolucao({
                       cursor: clicavel ? "pointer" : "default",
                     }}
                   >
-                    {truncarLabel(s.label, fonteDrill ? 18 : 14)}
+                    {truncarLabel(rotuloSerie(s.label), fonteDrill ? 18 : 14)}
                   </text>
                   {clicavel && (
                     <rect
@@ -386,7 +367,7 @@ export default function PanoramaEvolucao({
                       style={{ cursor: "pointer" }}
                       onClick={() => abrirFonte(s.id as SerieId)}
                     >
-                      <title>Ver fontes de {s.label}</title>
+                      <title>{t("Ver fontes de {nome}", { nome: t(s.label) })}</title>
                     </rect>
                   )}
                 </g>
@@ -404,7 +385,7 @@ export default function PanoramaEvolucao({
                   className="fill-slate-400"
                   style={{ fontSize: 10 }}
                 >
-                  {formatRotuloEixo(p.hora, janela)}
+                  {formatAxis(p.hora, janela)}
                 </text>
               );
             })}
@@ -459,14 +440,12 @@ export default function PanoramaEvolucao({
 
           {hover && (
             <div className="pointer-events-none absolute right-3 top-3 max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-xs shadow-sm backdrop-blur">
-              <p className="mb-1 font-medium text-slate-800">
-                {formatRotuloHover(hover.hora, janela)}
-              </p>
+              <p className="mb-1 font-medium text-slate-800">{formatHover(hover.hora, janela)}</p>
               {series.map((s) => (
                 <p key={s.id} className="flex items-center justify-between gap-4 text-slate-600">
                   <span className="inline-flex items-center gap-1.5">
                     <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: s.cor }} />
-                    {truncarLabel(s.label, 20)}
+                    {truncarLabel(rotuloSerie(s.label), 20)}
                   </span>
                   <span className="font-medium text-slate-900">
                     {valorPonto(hover, s.id, modo)}

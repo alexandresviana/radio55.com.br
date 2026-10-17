@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ConsultaInterpretada, FonteCitada } from "@/lib/ai-busca-types";
 import PaginacaoLista from "@/components/PaginacaoLista";
+import { useI18n } from "@/i18n/I18nProvider";
 
 const EXEMPLOS = [
   "O que falaram do governador João na rádio X no dia 02 de julho entre 6 e 10 da manhã?",
@@ -10,19 +11,27 @@ const EXEMPLOS = [
   "O que disseram sobre eleições na Itabaiana FM ontem?",
 ];
 
-function formatFiltros(f: ConsultaInterpretada): string[] {
+function formatFiltros(
+  f: ConsultaInterpretada,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+): string[] {
   const linhas: string[] = [];
-  linhas.push(`Fontes: ${f.fontes.join(", ")}`);
-  if (f.termos.length) linhas.push(`Termos: ${f.termos.join(", ")}`);
-  if (f.radio_nome) linhas.push(`Rádio: ${f.radio_nome}`);
-  if (f.municipio) linhas.push(`Município: ${f.municipio}`);
-  if (f.canal_youtube) linhas.push(`Canal YouTube: ${f.canal_youtube}`);
-  if (f.data) linhas.push(`Data: ${f.data}`);
-  if (f.hora_de || f.hora_ate) linhas.push(`Horário: ${f.hora_de ?? "…"} – ${f.hora_ate ?? "…"}`);
+  linhas.push(t("Fontes: {lista}", { lista: f.fontes.join(", ") }));
+  if (f.termos.length) linhas.push(t("Termos: {lista}", { lista: f.termos.join(", ") }));
+  if (f.radio_nome) linhas.push(t("Rádio: {nome}", { nome: f.radio_nome }));
+  if (f.municipio) linhas.push(t("Município: {nome}", { nome: f.municipio }));
+  if (f.canal_youtube) linhas.push(t("Canal YouTube: {nome}", { nome: f.canal_youtube }));
+  if (f.data) linhas.push(t("Data: {data}", { data: f.data }));
+  if (f.hora_de || f.hora_ate) {
+    linhas.push(
+      t("Horário: {de} – {ate}", { de: f.hora_de ?? "…", ate: f.hora_ate ?? "…" }),
+    );
+  }
   return linhas;
 }
 
 export default function AdminBuscaIATab() {
+  const { t, idioma } = useI18n();
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
@@ -80,6 +89,7 @@ export default function AdminBuscaIATab() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: pergunta,
+          idioma,
           pagina: paginaAtual,
           interpretacao: novaBusca ? undefined : interpretacao ?? undefined,
         }),
@@ -120,7 +130,7 @@ export default function AdminBuscaIATab() {
         setResposta(data.resposta ?? "");
       }
     },
-    [prompt, pagina, interpretacao],
+    [prompt, pagina, interpretacao, idioma],
   );
 
   function perguntar() {
@@ -133,30 +143,42 @@ export default function AdminBuscaIATab() {
     void buscar({ pagina: novaPagina });
   }
 
+  const rotuloFontes = t("Fontes ({total} trecho{s}{extra})", {
+    total,
+    s: total !== 1 ? "s" : "",
+    extra: "\u0001",
+  });
+  const [fontesAntes, fontesDepois] = rotuloFontes.split("\u0001");
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-slate-900">Busca com IA</h2>
+        <h2 className="text-xl font-bold text-slate-900">{t("Busca com IA")}</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Faça perguntas em linguagem natural sobre transcrições das rádios e legendas do YouTube.
-          <span className="ml-1 text-slate-400">· {porPagina} trechos/página</span>
+          {t(
+            "Faça perguntas em linguagem natural sobre transcrições das rádios e legendas do YouTube.",
+          )}
+          <span className="ml-1 text-slate-400">{t("· {n} trechos/página", { n: porPagina })}</span>
         </p>
       </div>
 
       {disponivel === false && (
         <p className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          A busca inteligente não está ativa neste servidor. Fale com o administrador do sistema
-          para habilitá-la.
+          {t(
+            "A busca inteligente não está ativa neste servidor. Fale com o administrador do sistema para habilitá-la.",
+          )}
         </p>
       )}
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <label className="mb-2 block text-sm font-medium text-slate-700">Sua pergunta</label>
+        <label className="mb-2 block text-sm font-medium text-slate-700">{t("Sua pergunta")}</label>
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           rows={4}
-          placeholder="Ex.: o que falaram do governador João na rádio X no dia 02 de julho entre 6 e 10 da manhã?"
+          placeholder={t(
+            "Ex.: o que falaram do governador João na rádio X no dia 02 de julho entre 6 e 10 da manhã?",
+          )}
           className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm leading-relaxed focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
         />
 
@@ -165,10 +187,10 @@ export default function AdminBuscaIATab() {
             <button
               key={exemplo}
               type="button"
-              onClick={() => setPrompt(exemplo)}
+              onClick={() => setPrompt(t(exemplo))}
               className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 hover:bg-slate-50"
             >
-              Exemplo
+              {t("Exemplo")}
             </button>
           ))}
         </div>
@@ -179,20 +201,20 @@ export default function AdminBuscaIATab() {
           onClick={perguntar}
           className="mt-4 rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-800 disabled:opacity-60"
         >
-          {loading ? "Analisando transcrições..." : "Perguntar"}
+          {loading ? t("Analisando transcrições...") : t("Perguntar")}
         </button>
 
         {erro && (
-          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>
+          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{t(erro)}</p>
         )}
       </section>
 
       {interpretacao && (
         <section className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
-          <h3 className="text-sm font-semibold text-sky-900">Como entendi sua pergunta</h3>
+          <h3 className="text-sm font-semibold text-sky-900">{t("Como entendi sua pergunta")}</h3>
           <p className="mt-1 text-xs text-sky-800">{interpretacao.intencao}</p>
           <ul className="mt-2 space-y-0.5 text-xs text-sky-700">
-            {formatFiltros(interpretacao).map((linha) => (
+            {formatFiltros(interpretacao, t).map((linha) => (
               <li key={linha}>{linha}</li>
             ))}
           </ul>
@@ -205,7 +227,7 @@ export default function AdminBuscaIATab() {
 
       {resposta && pagina === 0 && (
         <section className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-slate-900">Resposta</h3>
+          <h3 className="text-sm font-semibold text-slate-900">{t("Resposta")}</h3>
           <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
             {resposta}
           </div>
@@ -215,14 +237,17 @@ export default function AdminBuscaIATab() {
       {fontes.length > 0 && (
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h3 className="text-sm font-semibold text-slate-900">
-            Fontes ({total} trecho{total !== 1 ? "s" : ""}
+            {fontesAntes}
             {(totalRadio > 0 || totalYoutube > 0) && (
               <span className="font-normal text-slate-500">
                 {" "}
-                · rádio {totalRadio} · YouTube {totalYoutube}
+                {t("· rádio {radio} · YouTube {youtube}", {
+                  radio: totalRadio,
+                  youtube: totalYoutube,
+                })}
               </span>
             )}
-            )
+            {fontesDepois}
           </h3>
           <div className="mt-3 space-y-3">
             {fontes.map((fonte) => (
@@ -241,7 +266,7 @@ export default function AdminBuscaIATab() {
                         : "bg-red-100 text-red-800"
                     }`}
                   >
-                    {fonte.tipo === "radio" ? "Rádio" : "YouTube"}
+                    {fonte.tipo === "radio" ? t("Rádio") : t("YouTube")}
                   </span>
                   <span className="font-medium text-slate-800">{fonte.titulo}</span>
                   {fonte.momento && (
@@ -261,7 +286,7 @@ export default function AdminBuscaIATab() {
                   rel="noreferrer"
                   className="mt-2 inline-block text-xs font-medium text-emerald-700 hover:underline"
                 >
-                  {fonte.tipo === "radio" ? "Ouvir no MP3" : "Ver no YouTube"}
+                  {fonte.tipo === "radio" ? t("Ouvir no MP3") : t("Ver no YouTube")}
                 </a>
               </article>
             ))}

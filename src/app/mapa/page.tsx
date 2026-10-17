@@ -8,9 +8,11 @@ import MapaEstado from "@/components/MapaEstado";
 import PainelRadios from "@/components/PainelRadios";
 import { ESTADOS, UF_PADRAO, getMunicipioData, type Uf } from "@/lib/estados";
 import { getRegioesFromData } from "@/lib/regioes";
+import { useI18n } from "@/i18n/I18nProvider";
 import type { EmissorasData } from "@/types";
 
 export default function MapaPage() {
+  const { t } = useI18n();
   const [emissoras, setEmissoras] = useState<EmissorasData>({});
   const [loading, setLoading] = useState(true);
   const [estado, setEstado] = useState<Uf>(UF_PADRAO);
@@ -58,8 +60,8 @@ export default function MapaPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <Header subtitle="Mapa de emissoras" />
-        <p className="py-20 text-center text-slate-500">Carregando mapa...</p>
+        <Header subtitle={t("Mapa de emissoras")} />
+        <p className="py-20 text-center text-slate-500">{t("Carregando mapa...")}</p>
       </div>
     );
   }
@@ -67,14 +69,18 @@ export default function MapaPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Header
-        subtitle={`${estadoLabel} · ${Object.keys(emissorasEstado).length} municípios · ${totalRadios} rádios`}
+        subtitle={t("{estado} · {municipios} municípios · {radios} rádios", {
+          estado: estadoLabel,
+          municipios: Object.keys(emissorasEstado).length,
+          radios: totalRadios,
+        })}
       />
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
         <div className="mb-4">
-          <h1 className="text-2xl font-bold text-slate-900">Mapa de emissoras</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{t("Mapa de emissoras")}</h1>
           <p className="text-sm text-slate-500">
-            Explore rádios por município e ouça ao vivo. O monitoramento fica na página inicial.
+            {t("Explore rádios por município e ouça ao vivo. O monitoramento fica na página inicial.")}
           </p>
         </div>
 
@@ -117,7 +123,7 @@ export default function MapaPage() {
               onSelectMunicipio={setMunicipioSelecionado}
             />
             <p className="mt-3 text-center text-xs text-slate-400">
-              PJ = Programas Jornalísticos · Fonte: radios.com.br
+              {t("PJ = Programas Jornalísticos · Fonte: radios.com.br")}
             </p>
           </section>
 

@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Logo from "@/components/Logo";
+import SeletorIdioma from "@/components/SeletorIdioma";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface HeaderProps {
   subtitle?: string;
 }
 
 export default function Header({ subtitle }: HeaderProps) {
+  const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -19,9 +22,9 @@ export default function Header({ subtitle }: HeaderProps) {
   }
 
   const links = [
-    { href: "/", label: "O que está rolando?" },
-    { href: "/mapa", label: "Mapa" },
-    { href: "/admin", label: "Admin" },
+    { href: "/", label: t("O que está rolando?"), short: t("Rolando") },
+    { href: "/mapa", label: t("Mapa"), short: t("Mapa") },
+    { href: "/admin", label: t("Admin"), short: t("Admin") },
   ];
 
   function linkAtivo(href: string): boolean {
@@ -52,16 +55,17 @@ export default function Header({ subtitle }: HeaderProps) {
                   : "text-emerald-100/80 hover:bg-white/10 hover:text-white"
               }`}
             >
-              <span className="sm:hidden">{link.href === "/" ? "Rolando" : link.label}</span>
+              <span className="sm:hidden">{link.short}</span>
               <span className="hidden sm:inline">{link.label}</span>
             </Link>
           ))}
+          <SeletorIdioma />
           <button
             type="button"
             onClick={handleLogout}
             className="rounded-lg border border-white/15 px-3 py-2 text-sm font-medium text-emerald-100/80 transition hover:bg-white/10 hover:text-white"
           >
-            Sair
+            {t("Sair")}
           </button>
         </nav>
       </div>

@@ -3,9 +3,12 @@
 import { FormEvent, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Logo from "@/components/Logo";
+import SeletorIdioma from "@/components/SeletorIdioma";
+import { useI18n } from "@/i18n/I18nProvider";
 import { safeRedirectPath } from "@/lib/auth";
 
 export default function LoginPage() {
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
@@ -27,14 +30,14 @@ export default function LoginPage() {
 
       if (!res.ok) {
         const data = (await res.json()) as { error?: string };
-        setError(data.error ?? "Erro ao entrar");
+        setError(t(data.error ?? "Erro ao entrar"));
         return;
       }
 
       const destino = safeRedirectPath(searchParams.get("from"));
       window.location.assign(destino);
     } catch {
-      setError("Erro de conexão. Tente novamente.");
+      setError(t("Erro de conexão. Tente novamente."));
     } finally {
       setLoading(false);
     }
@@ -50,14 +53,21 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-white/95 p-8 shadow-2xl backdrop-blur">
         <div className="mb-8 flex flex-col items-center text-center">
           <Logo size="lg" />
-          <h1 className="mt-4 text-xl font-bold text-slate-900">Monitoramento de mídia</h1>
-          <p className="mt-2 text-sm text-slate-500">Acesso restrito</p>
+          <h1 className="mt-4 text-xl font-bold text-slate-900">{t("Monitoramento de mídia")}</h1>
+          <p className="mt-2 text-sm text-slate-500">{t("Acesso restrito")}</p>
+        </div>
+
+        <div className="mb-6">
+          <p className="mb-2 text-center text-xs font-medium uppercase tracking-wide text-slate-400">
+            {t("Idioma")}
+          </p>
+          <SeletorIdioma destaque />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="user" className="mb-1 block text-sm font-medium text-slate-700">
-              Usuário
+              {t("Usuário")}
             </label>
             <input
               id="user"
@@ -72,7 +82,7 @@ export default function LoginPage() {
 
           <div>
             <label htmlFor="pass" className="mb-1 block text-sm font-medium text-slate-700">
-              Senha
+              {t("Senha")}
             </label>
             <input
               id="pass"
@@ -94,7 +104,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full rounded-lg bg-emerald-700 py-2.5 font-medium text-white transition hover:bg-emerald-800 disabled:opacity-60"
           >
-            {loading ? "Entrando..." : "Entrar"}
+            {loading ? t("Entrando...") : t("Entrar")}
           </button>
         </form>
       </div>

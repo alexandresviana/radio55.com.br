@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 import type { EmissorasData } from "@/types";
 
 interface BuscaMunicipioProps {
@@ -16,6 +17,7 @@ export default function BuscaMunicipio({
   value,
   onChange,
 }: BuscaMunicipioProps) {
+  const { t } = useI18n();
   const [q, setQ] = useState("");
 
   const opcoes = useMemo(() => {
@@ -31,14 +33,14 @@ export default function BuscaMunicipio({
   return (
     <div className="relative min-w-[220px] flex-1 sm:max-w-xs">
       <label className="sr-only" htmlFor="busca-municipio">
-        Buscar município
+        {t("Buscar município")}
       </label>
       <input
         id="busca-municipio"
         type="search"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="Buscar município (ex: Salvador)"
+        placeholder={t("Buscar município (ex: Salvador)")}
         className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none ring-emerald-600/30 placeholder:text-slate-400 focus:ring-2"
         autoComplete="off"
       />
@@ -56,7 +58,7 @@ export default function BuscaMunicipio({
               >
                 <span>{nome}</span>
                 <span className="text-xs text-slate-400">
-                  {emissoras[nome]?.radios.length ?? 0} rádios
+                  {t("{n} rádios", { n: emissoras[nome]?.radios.length ?? 0 })}
                 </span>
               </button>
             </li>

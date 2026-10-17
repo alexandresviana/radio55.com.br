@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import PaginacaoLista, { POR_PAGINA_ADMIN } from "@/components/PaginacaoLista";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface GravacaoArquivo {
   id: number;
@@ -26,18 +27,8 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-}
-
 export default function GravacoesArquivos() {
+  const { t, formatDateTime } = useI18n();
   const [arquivos, setArquivos] = useState<GravacaoArquivo[]>([]);
   const [radios, setRadios] = useState<RadioOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -126,9 +117,9 @@ export default function GravacoesArquivos() {
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Arquivos gravados</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{t("Arquivos gravados")}</h2>
           <p className="mt-1 text-sm text-slate-500">
-            MP3 indexados automaticamente. Use Atualizar para recarregar a lista.
+            {t("MP3 indexados automaticamente. Use Atualizar para recarregar a lista.")}
           </p>
         </div>
         <button
@@ -136,13 +127,13 @@ export default function GravacoesArquivos() {
           onClick={() => void buscar()}
           className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
         >
-          Atualizar
+          {t("Atualizar")}
         </button>
       </div>
 
       <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <div>
-          <label className="mb-1 block text-xs font-medium text-slate-500">Município</label>
+          <label className="mb-1 block text-xs font-medium text-slate-500">{t("Município")}</label>
           <select
             value={municipio}
             onChange={(e) => {
@@ -151,7 +142,7 @@ export default function GravacoesArquivos() {
             }}
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
           >
-            <option value="">Todos</option>
+            <option value="">{t("Todos")}</option>
             {municipios.map((m) => (
               <option key={m} value={m}>
                 {m}
@@ -161,13 +152,13 @@ export default function GravacoesArquivos() {
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-slate-500">Rádio</label>
+          <label className="mb-1 block text-xs font-medium text-slate-500">{t("Rádio")}</label>
           <select
             value={radio}
             onChange={(e) => setRadio(e.target.value)}
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
           >
-            <option value="">Todas</option>
+            <option value="">{t("Todas")}</option>
             {radiosDoMunicipio.map((nome) => (
               <option key={nome} value={nome}>
                 {nome}
@@ -177,7 +168,7 @@ export default function GravacoesArquivos() {
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-slate-500">Dia</label>
+          <label className="mb-1 block text-xs font-medium text-slate-500">{t("Dia")}</label>
           <input
             type="date"
             value={dia}
@@ -187,7 +178,7 @@ export default function GravacoesArquivos() {
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-slate-500">Hora de</label>
+          <label className="mb-1 block text-xs font-medium text-slate-500">{t("Hora de")}</label>
           <input
             type="time"
             value={horaDe}
@@ -197,7 +188,7 @@ export default function GravacoesArquivos() {
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-slate-500">Hora até</label>
+          <label className="mb-1 block text-xs font-medium text-slate-500">{t("Hora até")}</label>
           <input
             type="time"
             value={horaAte}
@@ -216,37 +207,37 @@ export default function GravacoesArquivos() {
           }}
           className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-800"
         >
-          Buscar
+          {t("Buscar")}
         </button>
       </div>
 
       {erro && (
-        <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>
+        <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{t(erro)}</p>
       )}
 
       {loading ? (
-        <p className="text-sm text-slate-500">Carregando arquivos...</p>
+        <p className="text-sm text-slate-500">{t("Carregando arquivos...")}</p>
       ) : arquivos.length === 0 ? (
-        <p className="text-sm text-slate-500">Nenhum arquivo encontrado para os filtros selecionados.</p>
+        <p className="text-sm text-slate-500">{t("Nenhum arquivo encontrado para os filtros selecionados.")}</p>
       ) : (
         <>
         <div className="overflow-x-auto rounded-xl border border-slate-100">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
-                <th className="px-4 py-3">Data/hora</th>
-                <th className="px-4 py-3">Rádio</th>
-                <th className="px-4 py-3">Município</th>
-                <th className="px-4 py-3">Arquivo</th>
-                <th className="px-4 py-3">Tamanho</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Ouvir</th>
+                <th className="px-4 py-3">{t("Data/hora")}</th>
+                <th className="px-4 py-3">{t("Rádio")}</th>
+                <th className="px-4 py-3">{t("Município")}</th>
+                <th className="px-4 py-3">{t("Arquivo")}</th>
+                <th className="px-4 py-3">{t("Tamanho")}</th>
+                <th className="px-4 py-3">{t("Status")}</th>
+                <th className="px-4 py-3">{t("Ouvir")}</th>
               </tr>
             </thead>
             <tbody>
               {arquivos.map((item) => (
                 <tr key={item.id} className="border-t border-slate-100">
-                  <td className="px-4 py-3 whitespace-nowrap">{formatDateTime(item.gravado_em)}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">{formatDateTime(item.gravado_em, { seconds: true })}</td>
                   <td className="px-4 py-3 font-medium text-slate-800">{item.radio_nome}</td>
                   <td className="px-4 py-3 text-slate-600">{item.municipio}</td>
                   <td className="px-4 py-3 font-mono text-xs text-slate-500">{item.arquivo}</td>
@@ -259,35 +250,35 @@ export default function GravacoesArquivos() {
                     {item.em_gravacao ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
                         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-600" />
-                        Ao vivo
+                        {t("Ao vivo")}
                       </span>
                     ) : item.arquivo_valido === false ? (
                       <span
                         className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800"
-                        title={item.arquivo_erro ?? "Arquivo truncado ou ilegível"}
+                        title={t(item.arquivo_erro ?? "Arquivo truncado ou ilegível")}
                       >
-                        Inválido
+                        {t("Inválido")}
                       </span>
                     ) : item.bunny_uploaded_em ? (
                       <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-800">
-                        No storage
+                        {t("No storage")}
                       </span>
                     ) : (
                       <span
                         className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600"
-                        title="Aguardando envio ao armazenamento remoto"
+                        title={t("Aguardando envio ao armazenamento remoto")}
                       >
-                        Enviando...
+                        {t("Enviando...")}
                       </span>
                     )}
                   </td>
                   <td className="px-4 py-3">
                     {item.arquivo_valido === false ? (
-                      <span className="text-xs text-amber-700" title={item.arquivo_erro ?? undefined}>
-                        Indisponível
+                      <span className="text-xs text-amber-700" title={item.arquivo_erro ? t(item.arquivo_erro) : undefined}>
+                        {t("Indisponível")}
                       </span>
                     ) : !item.em_gravacao && !item.bunny_uploaded_em ? (
-                      <span className="text-xs text-slate-500">Aguardando storage</span>
+                      <span className="text-xs text-slate-500">{t("Aguardando storage")}</span>
                     ) : (
                       <audio
                         controls
@@ -296,7 +287,7 @@ export default function GravacoesArquivos() {
                         className="h-8 max-w-[220px]"
                         title={
                           item.em_gravacao
-                            ? "Reprodução ao vivo — o áudio continua conforme a gravação avança"
+                            ? t("Reprodução ao vivo — o áudio continua conforme a gravação avança")
                             : undefined
                         }
                       />

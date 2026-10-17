@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import SeloTermoDeteccao from "@/components/SeloTermoDeteccao";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface DeteccaoItem {
   id: number;
@@ -21,18 +22,8 @@ interface DeteccaoItem {
 
 const POR_PAGINA = 20;
 
-function formatDateTime(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export default function InstagramDeteccoes() {
+  const { t, formatDateTime } = useI18n();
   const [deteccoes, setDeteccoes] = useState<DeteccaoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
@@ -91,10 +82,11 @@ export default function InstagramDeteccoes() {
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Detecções no Instagram</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{t("Detecções no Instagram")}</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Palavras-chave encontradas nas legendas e nos comentários das publicações
-            monitoradas. A busca inclui termo, contexto e perfil.
+            {t(
+              "Palavras-chave encontradas nas legendas e nos comentários das publicações monitoradas. A busca inclui termo, contexto e perfil.",
+            )}
           </p>
         </div>
         <button
@@ -102,7 +94,7 @@ export default function InstagramDeteccoes() {
           onClick={() => void buscar({ reescanear: true })}
           className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
         >
-          Atualizar
+          {t("Atualizar")}
         </button>
       </div>
 
@@ -114,7 +106,7 @@ export default function InstagramDeteccoes() {
           onKeyDown={(e) => {
             if (e.key === "Enter") aplicarFiltro();
           }}
-          placeholder="Filtrar por palavra (ex.: eleições)"
+          placeholder={t("Filtrar por palavra (ex.: eleições)")}
           className="min-w-[220px] flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm"
         />
         <button
@@ -123,34 +115,40 @@ export default function InstagramDeteccoes() {
           onClick={aplicarFiltro}
           className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-60"
         >
-          {loading ? "Buscando..." : "Buscar"}
+          {loading ? t("Buscando...") : t("Buscar")}
         </button>
       </div>
 
-      {erro && <p className="mb-3 text-sm text-red-600">{erro}</p>}
+      {erro && <p className="mb-3 text-sm text-red-600">{t(erro)}</p>}
 
       {loading && deteccoes.length === 0 ? (
-        <p className="text-sm text-slate-400">Carregando detecções...</p>
+        <p className="text-sm text-slate-400">{t("Carregando detecções...")}</p>
       ) : deteccoes.length === 0 ? (
         <p className="text-sm text-slate-400">
-          Nenhuma detecção encontrada{termoBusca ? ` para “${termoBusca}”` : ""}. Cadastre
-          palavras-chave e perfis; as publicações já coletadas são reescaneadas automaticamente.
+          {termoBusca
+            ? t(
+                "Nenhuma detecção encontrada para “{termo}”. Cadastre palavras-chave e perfis; as publicações já coletadas são reescaneadas automaticamente.",
+                { termo: termoBusca },
+              )
+            : t(
+                "Nenhuma detecção encontrada. Cadastre palavras-chave e perfis; as publicações já coletadas são reescaneadas automaticamente.",
+              )}
         </p>
       ) : (
         <>
           <p className="mb-3 text-xs text-slate-500">
-            {total} ocorrência(s)
-            {termoBusca ? ` · filtro “${termoBusca}”` : ""}
+            {t("{total} ocorrência(s)", { total })}
+            {termoBusca ? ` ${t("· filtro “{termo}”", { termo: termoBusca })}` : ""}
           </p>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-500">
-                  <th className="px-2 py-2">Detectado</th>
-                  <th className="px-2 py-2">Palavra</th>
-                  <th className="px-2 py-2">Perfil</th>
-                  <th className="px-2 py-2">Publicado</th>
-                  <th className="px-2 py-2">Contexto</th>
+                  <th className="px-2 py-2">{t("Detectado")}</th>
+                  <th className="px-2 py-2">{t("Palavra")}</th>
+                  <th className="px-2 py-2">{t("Perfil")}</th>
+                  <th className="px-2 py-2">{t("Publicado")}</th>
+                  <th className="px-2 py-2">{t("Contexto")}</th>
                   <th className="px-2 py-2" />
                 </tr>
               </thead>
@@ -168,11 +166,13 @@ export default function InstagramDeteccoes() {
                       />
                       {item.comentario_db_id ? (
                         <span className="mt-1 inline-block rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">
-                          Comentário{item.comentario_autor ? ` · @${item.comentario_autor}` : ""}
+                          {t("Comentário{autor}", {
+                            autor: item.comentario_autor ? ` · @${item.comentario_autor}` : "",
+                          })}
                         </span>
                       ) : (
                         <span className="mt-1 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
-                          Legenda
+                          {t("Legenda")}
                         </span>
                       )}
                     </td>
@@ -180,7 +180,7 @@ export default function InstagramDeteccoes() {
                       <div className="font-medium text-slate-800">@{item.perfil_username}</div>
                       {item.busca_termo && (
                         <span className="mt-1 inline-block rounded-full bg-fuchsia-50 px-2 py-0.5 text-xs text-fuchsia-700">
-                          via #{item.busca_termo}
+                          {t("via #{termo}", { termo: item.busca_termo })}
                         </span>
                       )}
                     </td>
@@ -196,7 +196,7 @@ export default function InstagramDeteccoes() {
                           rel="noreferrer"
                           className="text-xs font-medium text-fuchsia-700 hover:text-fuchsia-800"
                         >
-                          Ver no Instagram
+                          {t("Ver no Instagram")}
                         </a>
                       )}
                     </td>
@@ -209,7 +209,7 @@ export default function InstagramDeteccoes() {
           {totalPaginas > 1 && (
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs text-slate-500">
-                Página {pagina + 1} de {totalPaginas}
+                {t("Página {pagina} de {total}", { pagina: pagina + 1, total: totalPaginas })}
               </p>
               <div className="flex gap-2">
                 <button
@@ -218,7 +218,7 @@ export default function InstagramDeteccoes() {
                   onClick={() => setPagina((prev) => Math.max(0, prev - 1))}
                   className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                 >
-                  Anterior
+                  {t("Anterior")}
                 </button>
                 <button
                   type="button"
@@ -226,7 +226,7 @@ export default function InstagramDeteccoes() {
                   onClick={() => setPagina((prev) => prev + 1)}
                   className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                 >
-                  Próxima
+                  {t("Próxima")}
                 </button>
               </div>
             </div>

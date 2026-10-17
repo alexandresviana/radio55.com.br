@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 import { formatMinutagem } from "@/lib/text-normalize";
 import { youtubeThumbnailUrl } from "@/lib/youtube-thumbnail";
 
@@ -17,22 +18,12 @@ interface ResultadoItem {
 
 const POR_PAGINA = 20;
 
-function formatDateTime(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 function youtubeUrl(videoId: string, segundos: number): string {
   return `https://www.youtube.com/watch?v=${videoId}&t=${Math.floor(segundos)}s`;
 }
 
 export default function YoutubeBuscaTranscricoes() {
+  const { t, formatDateTime } = useI18n();
   const [termo, setTermo] = useState("");
   const [termoBusca, setTermoBusca] = useState("");
   const [resultados, setResultados] = useState<ResultadoItem[]>([]);
@@ -98,10 +89,11 @@ export default function YoutubeBuscaTranscricoes() {
   return (
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4">
-        <h2 className="text-lg font-semibold text-slate-900">Buscar nas transcrições</h2>
+        <h2 className="text-lg font-semibold text-slate-900">{t("Buscar nas transcrições")}</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Pesquisa livre no texto das legendas salvas — não depende de palavras-chave cadastradas.
-          Diferente das detecções abaixo, que só alertam termos configurados.
+          {t(
+            "Pesquisa livre no texto das legendas salvas — não depende de palavras-chave cadastradas. Diferente das detecções abaixo, que só alertam termos configurados.",
+          )}
         </p>
       </div>
 
@@ -113,7 +105,7 @@ export default function YoutubeBuscaTranscricoes() {
           onKeyDown={(e) => {
             if (e.key === "Enter") aplicarBusca();
           }}
-          placeholder="Ex.: eleições, candidato, prefeito..."
+          placeholder={t("Ex.: eleições, candidato, prefeito...")}
           className="min-w-[220px] flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm"
         />
         <button
@@ -122,22 +114,22 @@ export default function YoutubeBuscaTranscricoes() {
           onClick={aplicarBusca}
           className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-60"
         >
-          {loading ? "Buscando..." : "Buscar"}
+          {loading ? t("Buscando...") : t("Buscar")}
         </button>
       </div>
 
-      {erro && <p className="mb-3 text-sm text-red-600">{erro}</p>}
+      {erro && <p className="mb-3 text-sm text-red-600">{t(erro)}</p>}
 
       {buscou && !loading && resultados.length === 0 && !erro && (
         <p className="text-sm text-slate-400">
-          Nenhum trecho encontrado para “{termoBusca}” nas transcrições salvas.
+          {t("Nenhum trecho encontrado para “{termo}” nas transcrições salvas.", { termo: termoBusca })}
         </p>
       )}
 
       {resultados.length > 0 && (
         <>
           <p className="mb-3 text-xs text-slate-500">
-            {total} trecho(s) com “{termoBusca}”
+            {t("{total} trecho(s) com “{termo}”", { total, termo: termoBusca })}
           </p>
           <div className="space-y-2">
             {resultados.map((item) => (
@@ -177,7 +169,7 @@ export default function YoutubeBuscaTranscricoes() {
                   rel="noreferrer"
                   className="shrink-0 text-xs font-medium text-red-600 hover:text-red-700"
                 >
-                  Ver no YouTube
+                  {t("Ver no YouTube")}
                 </a>
               </div>
             ))}
@@ -186,7 +178,7 @@ export default function YoutubeBuscaTranscricoes() {
           {totalPaginas > 1 && (
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs text-slate-500">
-                Página {pagina + 1} de {totalPaginas}
+                {t("Página {pagina} de {total}", { pagina: pagina + 1, total: totalPaginas })}
               </p>
               <div className="flex gap-2">
                 <button
@@ -195,7 +187,7 @@ export default function YoutubeBuscaTranscricoes() {
                   onClick={() => mudarPagina(Math.max(0, pagina - 1))}
                   className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                 >
-                  Anterior
+                  {t("Anterior")}
                 </button>
                 <button
                   type="button"
@@ -203,7 +195,7 @@ export default function YoutubeBuscaTranscricoes() {
                   onClick={() => mudarPagina(pagina + 1)}
                   className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                 >
-                  Próxima
+                  {t("Próxima")}
                 </button>
               </div>
             </div>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { formatMinutagem } from "@/lib/text-normalize";
 import PaginacaoLista, { POR_PAGINA_ADMIN } from "@/components/PaginacaoLista";
 import SeloTermoDeteccao from "@/components/SeloTermoDeteccao";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface DeteccaoItem {
   id: number;
@@ -20,18 +21,8 @@ interface DeteccaoItem {
   trecho_caminho: string | null;
 }
 
-function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-}
-
 export default function PainelDeteccoes() {
+  const { t, formatDateTime } = useI18n();
   const [deteccoes, setDeteccoes] = useState<DeteccaoItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
@@ -106,10 +97,11 @@ export default function PainelDeteccoes() {
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Histórico de detecções</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{t("Histórico de detecções")}</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Alertas de palavras-chave cadastradas. Para buscar qualquer termo no texto transcrito,
-            use a seção &quot;Buscar nas transcrições&quot; acima.
+            {t(
+              "Alertas de palavras-chave cadastradas. Para buscar qualquer termo no texto transcrito, use a seção \"Buscar nas transcrições\" acima.",
+            )}
           </p>
         </div>
         <button
@@ -120,7 +112,7 @@ export default function PainelDeteccoes() {
           }}
           className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
         >
-          Atualizar
+          {t("Atualizar")}
         </button>
       </div>
 
@@ -132,7 +124,7 @@ export default function PainelDeteccoes() {
           onKeyDown={(e) => {
             if (e.key === "Enter") aplicarBusca();
           }}
-          placeholder="Filtrar por palavra-chave ou contexto"
+          placeholder={t("Filtrar por palavra-chave ou contexto")}
           className="min-w-[200px] rounded-lg border border-slate-200 px-3 py-2 text-sm"
         />
         <button
@@ -141,23 +133,26 @@ export default function PainelDeteccoes() {
           onClick={aplicarBusca}
           className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-900 disabled:opacity-60"
         >
-          {loading ? "Buscando..." : "Buscar"}
+          {loading ? t("Buscando...") : t("Buscar")}
         </button>
       </div>
 
       {erro && (
-        <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>
+        <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{t(erro)}</p>
       )}
 
       {loading ? (
-        <p className="text-sm text-slate-500">Carregando detecções...</p>
+        <p className="text-sm text-slate-500">{t("Carregando detecções...")}</p>
       ) : deteccoes.length === 0 ? (
         <p className="text-sm text-slate-500">
           {!consultado
-            ? "Clique em Buscar para carregar o histórico de alertas."
+            ? t("Clique em Buscar para carregar o histórico de alertas.")
             : termoBusca.trim()
-              ? `Nenhum alerta de palavra-chave para “${termoBusca}”. Se a palavra só apareceu na transcrição (sem estar cadastrada como palavra-chave), use “Buscar nas transcrições” acima.`
-              : "Nenhuma detecção no histórico."}
+              ? t(
+                  "Nenhum alerta de palavra-chave para “{termo}”. Se a palavra só apareceu na transcrição (sem estar cadastrada como palavra-chave), use “Buscar nas transcrições” acima.",
+                  { termo: termoBusca },
+                )
+              : t("Nenhuma detecção no histórico.")}
         </p>
       ) : (
         <>
@@ -165,19 +160,19 @@ export default function PainelDeteccoes() {
             <table className="min-w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
-                  <th className="px-4 py-3">Detectado</th>
-                  <th className="px-4 py-3">Palavra</th>
-                  <th className="px-4 py-3">Rádio</th>
-                  <th className="px-4 py-3">Minutagem</th>
-                  <th className="px-4 py-3">Contexto</th>
-                  <th className="px-4 py-3">Áudio</th>
+                  <th className="px-4 py-3">{t("Detectado")}</th>
+                  <th className="px-4 py-3">{t("Palavra")}</th>
+                  <th className="px-4 py-3">{t("Rádio")}</th>
+                  <th className="px-4 py-3">{t("Minutagem")}</th>
+                  <th className="px-4 py-3">{t("Contexto")}</th>
+                  <th className="px-4 py-3">{t("Áudio")}</th>
                 </tr>
               </thead>
               <tbody>
                 {deteccoes.map((item) => (
                   <tr key={item.id} className="border-t border-slate-100 align-top">
                     <td className="px-4 py-3 whitespace-nowrap text-slate-600">
-                      {formatDateTime(item.detectado_em)}
+                      {formatDateTime(item.detectado_em, { seconds: true })}
                     </td>
                     <td className="px-4 py-3">
                       <SeloTermoDeteccao termo={item.termo} ancora={item.ancora_termo} />
@@ -189,7 +184,7 @@ export default function PainelDeteccoes() {
                     <td className="px-4 py-3 font-mono text-slate-700">
                       {formatMinutagem(item.inicio_segundos)}
                       {item.em_gravacao && (
-                        <span className="ml-2 text-xs text-emerald-700">ao vivo</span>
+                        <span className="ml-2 text-xs text-emerald-700">{t("ao vivo")}</span>
                       )}
                     </td>
                     <td className="px-4 py-3 max-w-xs text-xs text-slate-600">
@@ -205,7 +200,7 @@ export default function PainelDeteccoes() {
                             className="h-8 max-w-[220px]"
                           />
                         ) : (
-                          <span className="text-xs text-slate-400">Trecho indisponível</span>
+                          <span className="text-xs text-slate-400">{t("Trecho indisponível")}</span>
                         )}
                         <a
                           href={`/api/gravacoes/${item.gravacao_id}/arquivo?t=${Math.floor(item.inicio_segundos)}`}
@@ -213,7 +208,7 @@ export default function PainelDeteccoes() {
                           target="_blank"
                           rel="noreferrer"
                         >
-                          Ponto exato
+                          {t("Ponto exato")}
                         </a>
                       </div>
                     </td>

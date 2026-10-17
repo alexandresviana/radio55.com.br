@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface MetaAdsPagina {
   id: number;
@@ -13,17 +14,8 @@ interface MetaAdsPagina {
   anuncios_total?: number;
 }
 
-function formatDateTime(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export default function PaginasMetaAds() {
+  const { t, formatDateTime } = useI18n();
   const [paginas, setPaginas] = useState<MetaAdsPagina[]>([]);
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(true);
@@ -82,16 +74,16 @@ export default function PaginasMetaAds() {
   }
 
   async function remover(id: number) {
-    if (!confirm("Remover esta página monitorada?")) return;
+    if (!confirm(t("Remover esta página monitorada?"))) return;
     await fetch(`/api/meta-ads/paginas/${id}`, { method: "DELETE" });
     await carregar();
   }
 
   return (
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="text-lg font-semibold text-slate-900">Páginas anunciantes</h2>
+      <h2 className="text-lg font-semibold text-slate-900">{t("Páginas anunciantes")}</h2>
       <p className="mt-1 text-sm text-slate-500">
-        Monitore todos os anúncios ativos de uma página do Facebook (qualquer anunciante).
+        {t("Monitore todos os anúncios ativos de uma página do Facebook (qualquer anunciante).")}
       </p>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -102,7 +94,7 @@ export default function PaginasMetaAds() {
           onKeyDown={(e) => {
             if (e.key === "Enter") void adicionar();
           }}
-          placeholder="facebook.com/nomedapagina ou @pagina"
+          placeholder={t("facebook.com/nomedapagina ou @pagina")}
           className="min-w-[280px] flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm"
         />
         <button
@@ -111,25 +103,25 @@ export default function PaginasMetaAds() {
           onClick={() => void adicionar()}
           className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-60"
         >
-          {salvando ? "Salvando..." : "Adicionar"}
+          {salvando ? t("Salvando...") : t("Adicionar")}
         </button>
       </div>
 
-      {erro && <p className="mt-3 text-sm text-red-600">{erro}</p>}
+      {erro && <p className="mt-3 text-sm text-red-600">{t(erro)}</p>}
 
       {loading ? (
-        <p className="mt-4 text-sm text-slate-500">Carregando...</p>
+        <p className="mt-4 text-sm text-slate-500">{t("Carregando...")}</p>
       ) : paginas.length === 0 ? (
-        <p className="mt-4 text-sm text-slate-400">Nenhuma página cadastrada.</p>
+        <p className="mt-4 text-sm text-slate-400">{t("Nenhuma página cadastrada.")}</p>
       ) : (
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[560px] text-left text-sm">
             <thead>
               <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-500">
-                <th className="px-2 py-2">Página</th>
-                <th className="px-2 py-2">Anúncios</th>
-                <th className="px-2 py-2">Status</th>
-                <th className="px-2 py-2">Última varredura</th>
+                <th className="px-2 py-2">{t("Página")}</th>
+                <th className="px-2 py-2">{t("Anúncios")}</th>
+                <th className="px-2 py-2">{t("Status")}</th>
+                <th className="px-2 py-2">{t("Última varredura")}</th>
                 <th className="px-2 py-2" />
               </tr>
             </thead>
@@ -157,13 +149,13 @@ export default function PaginasMetaAds() {
                           : "bg-slate-100 text-slate-600"
                       }`}
                     >
-                      {pagina.ativo ? "Ativa" : "Pausada"}
+                      {pagina.ativo ? t("Ativa") : t("Pausada")}
                     </button>
                   </td>
                   <td className="px-2 py-3 text-slate-600">
-                    {formatDateTime(pagina.ultima_verificacao_em)}
+                    {formatDateTime(pagina.ultima_verificacao_em, { year: false })}
                     {pagina.ultimo_erro && (
-                      <p className="text-xs text-amber-700">{pagina.ultimo_erro}</p>
+                      <p className="text-xs text-amber-700">{t(pagina.ultimo_erro)}</p>
                     )}
                   </td>
                   <td className="px-2 py-3 text-right">
@@ -172,7 +164,7 @@ export default function PaginasMetaAds() {
                       onClick={() => void remover(pagina.id)}
                       className="text-xs text-red-600 hover:underline"
                     >
-                      Remover
+                      {t("Remover")}
                     </button>
                   </td>
                 </tr>

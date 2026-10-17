@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { useI18n } from "@/i18n/I18nProvider";
+
 interface RadioPlayerProps {
   municipio: string;
   nome: string;
@@ -24,6 +26,7 @@ export default function RadioPlayer({
   regiaoCor = "#047857",
   onClose,
 }: RadioPlayerProps) {
+  const { t } = useI18n();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [info, setInfo] = useState<StreamInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -137,7 +140,7 @@ export default function RadioPlayer({
             type="button"
             onClick={onClose}
             className="shrink-0 rounded-lg px-2 py-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-            aria-label="Fechar player"
+            aria-label={t("Fechar player")}
           >
             ✕
           </button>
@@ -147,11 +150,11 @@ export default function RadioPlayer({
       <audio ref={audioRef} preload="none" crossOrigin="anonymous" />
 
       {loading ? (
-        <p className="text-sm text-slate-500">Carregando stream...</p>
+        <p className="text-sm text-slate-500">{t("Carregando stream...")}</p>
       ) : error ? (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{t(error)}</p>
       ) : !info?.playUrl ? (
-        <p className="text-sm text-slate-500">Stream não disponível para esta emissora.</p>
+        <p className="text-sm text-slate-500">{t("Stream não disponível para esta emissora.")}</p>
       ) : (
         <div className="space-y-3">
           <div className="flex items-center gap-3">
@@ -160,7 +163,7 @@ export default function RadioPlayer({
               onClick={togglePlay}
               className="flex h-11 w-11 items-center justify-center rounded-full text-white shadow transition hover:opacity-90"
               style={{ backgroundColor: regiaoCor }}
-              aria-label={playing ? "Pausar" : "Tocar"}
+              aria-label={playing ? t("Pausar") : t("Tocar")}
             >
               {playing ? (
                 <span className="text-lg">❚❚</span>
@@ -171,7 +174,7 @@ export default function RadioPlayer({
 
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-400">Vol</span>
+                <span className="text-xs text-slate-400">{t("Vol")}</span>
                 <input
                   type="range"
                   min={0}
@@ -183,7 +186,7 @@ export default function RadioPlayer({
                 />
               </div>
               <p className="mt-1 text-xs text-emerald-700">
-                {playing ? "● Ao vivo" : "Pausado"}
+                {playing ? t("● Ao vivo") : t("Pausado")}
               </p>
             </div>
           </div>
@@ -195,7 +198,7 @@ export default function RadioPlayer({
               rel="noopener noreferrer"
               className="inline-block text-xs text-slate-400 hover:text-emerald-700"
             >
-              Fonte: radios.com.br
+              {t("Fonte: radios.com.br")}
             </a>
           )}
         </div>

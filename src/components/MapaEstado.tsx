@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { geoMercator, geoPath, type GeoPermissibleObjects } from "d3-geo";
 import { getMunicipioData, nomeMunicipioExibicao } from "@/lib/estados";
+import { useI18n } from "@/i18n/I18nProvider";
 import { getRegiaoCor } from "@/lib/regioes";
 import type { EmissorasData, GeoCollection } from "@/types";
 
@@ -34,6 +35,7 @@ export default function MapaEstado({
   regiaoFiltro,
   onSelectMunicipio,
 }: MapaEstadoProps) {
+  const { t } = useI18n();
   const [geo, setGeo] = useState<GeoCollection | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
 
@@ -113,7 +115,7 @@ export default function MapaEstado({
   if (!geo) {
     return (
       <div className="flex h-full min-h-[400px] items-center justify-center rounded-2xl bg-slate-100">
-        <p className="text-slate-500">Carregando mapa...</p>
+        <p className="text-slate-500">{t("Carregando mapa...")}</p>
       </div>
     );
   }
@@ -129,7 +131,7 @@ export default function MapaEstado({
         viewBox={`0 0 ${width} ${height}`}
         className="mx-auto h-auto w-full max-w-4xl"
         role="img"
-        aria-label={`Mapa interativo dos municípios — ${estado}`}
+        aria-label={t("Mapa interativo dos municípios — {estado}", { estado })}
       >
         {paths.map(({ name, d, hasRadios, regiao, isCapital }) => {
           const isSelected = nomeMunicipioExibicao(municipioSelecionado ?? "") === name;

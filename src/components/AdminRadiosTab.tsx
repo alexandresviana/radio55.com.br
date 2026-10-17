@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import GravacoesAtivas from "@/components/GravacoesAtivas";
+import { useI18n } from "@/i18n/I18nProvider";
 import { ESTADOS, UF_PADRAO, type Uf } from "@/lib/estados";
 import { getRegioesParaSelect, REGIOES_SUGERIDAS } from "@/lib/regioes";
 import type { EmissorasData, Radio } from "@/types";
@@ -22,6 +23,7 @@ function radioEh24h(radio: Radio): boolean {
 }
 
 export default function AdminRadiosTab() {
+  const { t } = useI18n();
   const [emissoras, setEmissoras] = useState<EmissorasData>({});
   const [municipios, setMunicipios] = useState<string[]>([]);
   const [estadoAdmin, setEstadoAdmin] = useState<Uf>(UF_PADRAO);
@@ -103,10 +105,12 @@ export default function AdminRadiosTab() {
 
   async function limparBase() {
     const ok = confirm(
-      "Isso apaga só o monitoramento atual:\n• arquivos gravados (local + armazenamento remoto, se houver)\n• gravações e transcrições de rádio\n• canais YouTube monitorados (e vídeos/transcrições)\n• perfis e termos do Instagram (e publicações/comentários)\n• termos do X (e posts)\n\nMantém: cadastro de emissoras, palavras-chave e login.\n\nContinuar?",
+      t(
+        "Isso apaga só o monitoramento atual:\n• arquivos gravados (local + armazenamento remoto, se houver)\n• gravações e transcrições de rádio\n• canais YouTube monitorados (e vídeos/transcrições)\n• perfis e termos do Instagram (e publicações/comentários)\n• termos do X (e posts)\n\nMantém: cadastro de emissoras, palavras-chave e login.\n\nContinuar?",
+      ),
     );
     if (!ok) return;
-    const confirmacao = window.prompt("Digite LIMPAR para confirmar:");
+    const confirmacao = window.prompt(t("Digite LIMPAR para confirmar:"));
     if (confirmacao !== "LIMPAR") {
       setMessage({ type: "error", text: "Limpeza cancelada." });
       return;
@@ -135,7 +139,7 @@ export default function AdminRadiosTab() {
   }
 
   function removerMunicipio(nome: string) {
-    if (!confirm(`Remover ${nome} e todas as suas emissoras?`)) return;
+    if (!confirm(t("Remover {nome} e todas as suas emissoras?", { nome }))) return;
     const next = { ...emissoras };
     delete next[nome];
     setEmissoras(next);
@@ -145,15 +149,17 @@ export default function AdminRadiosTab() {
   const atual = selecionado ? emissoras[selecionado] : null;
 
   if (loading) {
-    return <p className="py-12 text-center text-slate-500">Carregando emissoras...</p>;
+    return <p className="py-12 text-center text-slate-500">{t("Carregando emissoras...")}</p>;
   }
 
   return (
     <>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Rádios</h2>
-          <p className="text-sm text-slate-500">{lista.length} municípios cadastrados</p>
+          <h2 className="text-xl font-bold text-slate-900">{t("Rádios")}</h2>
+          <p className="text-sm text-slate-500">
+            {t("{n} municípios cadastrados", { n: lista.length })}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -162,7 +168,7 @@ export default function AdminRadiosTab() {
             onClick={() => void limparBase()}
             className="rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-60"
           >
-            {resetting ? "Limpando..." : "Limpar monitoramento"}
+            {resetting ? t("Limpando...") : t("Limpar monitoramento")}
           </button>
           <button
             type="button"
@@ -170,7 +176,7 @@ export default function AdminRadiosTab() {
             onClick={() => salvar(emissoras)}
             className="rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-800 disabled:opacity-60"
           >
-            {saving ? "Salvando..." : "Salvar alterações"}
+            {saving ? t("Salvando...") : t("Salvar alterações")}
           </button>
         </div>
       </div>
@@ -183,7 +189,7 @@ export default function AdminRadiosTab() {
               : "bg-red-50 text-red-700"
           }`}
         >
-          {message.text}
+          {t(message.text)}
         </p>
       )}
 
@@ -192,7 +198,7 @@ export default function AdminRadiosTab() {
       <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
         <aside className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Municípios
+            {t("Municípios")}
           </h3>
           <ul className="max-h-[50vh] space-y-1 overflow-y-auto">
             {lista.map((nome) => (
@@ -216,7 +222,7 @@ export default function AdminRadiosTab() {
           </ul>
 
           <div className="mt-4 border-t border-slate-100 pt-4">
-            <label className="mb-1 block text-xs font-medium text-slate-500">Estado</label>
+            <label className="mb-1 block text-xs font-medium text-slate-500">{t("Estado")}</label>
             <select
               value={estadoAdmin}
               onChange={(e) => {
@@ -233,14 +239,14 @@ export default function AdminRadiosTab() {
               ))}
             </select>
             <label className="mb-1 block text-xs font-medium text-slate-500">
-              Adicionar município
+              {t("Adicionar município")}
             </label>
             <select
               value={novoMunicipio}
               onChange={(e) => setNovoMunicipio(e.target.value)}
               className="w-full rounded-lg border border-slate-200 px-2 py-2 text-sm"
             >
-              <option value="">Selecione...</option>
+              <option value="">{t("Selecione...")}</option>
               {municipiosDisponiveis.map((m) => (
                 <option key={m} value={m}>
                   {m}
@@ -253,14 +259,14 @@ export default function AdminRadiosTab() {
               disabled={!novoMunicipio}
               className="mt-2 w-full rounded-lg border border-emerald-200 bg-emerald-50 py-2 text-sm font-medium text-emerald-800 transition hover:bg-emerald-100 disabled:opacity-50"
             >
-              + Adicionar
+              {t("+ Adicionar")}
             </button>
           </div>
         </aside>
 
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           {!selecionado || !atual ? (
-            <p className="text-slate-500">Selecione um município para editar.</p>
+            <p className="text-slate-500">{t("Selecione um município para editar.")}</p>
           ) : (
             <>
               <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
@@ -270,13 +276,13 @@ export default function AdminRadiosTab() {
                   onClick={() => removerMunicipio(selecionado)}
                   className="rounded-lg border border-red-200 px-3 py-1.5 text-sm text-red-600 transition hover:bg-red-50"
                 >
-                  Remover município
+                  {t("Remover município")}
                 </button>
               </div>
 
               <div className="mb-6 grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">Estado</label>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">{t("Estado")}</label>
                   <select
                     value={atual.estado ?? estadoAdmin}
                     onChange={(e) =>
@@ -292,7 +298,7 @@ export default function AdminRadiosTab() {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">Região</label>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">{t("Região")}</label>
                   <input
                     list="regioes-admin"
                     value={atual.regiao}
@@ -308,7 +314,7 @@ export default function AdminRadiosTab() {
               </div>
 
               <div className="mb-3 flex items-center justify-between">
-                <h4 className="font-medium text-slate-800">Emissoras</h4>
+                <h4 className="font-medium text-slate-800">{t("Emissoras")}</h4>
                 <button
                   type="button"
                   onClick={() =>
@@ -318,7 +324,7 @@ export default function AdminRadiosTab() {
                   }
                   className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-200"
                 >
-                  + Nova emissora
+                  {t("+ Nova emissora")}
                 </button>
               </div>
 
@@ -330,7 +336,7 @@ export default function AdminRadiosTab() {
                   >
                     <div className="grid gap-3 sm:grid-cols-[1fr_80px_140px_auto]">
                       <div>
-                        <label className="mb-1 block text-xs text-slate-500">Nome</label>
+                        <label className="mb-1 block text-xs text-slate-500">{t("Nome")}</label>
                         <input
                           value={radio.nome}
                           onChange={(e) => {
@@ -339,11 +345,11 @@ export default function AdminRadiosTab() {
                             atualizarMunicipio(selecionado, { radios });
                           }}
                           className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                          placeholder="Ex: Fan FM"
+                          placeholder={t("Ex: Fan FM")}
                         />
                       </div>
                       <div>
-                        <label className="mb-1 block text-xs text-slate-500">PJ</label>
+                        <label className="mb-1 block text-xs text-slate-500">{t("PJ")}</label>
                         <input
                           type="number"
                           min={0}
@@ -357,7 +363,7 @@ export default function AdminRadiosTab() {
                         />
                       </div>
                       <div>
-                        <label className="mb-1 block text-xs text-slate-500">Tipo</label>
+                        <label className="mb-1 block text-xs text-slate-500">{t("Tipo")}</label>
                         <select
                           value={radio.tipo}
                           onChange={(e) => {
@@ -370,8 +376,8 @@ export default function AdminRadiosTab() {
                           }}
                           className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                         >
-                          <option value="comunitaria">Comunitária</option>
-                          <option value="comercial">Comercial</option>
+                          <option value="comunitaria">{t("Comunitária")}</option>
+                          <option value="comercial">{t("Comercial")}</option>
                         </select>
                       </div>
                       <div className="flex items-end">
@@ -383,7 +389,7 @@ export default function AdminRadiosTab() {
                           }}
                           className="rounded-lg px-3 py-2 text-sm text-red-500 transition hover:bg-red-50"
                         >
-                          Remover
+                          {t("Remover")}
                         </button>
                       </div>
                     </div>
@@ -409,7 +415,7 @@ export default function AdminRadiosTab() {
                             }}
                             className="h-4 w-4 rounded border-slate-300 text-emerald-700"
                           />
-                          <span className="font-medium text-slate-800">Gravar</span>
+                          <span className="font-medium text-slate-800">{t("Gravar")}</span>
                         </label>
 
                         {radio.gravar && (
@@ -430,7 +436,7 @@ export default function AdminRadiosTab() {
                                 }}
                                 className="h-4 w-4 border-slate-300 text-emerald-700"
                               />
-                              24 horas
+                              {t("24 horas")}
                             </label>
                             <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
                               <input
@@ -448,7 +454,7 @@ export default function AdminRadiosTab() {
                                 }}
                                 className="h-4 w-4 border-slate-300 text-emerald-700"
                               />
-                              Faixa de horário
+                              {t("Faixa de horário")}
                             </label>
                           </>
                         )}
@@ -458,7 +464,7 @@ export default function AdminRadiosTab() {
                         <div className="mt-3 flex flex-wrap items-end gap-3">
                           <div>
                             <label className="mb-1 block text-xs text-slate-500">
-                              Início
+                              {t("Início")}
                             </label>
                             <input
                               type="time"
@@ -472,7 +478,7 @@ export default function AdminRadiosTab() {
                             />
                           </div>
                           <div>
-                            <label className="mb-1 block text-xs text-slate-500">Fim</label>
+                            <label className="mb-1 block text-xs text-slate-500">{t("Fim")}</label>
                             <input
                               type="time"
                               value={radio.gravarFim ?? "22:00"}
@@ -485,15 +491,16 @@ export default function AdminRadiosTab() {
                             />
                           </div>
                           <p className="pb-2 text-xs text-slate-400">
-                            Horário de Brasília. Se o fim for menor que o início, atravessa a
-                            meia-noite.
+                            {t(
+                              "Horário de Brasília. Se o fim for menor que o início, atravessa a meia-noite.",
+                            )}
                           </p>
                         </div>
                       )}
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-xs text-slate-500">URL do stream</label>
+                      <label className="mb-1 block text-xs text-slate-500">{t("URL do stream")}</label>
                       <input
                         type="url"
                         value={radio.streamUrl ?? ""}
@@ -503,14 +510,14 @@ export default function AdminRadiosTab() {
                           atualizarMunicipio(selecionado, { radios });
                         }}
                         className="w-full rounded-lg border border-slate-200 px-3 py-2 font-mono text-xs"
-                        placeholder="https://exemplo.com/stream (vazio = radios.com.br)"
+                        placeholder={t("https://exemplo.com/stream (vazio = radios.com.br)")}
                       />
                     </div>
                   </div>
                 ))}
 
                 {atual.radios.length === 0 && (
-                  <p className="text-sm text-slate-400">Nenhuma emissora cadastrada.</p>
+                  <p className="text-sm text-slate-400">{t("Nenhuma emissora cadastrada.")}</p>
                 )}
               </div>
             </>
